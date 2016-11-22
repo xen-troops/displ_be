@@ -5,8 +5,12 @@ set(PROJECT_NAME "drm_be")
 project(${PROJECT_NAME})
 
 set(SOURCES
+	src/drm/Connector.cpp
+	src/drm/Device.cpp
+	src/drm/Dumb.cpp
+	src/drm/FrameBuffer.cpp
+	src/drm/Modes.cpp
 	src/CommandHandler.cpp
-	src/Drm.cpp
 	src/DrmBackend.cpp
 )
 
@@ -24,7 +28,7 @@ link_directories(${XEN_LIB_PATH} ${XENBE_LIB_PATH})
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} xenbe xenctrl xenstore xenevtchn xengnttab drm asound pthread)
+target_link_libraries(${PROJECT_NAME} xenbe xenctrl xenstore xenevtchn xengnttab drm pthread)
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)

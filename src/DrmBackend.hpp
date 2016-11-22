@@ -76,7 +76,7 @@ public:
 	 * @param port  event channel port number
 	 * @param ref   grant table reference
 	 */
-	ConCtrlRingBuffer(Drm::DrmDevice& drm,
+	ConCtrlRingBuffer(Drm::Device& drm,
 					  std::shared_ptr<ConEventRingBuffer> eventBuffer,
 					  int id, int domId, int port, int ref);
 
@@ -117,7 +117,7 @@ protected:
 
 private:
 
-	Drm::DrmDevice mDrm;
+	Drm::Device mDrm;
 	XenBackend::Log mLog;
 
 	void createConnector(const std::string& streamPath);
@@ -129,7 +129,10 @@ private:
  ******************************************************************************/
 class DrmBackend : public XenBackend::BackendBase
 {
-	using XenBackend::BackendBase::BackendBase;
+public:
+
+	DrmBackend(int domId, const std::string& deviceName, int id,
+			   const std::string& startupScript);
 
 protected:
 

@@ -32,7 +32,7 @@ extern "C" {
 #include <xen/io/drmif_linux.h>
 }
 
-#include "Drm.hpp"
+#include "drm/Device.hpp"
 
 class ConEventRingBuffer;
 
@@ -47,7 +47,7 @@ public:
 	 * @param connectorId connector id
 	 * @param domId domain id
 	 */
-	CommandHandler(uint32_t connectorId, int domId, Drm::DrmDevice& drm,
+	CommandHandler(uint32_t connectorId, int domId, Drm::Device& drm,
 				   std::shared_ptr<ConEventRingBuffer> eventBuffer);
 	~CommandHandler();
 
@@ -67,7 +67,7 @@ private:
 	int mDomId;
 	std::shared_ptr<ConEventRingBuffer> mEventBuffer;
 
-	Drm::DrmDevice& mDrm;
+	Drm::Device& mDrm;
 
 	uint32_t mLocalConnectorId;
 	uint32_t mCrtcId;

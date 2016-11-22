@@ -25,11 +25,13 @@
 #include <vector>
 
 #include <csignal>
-
 #include <getopt.h>
 
+#include <drm_fourcc.h>
+
 #include <xen/be/XenStore.hpp>
-#include "Drm.hpp"
+
+#include "drm/Device.hpp"
 
 /***************************************************************************//**
  * @mainpage drm_be
@@ -55,7 +57,7 @@ using XenBackend::RingBufferBase;
 using XenBackend::RingBufferInBase;
 using XenBackend::XenStore;
 
-using Drm::DrmDevice;
+using Drm::Device;
 
 unique_ptr <DrmBackend> gDrmBackend;
 
@@ -91,7 +93,7 @@ unique_ptr <DrmBackend> gDrmBackend;
  * ConCtrlRingBuffer
  ******************************************************************************/
 
-ConCtrlRingBuffer::ConCtrlRingBuffer(DrmDevice& drm,
+ConCtrlRingBuffer::ConCtrlRingBuffer(Device& drm,
 									 shared_ptr<ConEventRingBuffer> eventBuffer,
 									 int id, int domId, int port, int ref) :
 	RingBufferInBase<xen_drmif_back_ring, xen_drmif_sring,
@@ -193,10 +195,19 @@ void DrmFrontendHandler::createConnector(const string& conPath)
  * DrmBackend
  ******************************************************************************/
 
+DrmBackend::DrmBackend(int domId, const std::string& deviceName, int id,
+					   const std::string& startupScript) :
+	BackendBase(domId, deviceName, id)
+{
+
+}
+
 void DrmBackend::onNewFrontend(int domId, int id)
 {
+
+
 	addFrontendHandler(shared_ptr<FrontendHandlerBase>(
-					   new DrmFrontendHandler("dev/dri/card0", domId,
+					   new DrmFrontendHandler("/dev/dri/card0", domId,
 							   *this, id)));
 }
 
@@ -226,10 +237,14 @@ bool commandLineOptions(int argc, char *argv[])
 
 	int opt = -1;
 
-	while((opt = getopt(argc, argv, "v:fh?")) != -1)
+	while((opt = getopt(argc, argv, "s:v:fh?")) != -1)
 	{
 		switch(opt)
 		{
+		case 's':
+
+			break;
+
 		case 'v':
 			if (!Log::setLogLevel(string(optarg)))
 			{
@@ -300,14 +315,9 @@ int main(int argc, char *argv[])
 
 		if (commandLineOptions(argc, argv))
 		{
-			DrmDevice drm("/dev/dri/card0");
-/*
-			drm.createDumb(1920, 1080, 32);
-			drm.createFrameBuffer(drm.createDumb(800, 600, 32), 800, 600,
-								  DRM_FORMAT_XRGB8888);
+#if 0
+			Device drm("/dev/dri/card0");
 
-*/
-/*
 			for (size_t i = 0; i < drm.getConnectorsCount(); i++)
 			{
 				Drm::Connector& connector = drm.getConnectorByIndex(i);
@@ -316,7 +326,6 @@ int main(int argc, char *argv[])
 								   << ", connected: "
 								   << connector.isConnected();
 			}
-*/
 
 			Drm::Dumb& dumb1 = drm.createDumb(1920, 1080, 32);
 			Drm::FrameBuffer& fb1 = drm.createFrameBuffer(dumb1, 1920,
@@ -326,7 +335,7 @@ int main(int argc, char *argv[])
 			Drm::FrameBuffer& fb2 = drm.createFrameBuffer(dumb2, 1920, 1080,
 														  DRM_FORMAT_XRGB8888);
 
-			Drm::Connector& connector = drm.getConnectorById(46);
+			Drm::Connector& connector = drm.getConnectorById(32);
 
 			connector.init(0, 0, 1920, 1080, 32, fb1.getId());
 
@@ -336,12 +345,11 @@ int main(int argc, char *argv[])
 
 			std::this_thread::sleep_for(std::chrono::seconds(6));
 
+#endif
 
-			#if 0
-			gDrmBackend.reset(new DrmBackend(0, XENDRM_DRIVER_NAME));
+			gDrmBackend.reset(new DrmBackend(0, XENDRM_DRIVER_NAME, 0, ""));
 
 			gDrmBackend->run();
-#endif
 		}
 		else
 		{

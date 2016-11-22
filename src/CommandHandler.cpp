@@ -24,6 +24,7 @@
 #include <sys/mman.h>
 
 #include "DrmBackend.hpp"
+#include "drm/Exception.hpp"
 
 using std::shared_ptr;
 using std::make_pair;
@@ -36,7 +37,7 @@ using XenBackend::XenException;
 using XenBackend::XenGnttabBuffer;
 
 using Drm::Connector;
-using Drm::DrmDevice;
+using Drm::Device;
 using Drm::DrmException;
 using Drm::Dumb;
 using Drm::FrameBuffer;
@@ -56,7 +57,7 @@ CommandHandler::CommandFn CommandHandler::sCmdTable[] =
  * CommandHandler
  ******************************************************************************/
 
-CommandHandler::CommandHandler(uint32_t connectorId, int domId, DrmDevice& drm,
+CommandHandler::CommandHandler(uint32_t connectorId, int domId, Device& drm,
 							   shared_ptr<ConEventRingBuffer> eventBuffer) :
 	mRemoteConnectorId(connectorId),
 	mDomId(domId),
