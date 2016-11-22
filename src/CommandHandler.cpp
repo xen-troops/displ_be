@@ -46,10 +46,10 @@ using Drm::cInvalidId;
 CommandHandler::CommandFn CommandHandler::sCmdTable[] =
 {
 	&CommandHandler::pageFlip,
-	&CommandHandler::createDumb,
-	&CommandHandler::destroyDumb,
 	&CommandHandler::createFrameBuffer,
 	&CommandHandler::destroyFrameBuffer,
+	&CommandHandler::createDumb,
+	&CommandHandler::destroyDumb,
 	&CommandHandler::setConfig,
 };
 
