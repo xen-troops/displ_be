@@ -28,20 +28,61 @@ namespace Drm {
 
 class Device;
 
+/***************************************************************************//**
+ * Provides DRM dumb functionality.
+ * @ingroup drm
+ ******************************************************************************/
 class Dumb
 {
 public:
+
+	/**
+	 * @param drm    DRM device
+	 * @param width  dumb width
+	 * @param height dumb height
+	 * @param bpp    bits per pixel
+	 */
 	Dumb(Device& drm, uint32_t width, uint32_t height, uint32_t bpp);
+
 	~Dumb();
 
+	/**
+	 * Returns dumb width
+	 * @return dumb width
+	 */
 	uint32_t getWidth() const { return mWidth; }
+
+	/**
+	 * Returns dumb height
+	 * @return dumb height
+	 */
 	uint32_t getHeight() const { return mHeight; }
+
+	/**
+	 * Returns dumb handle
+	 * @return dumb handle
+	 */
 	uint32_t getHandle() const { return mHandle; }
+
+	/**
+	 * Returns dumb pitch
+	 * @return dumb pitch
+	 */
 	uint32_t getPitch() const { return mPitch; }
+
+	/**
+	 * Returns dumb size
+	 * @return dumb size
+	 */
 	uint32_t getSize() const { return mSize; }
+
+	/**
+	 * Returns pointer to the dumb buffer
+	 */
 	void* getBuffer() const { return mBuffer; }
 
 private:
+
 	Device& mDrm;
 	uint32_t mHandle;
 	uint32_t mPitch;

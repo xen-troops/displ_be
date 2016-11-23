@@ -33,26 +33,67 @@ extern const uint32_t cInvalidId;
 
 class Device;
 
+/***************************************************************************//**
+ * Provides DRM connector functionality.
+ * @ingroup drm
+ ******************************************************************************/
 class Connector
 {
 public:
 
+	/**
+	 * @param dev DRM device
+	 * @param connectorId connector id
+	 */
 	Connector(Device& dev, int connectorId);
+
 	~Connector();
 
+	/**
+	 * Returns assigned CRTC id
+	 * @return CRTC id
+	 */
 	uint32_t getCrtcId() const { return mCrtcId; }
+
+	/**
+	 * Returns connector id
+	 * @return connector id
+	 */
 	uint32_t getId() const { return mConnector->connector_id; }
+
+	/**
+	 * Checks if the connector is connected
+	 * @return <i>true</i> if connected
+	 */
 	bool isConnected() const { return mConnector->connection ==
 									  DRM_MODE_CONNECTED;
 	}
 
+	/**
+	 * Checks if the connector is initialized and CRTC is assigned
+	 * @return <i>true</i> if initialized
+	 */
 	bool isInitialized() const { return mCrtcId != cInvalidId; }
 
+	/**
+	 * Initializes CRTC mode
+	 * @param x      horizontal offset
+	 * @param y      vertical offset
+	 * @param width  width
+	 * @param height height
+	 * @param bpp    bits per pixel
+	 * @param fbId   frame buffer id
+	 */
 	void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 			  uint32_t bpp, uint32_t fbId);
+
+	/**
+	 * Releases the previously initialized CRTC mode
+	 */
 	void release();
 
 private:
+
 	Device& mDev;
 	int mFd;
 	uint32_t mCrtcId;

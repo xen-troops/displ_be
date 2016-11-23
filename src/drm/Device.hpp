@@ -32,30 +32,105 @@
 
 namespace Drm {
 
+/***************************************************************************//**
+ * @defgroup drm
+ * DRM related classes.
+ ******************************************************************************/
+
+/***************************************************************************//**
+ * DRM Device class.
+ * @ingroup drm
+ ******************************************************************************/
 class Device
 {
 public:
+
+	/**
+	 * @param name device name
+	 */
 	explicit Device(const std::string& name);
+
 	~Device();
 
+	/**
+	 * Returns opened DRM file descriptor
+	 */
 	int getFd() const { return mFd; }
 
+	/**
+	 * Returns number of supported CRTC's
+	 * @return number of supported CRTC's
+	 */
 	int getCtrcsCount() const { return (*mRes)->count_crtcs; }
+
+	/**
+	 * Returns CRTC id by index
+	 * @param index index in CRTC array
+	 * @return CRTC id
+	 */
 	uint32_t getCtrcIdByIndex(int index) const { return (*mRes)->crtcs[index]; }
 
+	/**
+	 * Returns connector by id
+	 * @param id connector id
+	 * @return connector
+	 */
 	Connector& getConnectorById(uint32_t id);
+
+	/**
+	 * Returns connector by index
+	 * @param index index in array
+	 * @return connector
+	 */
 	Connector& getConnectorByIndex(uint32_t index);
+
+	/**
+	 * Returns number of connectors
+	 * @return number of connectors
+	 */
 	size_t getConnectorsCount();
 
+	/**
+	 * Starts DRM flip page events handling
+	 */
 	void start();
+
+	/**
+	 * Stops DRM flip page events handling
+	 */
 	void stop();
 
+	/**
+	 * Creates DRM dumb
+	 * @param width  width of the dumb buffer
+	 * @param height height of the dumb buffer
+	 * @param bpp    bits per pixel of the dumb buffer
+	 * @return reference to the dumb object
+	 */
 	Dumb& createDumb(uint32_t width, uint32_t height,
 									 uint32_t bpp);
+
+	/**
+	 * Deletes the dumb by handle
+	 * @param handle dumb handle
+	 */
 	void deleteDumb(uint32_t handle);
 
+	/**
+	 * Creates DRM frame buffer
+	 * @param dumb        reference to the dumb object
+	 * @param width       width of the frame buffer
+	 * @param height      height of the frame buffer
+	 * @param pixelFormat pixel format of the frame buffer
+	 * @return reference to the frame buffer object
+	 */
 	FrameBuffer& createFrameBuffer(Dumb& dumb, uint32_t width,
 								   uint32_t height, uint32_t pixelFormat);
+
+	/**
+	 * Deletes the frame buffer by id
+	 * @param id id of the frame buffer
+	 */
 	void deleteFrameBuffer(uint32_t id);
 
 private:

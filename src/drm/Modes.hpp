@@ -27,48 +27,110 @@
 
 namespace Drm {
 
+/***************************************************************************//**
+ * Wrapper for DRM mode resource object.
+ * It creates the DRM mode resource object in the constructor and
+ * deletes it in the destructor.
+ * @ingroup drm
+ ******************************************************************************/
 class ModeResource
 {
 public:
+
+	/**
+	 * @param fd DRM device file descriptor
+	 */
 	explicit ModeResource(int fd);
+
 	~ModeResource();
+
 	ModeResource(const ModeResource&) = delete;
 	ModeResource& operator=(ModeResource const&) = delete;
 
+	/**
+	 * Provide access to the DRM mode resource fields.
+	 */
 	const drmModeResPtr operator->() const;
+
+	/**
+	 * Provide access to the DRM mode resource structure.
+	 */
 	const drmModeRes& operator*() const;
 
 private:
+
 	drmModeResPtr mRes;
 };
 
+/***************************************************************************//**
+ * Wrapper for DRM mode connector object.
+ * It creates the DRM mode connector object in the constructor and
+ * deletes it in the destructor.
+ * @ingroup drm
+ ******************************************************************************/
 class ModeConnector
 {
 public:
+
+	/**
+	 * @param fd          DRM device file descriptor
+	 * @param connectorId connector id
+	 */
 	ModeConnector(int fd, int connectorId);
+
 	~ModeConnector();
+
 	ModeConnector(const ModeConnector&) = delete;
 	ModeConnector& operator=(ModeConnector const&) = delete;
 
+	/**
+	 * Provide access to the DRM mode connector fields.
+	 */
 	const drmModeConnectorPtr operator->() const;
+
+	/**
+	 * Provide access to the DRM mode connector structure.
+	 */
 	const drmModeConnector& operator*() const;
 
 private:
+
 	drmModeConnectorPtr mConnector;
 };
 
+/***************************************************************************//**
+ * Wrapper for DRM mode encoder object.
+ * It creates the DRM mode connector object in the constructor and
+ * deletes it in the destructor.
+ * @ingroup drm
+ ******************************************************************************/
 class ModeEncoder
 {
 public:
+
+	/**
+	 * @param fd        DRM device file descriptor
+	 * @param encoderId encoder id
+	 */
 	ModeEncoder(int fd, int encoderId);
+
 	~ModeEncoder();
+
 	ModeEncoder(const ModeEncoder&) = delete;
 	ModeEncoder& operator=(ModeEncoder const&) = delete;
 
+	/**
+	 * Provide access to the DRM mode encoder fields.
+	 */
 	const drmModeEncoderPtr operator->() const;
+
+	/**
+	 * Provide access to the DRM mode encoder structure.
+	 */
 	const drmModeEncoder& operator*() const;
 
 private:
+
 	drmModeEncoderPtr mEncoder;
 };
 

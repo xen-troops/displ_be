@@ -32,21 +32,54 @@ typedef std::function<void()> FlipCallback;
 class Device;
 class Dumb;
 
+/***************************************************************************//**
+ * Provides DRM frame buffer functionality.
+ * @ingroup drm
+ ******************************************************************************/
 class FrameBuffer
 {
 public:
 
+	/**
+	 * @param drm         DRM device
+	 * @param dumb        reference to the dumb object
+	 * @param width       frame buffer width
+	 * @param height      frame buffer height
+	 * @param pixelFormat frame buffer pixel format
+	 * @param pitch       frame buffer pitch
+	 */
 	FrameBuffer(Device& drm, Dumb& dumb, uint32_t width, uint32_t height,
 				uint32_t pixelFormat, uint32_t pitch);
+
 	~FrameBuffer();
 
+	/**
+	 * Returns frame buffer id
+	 * @return frame buffer id
+	 */
 	uint32_t getId() const { return mId; }
+
+	/**
+	 * Returns reference to the dumb object associated with this frame buffer
+	 * @return reference to the dumb object
+	 */
 	Dumb& getDumb() const { return mDumb; }
+
+	/**
+	 * Returns dumb handle associated with this frame buffer
+	 * @return dumb handle
+	 */
 	uint32_t getHandle() const;
 
-	void pageFlip(uint32_t crtc, FlipCallback cbk);
+	/**
+	 * Performs page flip
+	 * @param crtcId CRTC id
+	 * @param cbk    callback which will be called when page flip is done
+	 */
+	void pageFlip(uint32_t crtcId, FlipCallback cbk);
 
 private:
+
 	Device& mDrm;
 	Dumb& mDumb;
 	uint32_t mId;
