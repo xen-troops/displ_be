@@ -95,7 +95,7 @@ uint32_t FrameBuffer::getHandle() const
 	return mDumb.getHandle();
 }
 
-void FrameBuffer::pageFlip(uint32_t crtc, FlipCallback cbk)
+void FrameBuffer::pageFlip(uint32_t crtcId, FlipCallback cbk)
 {
 	if (mDrm.isStopped())
 	{
