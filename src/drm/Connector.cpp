@@ -37,16 +37,16 @@ Connector::Connector(Device& dev, int connectorId) :
 	mCrtcId(cInvalidId),
 	mConnector(mFd, connectorId),
 	mSavedCrtc(nullptr),
-	mLog("Connector(" + to_string(connectorId) + ")")
+	mLog("Connector")
 {
-	LOG(mLog, DEBUG) << "Create connector";
+	LOG(mLog, DEBUG) << "Create, id: " << mConnector->connector_id;
 }
 
 Connector::~Connector()
 {
 	release();
 
-	LOG(mLog, DEBUG) << "Delete connector";
+	LOG(mLog, DEBUG) << "Delete, id: " << mConnector->connector_id;
 }
 
 /***************************************************************************//**
@@ -67,7 +67,8 @@ void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 		throw DrmException("Already initialized");
 	}
 
-	LOG(mLog, DEBUG) << "Init, w: " << width << ", h: " << height
+	LOG(mLog, DEBUG) << "Init, con id:" << mConnector->connector_id
+					 << ", w: " << width << ", h: " << height
 					 << ", bpp " << bpp << ", fb id: " << fbId;
 
 	mCrtcId = findCrtcId();
@@ -99,8 +100,6 @@ void Connector::release()
 
 	if (mSavedCrtc)
 	{
-		LOG(mLog, DEBUG) << "Release";
-
 		drmModeSetCrtc(mFd, mSavedCrtc->crtc_id, mSavedCrtc->buffer_id,
 					   mSavedCrtc->x, mSavedCrtc->y, &mConnector->connector_id,
 					   1, &mSavedCrtc->mode);
@@ -133,7 +132,8 @@ bool Connector::isCrtcIdUsedByOther(uint32_t crtcId)
 	{
 		if (crtcId == mDev.getConnectorByIndex(i).getCrtcId())
 		{
-			LOG(mLog, DEBUG) << "Crtc id is used by other connector";
+			LOG(mLog, DEBUG) << "Crtc id is used by other connector, con id"
+							 << mConnector->connector_id;
 
 			return true;
 		}
@@ -160,7 +160,8 @@ uint32_t Connector::getAssignedCrtcId()
 				return cInvalidId;
 			}
 
-			LOG(mLog, DEBUG) << "Assigned crtc id: " << crtcId;
+			LOG(mLog, DEBUG) << "Assigned crtc id: " << crtcId
+							 << ", con id: " << mConnector->connector_id;
 
 			return crtcId;
 		}
@@ -189,7 +190,8 @@ uint32_t Connector::findMatchingCrtcId()
 				continue;
 			}
 
-			LOG(mLog, DEBUG) << "Matched crtc found: " << crtcId;
+			LOG(mLog, DEBUG) << "Matched crtc found: " << crtcId
+							 << ", con id: " << mConnector->connector_id;
 
 			return crtcId;
 		}
@@ -205,7 +207,8 @@ drmModeModeInfoPtr Connector::findMode(uint32_t width, uint32_t height)
 		if (mConnector->modes[i].hdisplay == width &&
 			mConnector->modes[i].vdisplay == height)
 		{
-			LOG(mLog, DEBUG) << "Found mode: " << mConnector->modes[i].name;
+			LOG(mLog, DEBUG) << "Found mode: " << mConnector->modes[i].name
+							 << ", con id: " << mConnector->connector_id;
 
 			return &mConnector->modes[i];
 		}

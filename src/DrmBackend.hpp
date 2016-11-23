@@ -46,13 +46,15 @@ class ConEventRingBuffer : public XenBackend::RingBufferOutBase<
 {
 public:
 	/**
-	 * @param id    connector id
-	 * @param domId frontend domain id
-	 * @param port  event channel port number
-	 * @param ref   grant table reference
+	 * @param id        connector id
+	 * @param domId     frontend domain id
+	 * @param port      event channel port number
+	 * @param ref       grant table reference
+	 * @param offset    start of the ring buffer inside the page
+	 * @param size      size of the ring buffer
 	 */
 	ConEventRingBuffer(int id, int domId, int port,
-					   int ref, int offset, int numEvents);
+					   int ref, int offset, size_t size);
 
 private:
 	int mId;
@@ -71,10 +73,12 @@ class ConCtrlRingBuffer : public XenBackend::RingBufferInBase<
 {
 public:
 	/**
-	 * @param id    connector id
-	 * @param domId frontend domain id
-	 * @param port  event channel port number
-	 * @param ref   grant table reference
+	 * @param drm         drm device
+	 * @param eventBuffer event ring buffer
+	 * @param id          connector id
+	 * @param domId       frontend domain id
+	 * @param port        event channel port number
+	 * @param ref         grant table reference
 	 */
 	ConCtrlRingBuffer(Drm::Device& drm,
 					  std::shared_ptr<ConEventRingBuffer> eventBuffer,
@@ -130,9 +134,12 @@ private:
 class DrmBackend : public XenBackend::BackendBase
 {
 public:
-
-	DrmBackend(int domId, const std::string& deviceName, int id,
-			   const std::string& startupScript);
+	/**
+	 * @param domId         domain id
+	 * @param deviceName    device name
+	 * @param id            instance id
+	 */
+	DrmBackend(int domId, const std::string& deviceName, int id);
 
 protected:
 

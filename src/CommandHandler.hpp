@@ -45,7 +45,9 @@ class CommandHandler
 public:
 	/**
 	 * @param connectorId connector id
-	 * @param domId domain id
+	 * @param domId       domain id
+	 * @param drm         drm device
+	 * @param eventBuffer event ring buffer
 	 */
 	CommandHandler(uint32_t connectorId, int domId, Drm::Device& drm,
 				   std::shared_ptr<ConEventRingBuffer> eventBuffer);

@@ -35,7 +35,7 @@ namespace Drm {
 
 ModeResource::ModeResource(int fd)
 {
-	DLOG("ModeResource", DEBUG) << "Create ModeResource";
+	DLOG("ModeResource", DEBUG) << "Create";
 
 	mRes = drmModeGetResources(fd);
 
@@ -47,7 +47,7 @@ ModeResource::ModeResource(int fd)
 
 ModeResource::~ModeResource()
 {
-	DLOG("ModeResource", DEBUG) << "Delete ModeResource";
+	DLOG("ModeResource", DEBUG) << "Delete";
 
 	if (mRes)
 	{
@@ -71,7 +71,7 @@ const drmModeRes& ModeResource::operator*() const
 
 ModeConnector::ModeConnector(int fd, int connectorId)
 {
-	DLOG("ModeConnector", DEBUG) << "Create ModeConnector " << connectorId;
+	DLOG("ModeConnector", DEBUG) << "Create, id: " << connectorId;
 
 	mConnector = drmModeGetConnector(fd, connectorId);
 
@@ -85,7 +85,7 @@ ModeConnector::~ModeConnector()
 {
 	if (mConnector)
 	{
-		DLOG("ModeConnector", DEBUG) << "Delete ModeConnector "
+		DLOG("ModeConnector", DEBUG) << "Delete, id: "
 									<< mConnector->connector_id;
 
 		drmModeFreeConnector(mConnector);
@@ -123,8 +123,8 @@ ModeEncoder::~ModeEncoder()
 {
 	if (mEncoder)
 	{
-		DLOG("ModeEncoder", DEBUG) << "Delete ModeEncoder "
-								  << mEncoder->encoder_id;
+		DLOG("ModeEncoder", DEBUG) << "Delete ModeEncoder, id: "
+								   << mEncoder->encoder_id;
 
 		drmModeFreeEncoder(mEncoder);
 	}

@@ -35,7 +35,7 @@ namespace Drm {
 class Device
 {
 public:
-	Device(const std::string& name);
+	explicit Device(const std::string& name);
 	~Device();
 
 	int getFd() const { return mFd; }

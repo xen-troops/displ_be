@@ -53,7 +53,7 @@ CommandHandler::CommandFn CommandHandler::sCmdTable[] =
 	&CommandHandler::setConfig,
 };
 
-/***************************************************************************//**
+/*******************************************************************************
  * CommandHandler
  ******************************************************************************/
 
@@ -61,10 +61,11 @@ CommandHandler::CommandHandler(uint32_t connectorId, int domId, Device& drm,
 							   shared_ptr<ConEventRingBuffer> eventBuffer) :
 	mRemoteConnectorId(connectorId),
 	mDomId(domId),
+	mEventBuffer(eventBuffer),
 	mDrm(drm),
 	mLocalConnectorId(cInvalidId),
 	mCrtcId(cInvalidId),
-	mLog("CommandHandler " + to_string(connectorId))
+	mLog("CommandHandler")
 {
 	LOG(mLog, DEBUG) << "Create command handler, dom: " << mDomId;
 }
@@ -74,7 +75,7 @@ CommandHandler::~CommandHandler()
 	LOG(mLog, DEBUG) << "Delete command handler, dom: " << mDomId;
 }
 
-/***************************************************************************//**
+/*******************************************************************************
  * Public
  ******************************************************************************/
 
@@ -105,7 +106,7 @@ uint8_t CommandHandler::processCommand(const xendrm_req& req)
 	return status;
 }
 
-/***************************************************************************//**
+/*******************************************************************************
  * Private
  ******************************************************************************/
 
@@ -114,7 +115,8 @@ void CommandHandler::pageFlip(const xendrm_req& req)
 	xendrm_page_flip_req flipReq = req.u.data.op.pg_flip;
 
 	DLOG(mLog, DEBUG) << "Handle command [PAGE FLIP], fb ID: "
-					  << flipReq.fb_id << ", crtc idx: " << flipReq.crtc_idx;
+					  << flipReq.fb_id << ", crtc idx: "
+					  << static_cast<int>(flipReq.crtc_idx);
 
 	FrameBuffer& frameBuffer = getLocalFb(flipReq.fb_id);
 
@@ -206,7 +208,7 @@ void CommandHandler::setConfig(const xendrm_req& req)
 	{
 		if (mLocalConnectorId != cInvalidId)
 		{
-			mDrm.getConnectorById(getLocalConnectorId()).release();
+			mDrm.getConnectorById(mLocalConnectorId).release();
 			mCrtcId = cInvalidId;
 		}
 	}
@@ -244,6 +246,7 @@ uint32_t CommandHandler::getLocalConnectorId()
 	for (size_t i = 0; i < mDrm.getConnectorsCount(); i++)
 	{
 		Connector& connector = mDrm.getConnectorByIndex(i);
+
 		if (connector.isConnected() && !connector.isInitialized())
 		{
 			return connector.getId();
@@ -299,7 +302,8 @@ void CommandHandler::copyBuffer(uint32_t fbId)
 
 void CommandHandler::sendFlipEvent(uint8_t crtcIdx, uint32_t fb_id)
 {
-	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], crtc idx: " << crtcIdx;
+	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], crtc idx: "
+					  << static_cast<int>(crtcIdx);
 
 	xendrm_evt event {};
 

@@ -48,9 +48,9 @@ Device::Device(const string& name) try :
 	mFd(-1),
 	mTerminate(true),
 	mNumFlipPages(0),
-	mLog("DRM(" + mName + ")")
+	mLog("Drm")
 {
-	LOG(mLog, DEBUG) << "Create Drm card";
+	LOG(mLog, DEBUG) << "Create Drm card: " << mName;
 
 	init();
 }
@@ -69,7 +69,7 @@ Device::~Device()
 
 	release();
 
-	LOG(mLog, DEBUG) << "Delete Drm card";
+	LOG(mLog, DEBUG) << "Delete Drm card: " << mName;
 }
 
 /***************************************************************************//**
@@ -101,19 +101,7 @@ void Device::deleteDumb(uint32_t handle)
 		throw DrmException("Dumb handler not found");
 	}
 
-	auto fbIter = mFrameBuffers.begin();
-
-	while (fbIter != mFrameBuffers.end())
-	{
-		if (dumbIter->second->getHandle() == fbIter->second->getHandle())
-		{
-			fbIter = mFrameBuffers.erase(fbIter);
-		}
-		else
-		{
-			++fbIter;
-		}
-	}
+	mDumbs.erase(dumbIter);
 }
 
 FrameBuffer& Device::createFrameBuffer(Dumb& dumb, uint32_t width,
@@ -247,7 +235,7 @@ void Device::release()
 
 	mDumbs.clear();
 
-	mRes.release();
+	mRes.reset();
 
 	mConnectors.clear();
 
@@ -259,34 +247,41 @@ void Device::release()
 
 void Device::eventThread()
 {
-	pollfd fds;
-
-	fds.fd = mFd;
-	fds.events = POLLIN;
-
-	drmEventContext ev { 0 };
-
-	ev.version = DRM_EVENT_CONTEXT_VERSION;
-	ev.page_flip_handler = handleFlipEvent;
-
-	while(!mTerminate)
+	try
 	{
-		auto ret = poll(&fds, 1, cPoolEventTimeoutMs);
+		pollfd fds;
 
-		if (ret < 0)
+		fds.fd = mFd;
+		fds.events = POLLIN;
+
+		drmEventContext ev { 0 };
+
+		ev.version = DRM_EVENT_CONTEXT_VERSION;
+		ev.page_flip_handler = handleFlipEvent;
+
+		while(!mTerminate)
 		{
-			LOG(mLog, ERROR) << "Can't poll events";
+			auto ret = poll(&fds, 1, cPoolEventTimeoutMs);
+
+			if (ret < 0)
+			{
+				LOG(mLog, ERROR) << "Can't poll events";
+			}
+
+			if (ret > 0)
+			{
+				drmHandleEvent(mFd, &ev);
+			}
 		}
 
-		if (ret > 0)
+		while(mNumFlipPages)
 		{
 			drmHandleEvent(mFd, &ev);
 		}
 	}
-
-	while(mNumFlipPages)
+	catch(const exception& e)
 	{
-		drmHandleEvent(mFd, &ev);
+		LOG(mLog, ERROR) << e.what();
 	}
 }
 

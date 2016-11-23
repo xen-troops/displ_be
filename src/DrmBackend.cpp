@@ -25,6 +25,7 @@
 #include <vector>
 
 #include <csignal>
+#include <execinfo.h>
 #include <getopt.h>
 
 #include <drm_fourcc.h>
@@ -57,39 +58,12 @@ using XenBackend::RingBufferBase;
 using XenBackend::RingBufferInBase;
 using XenBackend::XenStore;
 
+using Drm::Connector;
 using Drm::Device;
 
 unique_ptr <DrmBackend> gDrmBackend;
 
-#if 0
-
-/local/domain/19/device/vdrm = ""
-/local/domain/19/device/vdrm/0 = ""
-/local/domain/19/device/vdrm/0/backend-id = "0"
-/local/domain/19/device/vdrm/0/backend = "/local/domain/0/backend/vdrm/19/0"
-/local/domain/19/device/vdrm/0/state = "4"
-/local/domain/19/device/vdrm/0/connector = ""
-/local/domain/19/device/vdrm/0/connector/0 = ""
-/local/domain/19/device/vdrm/0/connector/0/type = "DP"
-/local/domain/19/device/vdrm/0/connector/0/id = "1"
-/local/domain/19/device/vdrm/0/connector/0/resolution = "1200x800"
-/local/domain/19/device/vdrm/0/connector/0/ctrl-ring-ref = "1684"
-/local/domain/19/device/vdrm/0/connector/0/ctrl-channel = "22"
-/local/domain/19/device/vdrm/0/connector/0/event-ring-ref = "1685"
-/local/domain/19/device/vdrm/0/connector/0/event-channel = "23"
-/local/domain/19/device/vdrm/0/connector/1 = ""
-/local/domain/19/device/vdrm/0/connector/1/type = "HDMI-A"
-/local/domain/19/device/vdrm/0/connector/1/id = "8"
-/local/domain/19/device/vdrm/0/connector/1/resolution = "1920x1200"
-/local/domain/19/device/vdrm/0/connector/1/ctrl-ring-ref = "1686"
-/local/domain/19/device/vdrm/0/connector/1/ctrl-channel = "24"
-/local/domain/19/device/vdrm/0/connector/1/event-ring-ref = "1687"
-/local/domain/19/device/vdrm/0/connector/1/event-channel = "25"
-/local/domain/19/control = ""
-
-#endif
-
-/***************************************************************************//**
+/*******************************************************************************
  * ConCtrlRingBuffer
  ******************************************************************************/
 
@@ -100,15 +74,15 @@ ConCtrlRingBuffer::ConCtrlRingBuffer(Device& drm,
 					 xendrm_req, xendrm_resp>(domId, port, ref),
 	mId(id),
 	mCommandHandler(mId, domId, drm, eventBuffer),
-	mLog("ConCtrlRing(" + to_string(id) + ")")
+	mLog("ConCtrlRing")
 {
-	LOG(mLog, DEBUG) << "Create connector control ring buffer: id = " << mId;
+	LOG(mLog, DEBUG) << "Create ctrl ring buffer: id = " << mId;
 }
 
 void ConCtrlRingBuffer::processRequest(const xendrm_req& req)
 {
 	DLOG(mLog, DEBUG) << "Request received, id: " << mId
-			<< ", cmd:" << static_cast<int>(req.u.data.operation);
+					  << ", cmd:" << static_cast<int>(req.u.data.operation);
 
 	xendrm_resp rsp {};
 
@@ -120,21 +94,21 @@ void ConCtrlRingBuffer::processRequest(const xendrm_req& req)
 	sendResponse(rsp);
 }
 
-/***************************************************************************//**
+/*******************************************************************************
  * ConEventRingBuffer
  ******************************************************************************/
 
 ConEventRingBuffer::ConEventRingBuffer(int id, int domId, int port,
-									   int ref, int offset, int numEvents) :
+									   int ref, int offset, size_t size) :
 	RingBufferOutBase<xendrm_event_page, xendrm_evt>(domId, port, ref,
-													 offset, numEvents),
+													 offset, size),
 	mId(id),
-	mLog("ConEventRing(" + to_string(id) + ")")
+	mLog("ConEventRing")
 {
-	LOG(mLog, DEBUG) << "Create connector event ring buffer: id = " << mId;
+	LOG(mLog, DEBUG) << "Create event ring buffer: id = " << mId;
 }
 
-/***************************************************************************//**
+/*******************************************************************************
  * DrmFrontendHandler
  ******************************************************************************/
 
@@ -145,6 +119,16 @@ void DrmFrontendHandler::onBind()
 	const vector<string> cons = getXenStore().readDirectory(conBasePath);
 
 	LOG(mLog, DEBUG) << "On frontend bind : " << getDomId();
+
+	for (size_t i = 0; i < mDrm.getConnectorsCount(); i++)
+	{
+		Connector& connector = mDrm.getConnectorByIndex(i);
+
+		LOG("Main", DEBUG) << "Local connector: "
+						   << connector.getId()
+						   << ", connected: "
+						   << connector.isConnected();
+	}
 
 	if (cons.size() == 0)
 	{
@@ -172,7 +156,7 @@ void DrmFrontendHandler::createConnector(const string& conPath)
 
 	shared_ptr<ConEventRingBuffer> eventRingBuffer(
 			new ConEventRingBuffer(id, getDomId(), port, ref,
-								XENDRM_IN_RING_SIZE, XENDRM_IN_RING_LEN));
+								   XENDRM_IN_RING_SIZE, XENDRM_IN_RING_SIZE));
 
 	addRingBuffer(eventRingBuffer);
 
@@ -188,15 +172,13 @@ void DrmFrontendHandler::createConnector(const string& conPath)
 								  getDomId(), port, ref));
 
 	addRingBuffer(ctrlRingBuffer);
-
 }
 
-/***************************************************************************//**
+/*******************************************************************************
  * DrmBackend
  ******************************************************************************/
 
-DrmBackend::DrmBackend(int domId, const std::string& deviceName, int id,
-					   const std::string& startupScript) :
+DrmBackend::DrmBackend(int domId, const std::string& deviceName, int id) :
 	BackendBase(domId, deviceName, id)
 {
 
@@ -211,7 +193,7 @@ void DrmBackend::onNewFrontend(int domId, int id)
 							   *this, id)));
 }
 
-/***************************************************************************//**
+/*******************************************************************************
  *
  ******************************************************************************/
 
@@ -222,7 +204,16 @@ void terminateHandler(int signal)
 
 void segmentationHandler(int sig)
 {
-	LOG("Main", ERROR) << "Unknown error!";
+	void *array[20];
+	size_t size;
+
+	LOG("Main", ERROR) << "Segmentation fault!";
+
+	size = backtrace(array, 2);
+
+	backtrace_symbols_fd(array, size, STDERR_FILENO);
+
+	exit(1);
 }
 
 void registerSignals()
@@ -237,14 +228,10 @@ bool commandLineOptions(int argc, char *argv[])
 
 	int opt = -1;
 
-	while((opt = getopt(argc, argv, "s:v:fh?")) != -1)
+	while((opt = getopt(argc, argv, "v:fh?")) != -1)
 	{
 		switch(opt)
 		{
-		case 's':
-
-			break;
-
 		case 'v':
 			if (!Log::setLogLevel(string(optarg)))
 			{
@@ -265,48 +252,6 @@ bool commandLineOptions(int argc, char *argv[])
 	return true;
 }
 
-uint8_t nextColor(bool *up, uint8_t cur, unsigned int mod)
-{
-	uint8_t next;
-
-	next = cur + (*up ? 1 : -1) * (rand() % mod);
-	if ((*up && next < cur) || (!*up && next > cur)) {
-		*up = !*up;
-		next = cur;
-	}
-
-	return next;
-}
-
-void draw(Drm::FrameBuffer& fb1, Drm::FrameBuffer& fb2, uint32_t crtcId)
-{
-	static uint8_t r, g, b {0};
-	static bool r_up, g_up, b_up {true};
-
-	unsigned int j, k, off;
-
-	r = nextColor(&r_up, r, 20);
-	g = nextColor(&g_up, g, 10);
-	b = nextColor(&b_up, b, 5);
-
-//	LOG("Main", DEBUG) << "Flip: " << fb1.getId();
-
-	const Drm::Dumb& dumb = fb1.getDumb();
-
-	for (j = 0; j < dumb.getHeight(); ++j)
-	{
-		for (k = 0; k < dumb.getWidth(); ++k)
-		{
-			off = dumb.getPitch() * j + k * 4;
-
-			uint8_t* buffer = static_cast<uint8_t*>(dumb.getBuffer());
-			*(uint32_t*)&buffer[off] = (r << 16) | (g << 8) | b;
-		}
-	}
-
-	fb1.pageFlip(crtcId, std::bind(draw, std::ref(fb2), std::ref(fb1), crtcId));
-}
-
 int main(int argc, char *argv[])
 {
 	try
@@ -315,39 +260,7 @@ int main(int argc, char *argv[])
 
 		if (commandLineOptions(argc, argv))
 		{
-#if 0
-			Device drm("/dev/dri/card0");
-
-			for (size_t i = 0; i < drm.getConnectorsCount(); i++)
-			{
-				Drm::Connector& connector = drm.getConnectorByIndex(i);
-				LOG("Main", DEBUG) << "Connector: "
-								   << connector.getId()
-								   << ", connected: "
-								   << connector.isConnected();
-			}
-
-			Drm::Dumb& dumb1 = drm.createDumb(1920, 1080, 32);
-			Drm::FrameBuffer& fb1 = drm.createFrameBuffer(dumb1, 1920,
-														  1080, DRM_FORMAT_XRGB8888);
-
-			Drm::Dumb& dumb2 = drm.createDumb(1920, 1080, 32);
-			Drm::FrameBuffer& fb2 = drm.createFrameBuffer(dumb2, 1920, 1080,
-														  DRM_FORMAT_XRGB8888);
-
-			Drm::Connector& connector = drm.getConnectorById(32);
-
-			connector.init(0, 0, 1920, 1080, 32, fb1.getId());
-
-			drm.start();
-
-			draw(const_cast<Drm::FrameBuffer&>(fb1), const_cast<Drm::FrameBuffer&>(fb2), connector.getCrtcId());
-
-			std::this_thread::sleep_for(std::chrono::seconds(6));
-
-#endif
-
-			gDrmBackend.reset(new DrmBackend(0, XENDRM_DRIVER_NAME, 0, ""));
+			gDrmBackend.reset(new DrmBackend(0, XENDRM_DRIVER_NAME, 0));
 
 			gDrmBackend->run();
 		}

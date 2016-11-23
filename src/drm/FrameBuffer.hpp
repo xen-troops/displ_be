@@ -44,7 +44,7 @@ public:
 	Dumb& getDumb() const { return mDumb; }
 	uint32_t getHandle() const;
 
-	bool pageFlip(uint32_t crtc, FlipCallback cbk);
+	void pageFlip(uint32_t crtc, FlipCallback cbk);
 
 private:
 	Device& mDrm;

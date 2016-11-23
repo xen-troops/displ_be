@@ -95,13 +95,11 @@ uint32_t FrameBuffer::getHandle() const
 	return mDumb.getHandle();
 }
 
-bool FrameBuffer::pageFlip(uint32_t crtc, FlipCallback cbk)
+void FrameBuffer::pageFlip(uint32_t crtc, FlipCallback cbk)
 {
 	if (mDrm.isStopped())
 	{
-		DLOG("FrameBuffer", WARNING) << "Page flip when DRM is stopped";
-
-		return false;
+		throw DrmException("Page flip when DRM is stopped");
 	}
 
 	auto ret = drmModePageFlip(mDrm.getFd(), crtc, mId,
@@ -112,11 +110,12 @@ bool FrameBuffer::pageFlip(uint32_t crtc, FlipCallback cbk)
 		throw DrmException("Cannot flip CRTC: " + mId);
 	}
 
+
+	DLOG("FrameBuffer", DEBUG) << "Page flip, id: " << mId;
+
 	mDrm.pageFlipScheduled();
 	mFlipPending = true;
 	mFlipCallback = cbk;
-
-	return true;
 }
 
 /***************************************************************************//**
@@ -133,6 +132,8 @@ void FrameBuffer::flipFinished()
 
 		return;
 	}
+
+	DLOG("FrameBuffer", DEBUG) << "Flip done, id: " << mId;
 
 	mFlipPending = false;
 

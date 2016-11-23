@@ -30,7 +30,7 @@ namespace Drm {
 class ModeResource
 {
 public:
-	ModeResource(int fd);
+	explicit ModeResource(int fd);
 	~ModeResource();
 	ModeResource(const ModeResource&) = delete;
 	ModeResource& operator=(ModeResource const&) = delete;
