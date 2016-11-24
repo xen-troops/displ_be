@@ -115,16 +115,16 @@ void CommandHandler::pageFlip(const xendrm_req& req)
 	xendrm_page_flip_req flipReq = req.u.data.op.pg_flip;
 
 	DLOG(mLog, DEBUG) << "Handle command [PAGE FLIP], fb ID: "
-					  << flipReq.fb_id << ", crtc idx: "
+					  << flipReq.fb_cookie << ", crtc idx: "
 					  << static_cast<int>(flipReq.crtc_idx);
 
-	FrameBuffer& frameBuffer = getLocalFb(flipReq.fb_id);
+	FrameBuffer& frameBuffer = getLocalFb(flipReq.fb_cookie);
 
-	copyBuffer(flipReq.fb_id);
+	copyBuffer(flipReq.fb_cookie);
 
 	frameBuffer.pageFlip(mCrtcId, [flipReq, this] ()
 								  { sendFlipEvent(flipReq.crtc_idx,
-								  flipReq.fb_id); });
+								  flipReq.fb_cookie); });
 }
 
 void CommandHandler::createDumb(const xendrm_req& req)
@@ -132,7 +132,7 @@ void CommandHandler::createDumb(const xendrm_req& req)
 	const xendrm_dumb_create_req* dumbReq = &req.u.data.op.dumb_create;
 
 	DLOG(mLog, DEBUG) << "Handle command [CREATE DUMB], handle: "
-					  << dumbReq->handle;
+					  << dumbReq->dumb_cookie;
 
 	DumbBuffer dumbBuffer { mDrm.createDumb(dumbReq->width, dumbReq->height,
 											dumbReq->bpp) };
@@ -145,7 +145,7 @@ void CommandHandler::createDumb(const xendrm_req& req)
 												refs.size(),
 												PROT_READ | PROT_WRITE));
 
-	mDumbBuffers.emplace(dumbReq->handle, move(dumbBuffer));
+	mDumbBuffers.emplace(dumbReq->dumb_cookie, move(dumbBuffer));
 }
 
 void CommandHandler::destroyDumb(const xendrm_req& req)
@@ -153,11 +153,11 @@ void CommandHandler::destroyDumb(const xendrm_req& req)
 	const xendrm_dumb_destroy_req* dumbReq = &req.u.data.op.dumb_destroy;
 
 	DLOG(mLog, DEBUG) << "Handle command [DESTROY DUMB], handle: "
-					  << dumbReq->handle;
+					  << dumbReq->dumb_cookie;
 
-	mDrm.deleteDumb(getLocalDumb(dumbReq->handle).getHandle());
+	mDrm.deleteDumb(getLocalDumb(dumbReq->dumb_cookie).getHandle());
 
-	mDumbBuffers.erase(dumbReq->handle);
+	mDumbBuffers.erase(dumbReq->dumb_cookie);
 }
 
 void CommandHandler::createFrameBuffer(const xendrm_req& req)
@@ -165,25 +165,25 @@ void CommandHandler::createFrameBuffer(const xendrm_req& req)
 	const xendrm_fb_create_req* fbReq = &req.u.data.op.fb_create;
 
 	DLOG(mLog, DEBUG) << "Handle command [CREATE FB], handle: "
-					  << fbReq->handle << ", id: " << fbReq->fb_id;
+					  << fbReq->fb_cookie << ", id: " << fbReq->fb_cookie;
 
 	FrameBuffer& frameBuffer =
-			mDrm.createFrameBuffer(getLocalDumb(fbReq->handle),
+			mDrm.createFrameBuffer(getLocalDumb(fbReq->dumb_cookie),
 								   fbReq->width, fbReq->height,
 								   fbReq->pixel_format);
 
-	mFrameBuffers.emplace(fbReq->fb_id, frameBuffer);
+	mFrameBuffers.emplace(fbReq->fb_cookie, frameBuffer);
 }
 
 void CommandHandler::destroyFrameBuffer(const xendrm_req& req)
 {
 	const xendrm_fb_destroy_req* fbReq = &req.u.data.op.fb_destroy;
 
-	DLOG(mLog, DEBUG) << "Handle command [DELETE FB], id: " << fbReq->fb_id;
+	DLOG(mLog, DEBUG) << "Handle command [DELETE FB], id: " << fbReq->fb_cookie;
 
-	mDrm.deleteFrameBuffer(getLocalFb(fbReq->fb_id).getId());
+	mDrm.deleteFrameBuffer(getLocalFb(fbReq->fb_cookie).getId());
 
-	mFrameBuffers.erase(fbReq->fb_id);
+	mFrameBuffers.erase(fbReq->fb_cookie);
 }
 
 void CommandHandler::setConfig(const xendrm_req& req)
@@ -191,15 +191,15 @@ void CommandHandler::setConfig(const xendrm_req& req)
 	const xendrm_set_config_req* configReq = &req.u.data.op.set_config;
 
 	DLOG(mLog, DEBUG) << "Handle command [SET CONFIG], fb ID: "
-					  << configReq->fb_id;
+					  << configReq->fb_cookie;
 
-	if (configReq->fb_id != cInvalidId)
+	if (configReq->fb_cookie != cInvalidId)
 	{
 		Connector& connector = mDrm.getConnectorById(getLocalConnectorId());
 
 		connector.init(configReq->x, configReq->y,
 					   configReq->width, configReq->height,
-					   configReq->bpp, getLocalFb(configReq->fb_id).getId());
+					   configReq->bpp, getLocalFb(configReq->fb_cookie).getId());
 
 		mLocalConnectorId = connector.getId();
 		mCrtcId = connector.getCrtcId();
@@ -256,31 +256,31 @@ uint32_t CommandHandler::getLocalConnectorId()
 	throw DrmException("No available connectors found");
 }
 
-Dumb& CommandHandler::getLocalDumb(uint32_t handle)
+Dumb& CommandHandler::getLocalDumb(uint64_t cookie)
 {
-	auto iter = mDumbBuffers.find(handle);
+	auto iter = mDumbBuffers.find(cookie);
 
 	if (iter == mDumbBuffers.end())
 	{
-		throw DrmException("Handle not found");
+		throw DrmException("Dumb cookie not found");
 	}
 
 	return iter->second.dumb;
 }
 
-Drm::FrameBuffer& CommandHandler::getLocalFb(uint32_t fbId)
+Drm::FrameBuffer& CommandHandler::getLocalFb(uint64_t cookie)
 {
-	auto iter = mFrameBuffers.find(fbId);
+	auto iter = mFrameBuffers.find(cookie);
 
 	if (iter == mFrameBuffers.end())
 	{
-		throw DrmException("Frame buffer ID not found");
+		throw DrmException("Frame buffer cookie not found");
 	}
 
 	return iter->second;
 }
 
-void CommandHandler::copyBuffer(uint32_t fbId)
+void CommandHandler::copyBuffer(uint64_t fbId)
 {
 	auto handle = getLocalFb(fbId).getDumb().getHandle();
 
@@ -300,7 +300,7 @@ void CommandHandler::copyBuffer(uint32_t fbId)
 	throw DrmException("Handle not found");
 }
 
-void CommandHandler::sendFlipEvent(uint8_t crtcIdx, uint32_t fb_id)
+void CommandHandler::sendFlipEvent(uint8_t crtcIdx, uint64_t fb_cookie)
 {
 	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], crtc idx: "
 					  << static_cast<int>(crtcIdx);
@@ -308,7 +308,7 @@ void CommandHandler::sendFlipEvent(uint8_t crtcIdx, uint32_t fb_id)
 	xendrm_evt event {};
 
 	event.u.data.op.pg_flip.crtc_idx = crtcIdx;
-	event.u.data.op.pg_flip.fb_id = fb_id;
+	event.u.data.op.pg_flip.fb_cookie = fb_cookie;
 
 	mEventBuffer->sendEvent(event);
 }

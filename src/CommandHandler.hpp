@@ -82,8 +82,8 @@ private:
 		std::unique_ptr<XenBackend::XenGnttabBuffer> buffer;
 	};
 
-	std::map<uint32_t, Drm::FrameBuffer&> mFrameBuffers;
-	std::map<uint32_t, DumbBuffer> mDumbBuffers;
+	std::map<uint64_t, Drm::FrameBuffer&> mFrameBuffers;
+	std::map<uint64_t, DumbBuffer> mDumbBuffers;
 
 	void pageFlip(const xendrm_req& req);
 	void createDumb(const xendrm_req& req);
@@ -96,10 +96,10 @@ private:
 					   std::vector<grant_ref_t>& refs);
 
 	uint32_t getLocalConnectorId();
-	Drm::Dumb& getLocalDumb(uint32_t handle);
-	Drm::FrameBuffer& getLocalFb(uint32_t fbId);
-	void copyBuffer(uint32_t fbId);
-	void sendFlipEvent(uint8_t crtcIdx, uint32_t fb_id);
+	Drm::Dumb& getLocalDumb(uint64_t cookie);
+	Drm::FrameBuffer& getLocalFb(uint64_t cookie);
+	void copyBuffer(uint64_t fbId);
+	void sendFlipEvent(uint8_t crtcIdx, uint64_t fb_id);
 };
 
 #endif /* SRC_COMMANDHANDLER_HPP_ */
