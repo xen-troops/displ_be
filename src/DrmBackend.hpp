@@ -124,7 +124,7 @@ private:
 	Drm::Device mDrm;
 	XenBackend::Log mLog;
 
-	void createConnector(const std::string& streamPath);
+	void createConnector(const std::string& streamPath, int conId);
 };
 
 /***************************************************************************//**

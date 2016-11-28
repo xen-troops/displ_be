@@ -28,8 +28,6 @@
 #include <execinfo.h>
 #include <getopt.h>
 
-#include <drm_fourcc.h>
-
 #include <xen/be/XenStore.hpp>
 
 #include "drm/Device.hpp"
@@ -47,6 +45,7 @@ using std::endl;
 using std::exception;
 using std::shared_ptr;
 using std::signal;
+using std::stoi;
 using std::string;
 using std::to_string;
 using std::unique_ptr;
@@ -139,23 +138,21 @@ void DrmFrontendHandler::onBind()
 	{
 		LOG(mLog, DEBUG) << "Found connector: " << conId;
 
-		createConnector(conBasePath + "/" + conId);
+		createConnector(conBasePath + "/" + conId, stoi(conId));
 	}
 
 	mDrm.start();
 }
 
-void DrmFrontendHandler::createConnector(const string& conPath)
+void DrmFrontendHandler::createConnector(const string& conPath, int conId)
 {
-	auto id = getXenStore().readInt(conPath + "/" + XENDRM_FIELD_ID);
-
 	auto port = getXenStore().readInt(conPath + "/" + XENDRM_FIELD_EVT_CHANNEL);
 
 	uint32_t ref = getXenStore().readInt(conPath + "/" +
 										 XENDRM_FIELD_EVT_RING_REF);
 
 	shared_ptr<ConEventRingBuffer> eventRingBuffer(
-			new ConEventRingBuffer(id, getDomId(), port, ref,
+			new ConEventRingBuffer(conId, getDomId(), port, ref,
 								   XENDRM_IN_RING_SIZE, XENDRM_IN_RING_SIZE));
 
 	addRingBuffer(eventRingBuffer);
@@ -168,7 +165,7 @@ void DrmFrontendHandler::createConnector(const string& conPath)
 										 XENDRM_FIELD_CTRL_RING_REF);
 
 	shared_ptr<RingBufferBase> ctrlRingBuffer(
-			new ConCtrlRingBuffer(mDrm, eventRingBuffer, id,
+			new ConCtrlRingBuffer(mDrm, eventRingBuffer, conId,
 								  getDomId(), port, ref));
 
 	addRingBuffer(ctrlRingBuffer);
