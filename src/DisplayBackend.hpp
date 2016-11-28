@@ -1,5 +1,5 @@
 /*
- *  DRM backend
+ *  Display backend
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,58 +18,30 @@
  * Copyright (C) 2016 EPAM Systems Inc.
  */
 
-#ifndef INCLUDE_DRMBACKEND_HPP_
-#define INCLUDE_DRMBACKEND_HPP_
+#ifndef DISPLAYBACKEND_HPP_
+#define DISPLAYBACKEND_HPP_
 
 #include <xen/be/BackendBase.hpp>
 #include <xen/be/FrontendHandlerBase.hpp>
 #include <xen/be/RingBufferBase.hpp>
 #include <xen/be/Log.hpp>
 
-extern "C" {
-#include <xen/io/drmif_linux.h>
-}
-
 #include "CommandHandler.hpp"
 
 /***************************************************************************//**
- * @defgroup drm_be
+ * @defgroup displ_be
  * Backend related classes.
  ******************************************************************************/
 
 /***************************************************************************//**
- * Ring buffer used to send events to the frontend.
- * @ingroup drm_be
- ******************************************************************************/
-class ConEventRingBuffer : public XenBackend::RingBufferOutBase<
-										xendrm_event_page, xendrm_evt>
-{
-public:
-	/**
-	 * @param id        connector id
-	 * @param domId     frontend domain id
-	 * @param port      event channel port number
-	 * @param ref       grant table reference
-	 * @param offset    start of the ring buffer inside the page
-	 * @param size      size of the ring buffer
-	 */
-	ConEventRingBuffer(int id, int domId, int port,
-					   int ref, int offset, size_t size);
-
-private:
-	int mId;
-	XenBackend::Log mLog;
-};
-
-/***************************************************************************//**
  * Ring buffer used for the connector control.
- * @ingroup drm_be
+ * @ingroup displ_be
  ******************************************************************************/
 class ConCtrlRingBuffer : public XenBackend::RingBufferInBase<
-											xen_drmif_back_ring,
-											xen_drmif_sring,
-											xendrm_req,
-											xendrm_resp>
+											xen_displif_back_ring,
+											xen_displif_sring,
+											xendispl_req,
+											xendispl_resp>
 {
 public:
 	/**
@@ -89,14 +61,14 @@ private:
 	CommandHandler mCommandHandler;
 	XenBackend::Log mLog;
 
-	void processRequest(const xendrm_req& req);
+	void processRequest(const xendispl_req& req);
 };
 
 /***************************************************************************//**
- * DRM frontend handler.
- * @ingroup drm_be
+ * Display frontend handler.
+ * @ingroup displ_be
  ******************************************************************************/
-class DrmFrontendHandler : public XenBackend::FrontendHandlerBase
+class DisplayFrontendHandler : public XenBackend::FrontendHandlerBase
 {
 public:
 
@@ -106,8 +78,8 @@ public:
 	 * @param backend   backend instance
 	 * @param id        frontend instance id
 	 */
-	DrmFrontendHandler(const std::string& drmDevice, int domId,
-					   XenBackend::BackendBase& backend, int id) :
+	DisplayFrontendHandler(const std::string& drmDevice, int domId,
+						   XenBackend::BackendBase& backend, int id) :
 		FrontendHandlerBase(domId, backend, id),
 		mDrm(drmDevice),
 		mLog("DrmFrontend") {}
@@ -128,10 +100,10 @@ private:
 };
 
 /***************************************************************************//**
- * DRM backend class.
- * @ingroup drm_be
+ * Display backend class.
+ * @ingroup displ_be
  ******************************************************************************/
-class DrmBackend : public XenBackend::BackendBase
+class DisplayBackend : public XenBackend::BackendBase
 {
 public:
 	/**
@@ -139,7 +111,7 @@ public:
 	 * @param deviceName    device name
 	 * @param id            instance id
 	 */
-	DrmBackend(int domId, const std::string& deviceName, int id);
+	DisplayBackend(int domId, const std::string& deviceName, int id);
 
 protected:
 
@@ -151,4 +123,4 @@ protected:
 	void onNewFrontend(int domId, int id);
 };
 
-#endif /* INCLUDE_DRMBACKEND_HPP_ */
+#endif /* DISPLAYBACKEND_HPP_ */

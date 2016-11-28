@@ -26,20 +26,41 @@
 #include <unordered_map>
 #include <vector>
 
+#include <xen/be/RingBufferBase.hpp>
 #include <xen/be/XenGnttab.hpp>
 #include <xen/be/Log.hpp>
 
-extern "C" {
-#include <xen/io/drmif_linux.h>
-}
+#include <xen/io/displif.h>
 
 #include "drm/Device.hpp"
 
-class ConEventRingBuffer;
+/***************************************************************************//**
+ * Ring buffer used to send events to the frontend.
+ * @ingroup displ_be
+ ******************************************************************************/
+class ConEventRingBuffer : public XenBackend::RingBufferOutBase<
+										xendispl_event_page, xendispl_evt>
+{
+public:
+	/**
+	 * @param id        connector id
+	 * @param domId     frontend domain id
+	 * @param port      event channel port number
+	 * @param ref       grant table reference
+	 * @param offset    start of the ring buffer inside the page
+	 * @param size      size of the ring buffer
+	 */
+	ConEventRingBuffer(int id, int domId, int port,
+					   int ref, int offset, size_t size);
+
+private:
+	int mId;
+	XenBackend::Log mLog;
+};
 
 /**
  * Handles commands received from the frontend.
- * @ingroup drm_be
+ * @ingroup displ_be
  */
 class CommandHandler
 {
@@ -59,10 +80,10 @@ public:
 	 * @param req
 	 * @return
 	 */
-	uint8_t processCommand(const xendrm_req& req);
+	uint8_t processCommand(const xendispl_req& req);
 
 private:
-	typedef void(CommandHandler::*CommandFn)(const xendrm_req& req);
+	typedef void(CommandHandler::*CommandFn)(const xendispl_req& req);
 
 	static std::unordered_map<int, CommandFn> sCmdTable;
 
@@ -77,30 +98,30 @@ private:
 
 	XenBackend::Log mLog;
 
-	struct DumbBuffer
+	struct LocalDisplayBuffer
 	{
 		Drm::Dumb& dumb;
 		std::unique_ptr<XenBackend::XenGnttabBuffer> buffer;
 	};
 
 	std::unordered_map<uint64_t, Drm::FrameBuffer&> mFrameBuffers;
-	std::unordered_map<uint64_t, DumbBuffer> mDumbBuffers;
+	std::unordered_map<uint64_t, LocalDisplayBuffer> mDisplayBuffers;
 
-	void pageFlip(const xendrm_req& req);
-	void createDumb(const xendrm_req& req);
-	void destroyDumb(const xendrm_req& req);
-	void createFrameBuffer(const xendrm_req& req);
-	void destroyFrameBuffer(const xendrm_req& req);
-	void setConfig(const xendrm_req& req);
+	void pageFlip(const xendispl_req& req);
+	void createDisplayBuffer(const xendispl_req& req);
+	void destroyDisplayBuffer(const xendispl_req& req);
+	void attachFrameBuffer(const xendispl_req& req);
+	void detachFrameBuffer(const xendispl_req& req);
+	void setConfig(const xendispl_req& req);
 
-	void getBufferRefs(grant_ref_t startDirectory,
+	void getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 					   std::vector<grant_ref_t>& refs);
 
 	uint32_t getLocalConnectorId();
-	Drm::Dumb& getLocalDumb(uint64_t cookie);
+	Drm::Dumb& getLocalDb(uint64_t cookie);
 	Drm::FrameBuffer& getLocalFb(uint64_t cookie);
 	void copyBuffer(uint64_t fbId);
-	void sendFlipEvent(uint8_t crtcIdx, uint64_t fb_id);
+	void sendFlipEvent(uint8_t conIdx, uint64_t fb_id);
 };
 
 #endif /* SRC_COMMANDHANDLER_HPP_ */

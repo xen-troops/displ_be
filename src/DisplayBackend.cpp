@@ -1,5 +1,5 @@
 /*
- *  DRM backend
+ *  Display backend
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  * Copyright (C) 2016 EPAM Systems Inc.
  */
 
-#include "DrmBackend.hpp"
+#include "DisplayBackend.hpp"
 
 #include <iostream>
 #include <memory>
@@ -33,9 +33,9 @@
 #include "drm/Device.hpp"
 
 /***************************************************************************//**
- * @mainpage drm_be
+ * @mainpage displ_be
  *
- * This backend implements virtual DRM devices. It is implemented with
+ * This backend implements virtual display devices. It is implemented based on
  * libxenbe.
  *
  ******************************************************************************/
@@ -60,60 +60,46 @@ using XenBackend::XenStore;
 using Drm::Connector;
 using Drm::Device;
 
-unique_ptr <DrmBackend> gDrmBackend;
+unique_ptr <DisplayBackend> gDrmBackend;
 
 /*******************************************************************************
  * ConCtrlRingBuffer
  ******************************************************************************/
 
-ConCtrlRingBuffer::ConCtrlRingBuffer(Device& drm,
+ConCtrlRingBuffer::ConCtrlRingBuffer(Device& displ,
 									 shared_ptr<ConEventRingBuffer> eventBuffer,
 									 int id, int domId, int port, int ref) :
-	RingBufferInBase<xen_drmif_back_ring, xen_drmif_sring,
-					 xendrm_req, xendrm_resp>(domId, port, ref),
+	RingBufferInBase<xen_displif_back_ring, xen_displif_sring,
+					 xendispl_req, xendispl_resp>(domId, port, ref),
 	mId(id),
-	mCommandHandler(mId, domId, drm, eventBuffer),
+	mCommandHandler(mId, domId, displ, eventBuffer),
 	mLog("ConCtrlRing")
 {
 	LOG(mLog, DEBUG) << "Create ctrl ring buffer: id = " << mId;
 }
 
-void ConCtrlRingBuffer::processRequest(const xendrm_req& req)
+void ConCtrlRingBuffer::processRequest(const xendispl_req& req)
 {
 	DLOG(mLog, DEBUG) << "Request received, id: " << mId
-					  << ", cmd:" << static_cast<int>(req.u.data.operation);
+					  << ", cmd:" << static_cast<int>(req.operation);
 
-	xendrm_resp rsp {};
+	xendispl_resp rsp {};
 
-	rsp.u.data.id = req.u.data.id;
-	rsp.u.data.id = req.u.data.id;
-	rsp.u.data.operation = req.u.data.operation;
-	rsp.u.data.status = mCommandHandler.processCommand(req);
+	rsp.id = req.id;
+	rsp.id = req.id;
+	rsp.operation = req.operation;
+	rsp.status = mCommandHandler.processCommand(req);
 
 	sendResponse(rsp);
 }
 
 /*******************************************************************************
- * ConEventRingBuffer
+ * DisplayFrontendHandler
  ******************************************************************************/
 
-ConEventRingBuffer::ConEventRingBuffer(int id, int domId, int port,
-									   int ref, int offset, size_t size) :
-	RingBufferOutBase<xendrm_event_page, xendrm_evt>(domId, port, ref,
-													 offset, size),
-	mId(id),
-	mLog("ConEventRing")
+void DisplayFrontendHandler::onBind()
 {
-	LOG(mLog, DEBUG) << "Create event ring buffer: id = " << mId;
-}
-
-/*******************************************************************************
- * DrmFrontendHandler
- ******************************************************************************/
-
-void DrmFrontendHandler::onBind()
-{
-	string conBasePath = getXsFrontendPath() + "/" + XENDRM_PATH_CONNECTOR;
+	string conBasePath = getXsFrontendPath() + "/" + XENDISPL_PATH_CONNECTOR;
 
 	const vector<string> cons = getXenStore().readDirectory(conBasePath);
 
@@ -144,25 +130,27 @@ void DrmFrontendHandler::onBind()
 	mDrm.start();
 }
 
-void DrmFrontendHandler::createConnector(const string& conPath, int conId)
+void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 {
-	auto port = getXenStore().readInt(conPath + "/" + XENDRM_FIELD_EVT_CHANNEL);
+	auto port = getXenStore().readInt(conPath + "/" +
+									  XENDISPL_FIELD_EVT_CHANNEL);
 
 	uint32_t ref = getXenStore().readInt(conPath + "/" +
-										 XENDRM_FIELD_EVT_RING_REF);
+										 XENDISPL_FIELD_EVT_RING_REF);
 
 	shared_ptr<ConEventRingBuffer> eventRingBuffer(
 			new ConEventRingBuffer(conId, getDomId(), port, ref,
-								   XENDRM_IN_RING_SIZE, XENDRM_IN_RING_SIZE));
+								   XENDISPL_IN_RING_SIZE,
+								   XENDISPL_IN_RING_SIZE));
 
 	addRingBuffer(eventRingBuffer);
 
 
 	port = getXenStore().readInt(conPath + "/" +
-									  XENDRM_FIELD_CTRL_CHANNEL);
+								 XENDISPL_FIELD_CTRL_CHANNEL);
 
 	ref = getXenStore().readInt(conPath + "/" +
-										 XENDRM_FIELD_CTRL_RING_REF);
+								XENDISPL_FIELD_CTRL_RING_REF);
 
 	shared_ptr<RingBufferBase> ctrlRingBuffer(
 			new ConCtrlRingBuffer(mDrm, eventRingBuffer, conId,
@@ -172,22 +160,20 @@ void DrmFrontendHandler::createConnector(const string& conPath, int conId)
 }
 
 /*******************************************************************************
- * DrmBackend
+ * DisplayBackend
  ******************************************************************************/
 
-DrmBackend::DrmBackend(int domId, const std::string& deviceName, int id) :
+DisplayBackend::DisplayBackend(int domId, const string& deviceName, int id) :
 	BackendBase(domId, deviceName, id)
 {
 
 }
 
-void DrmBackend::onNewFrontend(int domId, int id)
+void DisplayBackend::onNewFrontend(int domId, int id)
 {
-
-
 	addFrontendHandler(shared_ptr<FrontendHandlerBase>(
-					   new DrmFrontendHandler("/dev/dri/card0", domId,
-							   *this, id)));
+					   new DisplayFrontendHandler("/dev/dri/card0", domId,
+					   *this, id)));
 }
 
 /*******************************************************************************
@@ -257,7 +243,7 @@ int main(int argc, char *argv[])
 
 		if (commandLineOptions(argc, argv))
 		{
-			gDrmBackend.reset(new DrmBackend(0, XENDRM_DRIVER_NAME, 0));
+			gDrmBackend.reset(new DisplayBackend(0, XENDISPL_DRIVER_NAME, 0));
 
 			gDrmBackend->run();
 		}

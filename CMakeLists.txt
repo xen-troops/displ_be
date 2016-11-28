@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-set(PROJECT_NAME "drm_be")
+set(PROJECT_NAME "displ_be")
 
 project(${PROJECT_NAME})
 
@@ -11,7 +11,7 @@ set(SOURCES
 	src/drm/FrameBuffer.cpp
 	src/drm/Modes.cpp
 	src/CommandHandler.cpp
-	src/DrmBackend.cpp
+	src/DisplayBackend.cpp
 )
 
 include_directories(
