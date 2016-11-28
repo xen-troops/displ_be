@@ -26,11 +26,13 @@
 #include "DrmBackend.hpp"
 #include "drm/Exception.hpp"
 
-using std::shared_ptr;
 using std::make_pair;
 using std::memcpy;
 using std::move;
+using std::out_of_range;
+using std::shared_ptr;
 using std::to_string;
+using std::unordered_map;
 using std::vector;
 
 using XenBackend::XenException;
@@ -43,14 +45,14 @@ using Drm::Dumb;
 using Drm::FrameBuffer;
 using Drm::cInvalidId;
 
-CommandHandler::CommandFn CommandHandler::sCmdTable[] =
+unordered_map<int, CommandHandler::CommandFn> CommandHandler::sCmdTable =
 {
-	&CommandHandler::pageFlip,
-	&CommandHandler::createFrameBuffer,
-	&CommandHandler::destroyFrameBuffer,
-	&CommandHandler::createDumb,
-	&CommandHandler::destroyDumb,
-	&CommandHandler::setConfig,
+	{XENDRM_OP_PG_FLIP,			&CommandHandler::pageFlip},
+	{XENDRM_OP_FB_CREATE,		&CommandHandler::createFrameBuffer},
+	{XENDRM_OP_FB_DESTROY,		&CommandHandler::destroyFrameBuffer},
+	{XENDRM_OP_DUMB_CREATE,		&CommandHandler::createDumb},
+	{XENDRM_OP_DUMB_DESTROY,	&CommandHandler::destroyDumb},
+	{XENDRM_OP_SET_CONFIG,		&CommandHandler::setConfig}
 };
 
 /*******************************************************************************
@@ -85,14 +87,13 @@ uint8_t CommandHandler::processCommand(const xendrm_req& req)
 
 	try
 	{
-		if (req.u.data.operation < (sizeof(sCmdTable) / sizeof(CommandFn)))
-		{
-			(this->*sCmdTable[req.u.data.operation])(req);
-		}
-		else
-		{
-			status = XENDRM_RSP_ERROR;
-		}
+		(this->*sCmdTable.at(req.u.data.operation))(req);
+	}
+	catch(const out_of_range& e)
+	{
+		LOG(mLog, ERROR) << e.what();
+
+		status = XENDRM_RSP_ERROR;
 	}
 	catch(const DrmException& e)
 	{

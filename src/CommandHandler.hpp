@@ -23,6 +23,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include <xen/be/XenGnttab.hpp>
@@ -63,7 +64,7 @@ public:
 private:
 	typedef void(CommandHandler::*CommandFn)(const xendrm_req& req);
 
-	static CommandFn sCmdTable[];
+	static std::unordered_map<int, CommandFn> sCmdTable;
 
 	uint32_t mRemoteConnectorId;
 	int mDomId;
@@ -82,8 +83,8 @@ private:
 		std::unique_ptr<XenBackend::XenGnttabBuffer> buffer;
 	};
 
-	std::map<uint64_t, Drm::FrameBuffer&> mFrameBuffers;
-	std::map<uint64_t, DumbBuffer> mDumbBuffers;
+	std::unordered_map<uint64_t, Drm::FrameBuffer&> mFrameBuffers;
+	std::unordered_map<uint64_t, DumbBuffer> mDumbBuffers;
 
 	void pageFlip(const xendrm_req& req);
 	void createDumb(const xendrm_req& req);
