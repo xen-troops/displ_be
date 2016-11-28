@@ -22,9 +22,9 @@
 #ifndef SRC_DRM_DEVICE_HPP_
 #define SRC_DRM_DEVICE_HPP_
 
-#include <map>
 #include <memory>
 #include <thread>
+#include <unordered_map>
 
 #include "Connector.hpp"
 #include "Dumb.hpp"
@@ -145,9 +145,9 @@ private:
 
 	std::unique_ptr<ModeResource> mRes;
 
-	std::map<uint32_t, std::unique_ptr<Connector>> mConnectors;
-	std::map<uint32_t, std::unique_ptr<Dumb>> mDumbs;
-	std::map<uint32_t, std::unique_ptr<FrameBuffer>> mFrameBuffers;
+	std::unordered_map<uint32_t, std::unique_ptr<Connector>> mConnectors;
+	std::unordered_map<uint32_t, std::unique_ptr<Dumb>> mDumbs;
+	std::unordered_map<uint32_t, std::unique_ptr<FrameBuffer>> mFrameBuffers;
 
 	std::mutex mMutex;
 	std::thread mThread;
