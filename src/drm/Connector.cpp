@@ -274,7 +274,7 @@ void Connector::flipFinished()
 		return;
 	}
 
-	DDLOG(mLog, DEBUG) << "Flip done";
+	DLOG(mLog, DEBUG) << "Flip done";
 
 	mFlipPending = false;
 
