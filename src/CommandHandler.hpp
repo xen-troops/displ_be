@@ -32,7 +32,7 @@
 
 #include <xen/io/displif.h>
 
-#include "drm/Device.hpp"
+#include "DisplayItf.hpp"
 
 /***************************************************************************//**
  * Ring buffer used to send events to the frontend.
@@ -66,18 +66,18 @@ class CommandHandler
 {
 public:
 	/**
-	 * @param connectorId connector id
+	 * @param display     display
+	 * @param conId       connector id
 	 * @param domId       domain id
-	 * @param drm         drm device
 	 * @param eventBuffer event ring buffer
 	 */
-	CommandHandler(uint32_t connectorId, int domId, Drm::Device& drm,
-				   std::shared_ptr<ConEventRingBuffer> eventBuffer);
+	CommandHandler(std::shared_ptr<DisplayItf> display, uint32_t conId,
+				   int domId, std::shared_ptr<ConEventRingBuffer> eventBuffer);
 	~CommandHandler();
 
 	/**
 	 * Processes commands received from the frontend.
-	 * @param req
+	 * @param req frontend request
 	 * @return
 	 */
 	uint8_t processCommand(const xendispl_req& req);
@@ -87,24 +87,20 @@ private:
 
 	static std::unordered_map<int, CommandFn> sCmdTable;
 
-	uint32_t mRemoteConnectorId;
 	int mDomId;
 	std::shared_ptr<ConEventRingBuffer> mEventBuffer;
-
-	Drm::Device& mDrm;
-
-	uint32_t mLocalConnectorId;
-	uint32_t mCrtcId;
+	std::shared_ptr<DisplayItf> mDisplay;
+	std::shared_ptr<ConnectorItf> mConnector;
 
 	XenBackend::Log mLog;
 
 	struct LocalDisplayBuffer
 	{
-		Drm::Dumb& dumb;
+		std::shared_ptr<DisplayBufferItf> displayBuffer;
 		std::unique_ptr<XenBackend::XenGnttabBuffer> buffer;
 	};
 
-	std::unordered_map<uint64_t, Drm::FrameBuffer&> mFrameBuffers;
+	std::unordered_map<uint64_t, std::shared_ptr<FrameBufferItf>> mFrameBuffers;
 	std::unordered_map<uint64_t, LocalDisplayBuffer> mDisplayBuffers;
 
 	void pageFlip(const xendispl_req& req);
@@ -118,9 +114,9 @@ private:
 					   std::vector<grant_ref_t>& refs);
 
 	uint32_t getLocalConnectorId();
-	Drm::Dumb& getLocalDb(uint64_t cookie);
-	Drm::FrameBuffer& getLocalFb(uint64_t cookie);
-	void copyBuffer(uint64_t fbId);
+	std::shared_ptr<DisplayBufferItf> getLocalDb(uint64_t cookie);
+	std::shared_ptr<FrameBufferItf> getLocalFb(uint64_t cookie);
+	void copyBuffer(uint64_t cookie);
 	void sendFlipEvent(uint8_t conIdx, uint64_t fb_id);
 };
 

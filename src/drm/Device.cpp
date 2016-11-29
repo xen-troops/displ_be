@@ -28,12 +28,13 @@
 #include <xen/be/Log.hpp>
 
 using std::exception;
+using std::dynamic_pointer_cast;
 using std::lock_guard;
 using std::mutex;
+using std::shared_ptr;
 using std::string;
 using std::thread;
 using std::to_string;
-using std::unique_ptr;
 
 namespace Drm {
 
@@ -75,66 +76,28 @@ Device::~Device()
 /*******************************************************************************
  * Public
  ******************************************************************************/
-Dumb& Device::createDumb(uint32_t width, uint32_t height, uint32_t bpp)
+shared_ptr<DisplayBufferItf> Device::createDisplayBuffer(uint32_t width,
+														 uint32_t height,
+														 uint32_t bpp)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	Dumb* dumb = new Dumb(*this, width, height, bpp);
+	LOG(mLog, DEBUG) << "Create display buffer";
 
-	mDumbs.emplace(dumb->getHandle(), unique_ptr<Dumb>(dumb));
-
-	LOG(mLog, DEBUG) << "Create dumb: " << dumb->getHandle();
-
-	return *dumb;
+	return shared_ptr<DisplayBufferItf>(new Dumb(mFd, width, height, bpp));
 }
 
-void Device::deleteDumb(uint32_t handle)
+shared_ptr<FrameBufferItf> Device::createFrameBuffer(
+		shared_ptr<DisplayBufferItf> displayBuffer,uint32_t width,
+		uint32_t height, uint32_t pixelFormat)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	LOG(mLog, DEBUG) << "Delete dumb " << handle;
+	LOG(mLog, DEBUG) << "Create frame buffer";
 
-	auto dumbIter = mDumbs.find(handle);
-
-	if (dumbIter == mDumbs.end())
-	{
-		throw DrmException("Dumb handler not found");
-	}
-
-	mDumbs.erase(dumbIter);
-}
-
-FrameBuffer& Device::createFrameBuffer(Dumb& dumb, uint32_t width,
-									uint32_t height, uint32_t pixelFormat)
-{
-	lock_guard<mutex> lock(mMutex);
-
-	FrameBuffer* frameBuffer = new FrameBuffer(*this, dumb,
-											   width, height, pixelFormat,
-											   dumb.getPitch());
-
-	mFrameBuffers.emplace(frameBuffer->getId(),
-						  unique_ptr<FrameBuffer>(frameBuffer));
-
-	LOG(mLog, DEBUG) << "Create frame buffer " << frameBuffer->getId();
-
-	return *frameBuffer;
-}
-
-void Device::deleteFrameBuffer(uint32_t id)
-{
-	lock_guard<mutex> lock(mMutex);
-
-	LOG(mLog, DEBUG) << "Delete frame buffer " << id;
-
-	auto fbIter = mFrameBuffers.find(id);
-
-	if (fbIter == mFrameBuffers.end())
-	{
-		throw DrmException("Frame buffer id not found");
-	}
-
-	mFrameBuffers.erase(fbIter);
+	return shared_ptr<FrameBufferItf>(
+			new FrameBuffer(dynamic_pointer_cast<Dumb>(displayBuffer),
+							width, height, pixelFormat));
 }
 
 void Device::start()
@@ -167,7 +130,7 @@ void Device::stop()
 	}
 }
 
-Connector& Device::getConnectorById(uint32_t id)
+shared_ptr<ConnectorItf> Device::getConnectorById(uint32_t id)
 {
 	auto iter = mConnectors.find(id);
 
@@ -176,10 +139,10 @@ Connector& Device::getConnectorById(uint32_t id)
 		throw DrmException("Wrong connector id " + to_string(id));
 	}
 
-	return *iter->second;
+	return dynamic_pointer_cast<ConnectorItf>(iter->second);
 }
 
-Connector& Device::getConnectorByIndex(uint32_t index)
+shared_ptr<Connector> Device::getConnectorByIndex(uint32_t index)
 {
 	if (index >= mConnectors.size())
 	{
@@ -190,7 +153,7 @@ Connector& Device::getConnectorByIndex(uint32_t index)
 
 	advance(iter, index);
 
-	return *iter->second;
+	return iter->second;
 }
 
 size_t Device::getConnectorsCount()
@@ -225,16 +188,12 @@ void Device::init()
 		Connector* connector = new Connector(*this, (*mRes)->connectors[i]);
 
 		mConnectors.emplace((*mRes)->connectors[i],
-							unique_ptr<Connector>(connector));
+							shared_ptr<Connector>(connector));
 	}
 }
 
 void Device::release()
 {
-	mFrameBuffers.clear();
-
-	mDumbs.clear();
-
 	mRes.reset();
 
 	mConnectors.clear();

@@ -29,7 +29,7 @@
 #include "CommandHandler.hpp"
 
 /***************************************************************************//**
- * @defgroup displ_be
+ * @defgroup displ_be Display backend
  * Backend related classes.
  ******************************************************************************/
 
@@ -45,19 +45,18 @@ class ConCtrlRingBuffer : public XenBackend::RingBufferInBase<
 {
 public:
 	/**
-	 * @param drm         drm device
+	 * @param display     display
+	 * @param conId       connector id
 	 * @param eventBuffer event ring buffer
-	 * @param id          connector id
 	 * @param domId       frontend domain id
 	 * @param port        event channel port number
 	 * @param ref         grant table reference
 	 */
-	ConCtrlRingBuffer(Drm::Device& drm,
+	ConCtrlRingBuffer(std::shared_ptr<DisplayItf> display, uint32_t conId,
 					  std::shared_ptr<ConEventRingBuffer> eventBuffer,
-					  int id, int domId, int port, int ref);
+					  int domId, int port, int ref);
 
 private:
-	int mId;
 	CommandHandler mCommandHandler;
 	XenBackend::Log mLog;
 
@@ -73,16 +72,19 @@ class DisplayFrontendHandler : public XenBackend::FrontendHandlerBase
 public:
 
 	/**
-	 * @param drmDevice name of drm device
+	 * @param display   display
+	 * @param conId     connector id
 	 * @param domId     frontend domain id
 	 * @param backend   backend instance
 	 * @param id        frontend instance id
 	 */
-	DisplayFrontendHandler(const std::string& drmDevice, int domId,
+	DisplayFrontendHandler(std::shared_ptr<DisplayItf> display,
+						   uint32_t conId, int domId,
 						   XenBackend::BackendBase& backend, int id) :
 		FrontendHandlerBase(domId, backend, id),
-		mDrm(drmDevice),
-		mLog("DrmFrontend") {}
+		mDisplay(display),
+		mConId(conId),
+		mLog("DisplayFrontend") {}
 
 protected:
 
@@ -93,7 +95,8 @@ protected:
 
 private:
 
-	Drm::Device mDrm;
+	std::shared_ptr<DisplayItf> mDisplay;
+	uint32_t mConId;
 	XenBackend::Log mLog;
 
 	void createConnector(const std::string& streamPath, int conId);
@@ -116,11 +119,17 @@ public:
 protected:
 
 	/**
-	 * Is called when new DRM frontend appears.
+	 * Is called when new display frontend appears.
 	 * @param domId domain id
 	 * @param id    instance id
 	 */
 	void onNewFrontend(int domId, int id);
+
+private:
+
+	std::shared_ptr<DisplayItf> mDisplay;
+
+	uint32_t getConnectorId();
 };
 
 #endif /* DISPLAYBACKEND_HPP_ */

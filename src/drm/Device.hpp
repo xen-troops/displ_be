@@ -26,6 +26,8 @@
 #include <thread>
 #include <unordered_map>
 
+#include "DisplayItf.hpp"
+
 #include "Connector.hpp"
 #include "Dumb.hpp"
 #include "FrameBuffer.hpp"
@@ -33,7 +35,7 @@
 namespace Drm {
 
 /***************************************************************************//**
- * @defgroup drm
+ * @defgroup drm DRM
  * DRM related classes.
  ******************************************************************************/
 
@@ -41,7 +43,7 @@ namespace Drm {
  * DRM Device class.
  * @ingroup drm
  ******************************************************************************/
-class Device
+class Device : public DisplayItf
 {
 public:
 
@@ -59,79 +61,64 @@ public:
 
 	/**
 	 * Returns number of supported CRTC's
-	 * @return number of supported CRTC's
 	 */
 	int getCtrcsCount() const { return (*mRes)->count_crtcs; }
 
 	/**
 	 * Returns CRTC id by index
 	 * @param index index in CRTC array
-	 * @return CRTC id
 	 */
 	uint32_t getCtrcIdByIndex(int index) const { return (*mRes)->crtcs[index]; }
 
 	/**
-	 * Returns connector by id
-	 * @param id connector id
-	 * @return connector
-	 */
-	Connector& getConnectorById(uint32_t id);
-
-	/**
 	 * Returns connector by index
-	 * @param index index in array
-	 * @return connector
+	 * @param index index in arrays
 	 */
-	Connector& getConnectorByIndex(uint32_t index);
+	std::shared_ptr<Connector> getConnectorByIndex(uint32_t index);
 
 	/**
 	 * Returns number of connectors
-	 * @return number of connectors
 	 */
 	size_t getConnectorsCount();
 
 	/**
-	 * Starts DRM flip page events handling
+	 * Starts events handling
 	 */
-	void start();
+	void start() override;
 
 	/**
-	 * Stops DRM flip page events handling
+	 * Stops events handling
 	 */
-	void stop();
+	void stop() override;
 
 	/**
-	 * Creates DRM dumb
-	 * @param width  width of the dumb buffer
-	 * @param height height of the dumb buffer
-	 * @param bpp    bits per pixel of the dumb buffer
-	 * @return reference to the dumb object
+	 * Returns connector by id
+	 * @param id connector id
 	 */
-	Dumb& createDumb(uint32_t width, uint32_t height,
-									 uint32_t bpp);
+	std::shared_ptr<ConnectorItf> getConnectorById(uint32_t id) override;
+
 
 	/**
-	 * Deletes the dumb by handle
-	 * @param handle dumb handle
+	 * Creates display buffer
+	 * @param width  width
+	 * @param height height
+	 * @param bpp    bits per pixel
+	 * @return shared pointer to the display buffer
 	 */
-	void deleteDumb(uint32_t handle);
+	std::shared_ptr<DisplayBufferItf> createDisplayBuffer(
+			uint32_t width, uint32_t height, uint32_t bpp) override;
 
 	/**
-	 * Creates DRM frame buffer
-	 * @param dumb        reference to the dumb object
-	 * @param width       width of the frame buffer
-	 * @param height      height of the frame buffer
-	 * @param pixelFormat pixel format of the frame buffer
-	 * @return reference to the frame buffer object
+	 * Creates frame buffer
+	 * @param displayBuffer pointer to the display buffer
+	 * @param width         width
+	 * @param height        height
+	 * @param pixelFormat   pixel format
+	 * @return shared pointer to the frame buffer
 	 */
-	FrameBuffer& createFrameBuffer(Dumb& dumb, uint32_t width,
-								   uint32_t height, uint32_t pixelFormat);
-
-	/**
-	 * Deletes the frame buffer by id
-	 * @param id id of the frame buffer
-	 */
-	void deleteFrameBuffer(uint32_t id);
+	std::shared_ptr<FrameBufferItf> createFrameBuffer(
+			std::shared_ptr<DisplayBufferItf> displayBuffer,
+			uint32_t width,uint32_t height, uint32_t pixelFormat) override;
 
 private:
 
@@ -145,9 +132,7 @@ private:
 
 	std::unique_ptr<ModeResource> mRes;
 
-	std::unordered_map<uint32_t, std::unique_ptr<Connector>> mConnectors;
-	std::unordered_map<uint32_t, std::unique_ptr<Dumb>> mDumbs;
-	std::unordered_map<uint32_t, std::unique_ptr<FrameBuffer>> mFrameBuffers;
+	std::unordered_map<uint32_t, std::shared_ptr<Connector>> mConnectors;
 
 	std::mutex mMutex;
 	std::thread mThread;

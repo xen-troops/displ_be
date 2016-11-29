@@ -35,10 +35,10 @@ namespace Drm {
  * Dumb
  ******************************************************************************/
 
-Dumb::Dumb(Device& drm, uint32_t width, uint32_t height, uint32_t bpp) :
-	mDrm(drm),
+Dumb::Dumb(int fd, uint32_t width, uint32_t height, uint32_t bpp) :
+	mFd(fd),
 	mHandle(cInvalidId),
-	mPitch(0),
+	mStride(0),
 	mWidth(width),
 	mHeight(height),
 	mSize(0),
@@ -52,14 +52,14 @@ Dumb::Dumb(Device& drm, uint32_t width, uint32_t height, uint32_t bpp) :
 		creq.height = height;
 		creq.bpp = bpp;
 
-		auto ret = drmIoctl(mDrm.getFd(), DRM_IOCTL_MODE_CREATE_DUMB, &creq);
+		auto ret = drmIoctl(mFd, DRM_IOCTL_MODE_CREATE_DUMB, &creq);
 
 		if (ret < 0)
 		{
 			throw DrmException("Cannot create dumb buffer");
 		}
 
-		mPitch = creq.pitch;
+		mStride = creq.pitch;
 		mSize = creq.size;
 		mHandle = creq.handle;
 
@@ -67,7 +67,7 @@ Dumb::Dumb(Device& drm, uint32_t width, uint32_t height, uint32_t bpp) :
 
 		mreq.handle = mHandle;
 
-		ret = drmIoctl(mDrm.getFd(), DRM_IOCTL_MODE_MAP_DUMB, &mreq);
+		ret = drmIoctl(mFd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
 
 		if (ret < 0)
 		{
@@ -75,7 +75,7 @@ Dumb::Dumb(Device& drm, uint32_t width, uint32_t height, uint32_t bpp) :
 		}
 
 		auto map = mmap(0, mSize, PROT_READ | PROT_WRITE, MAP_SHARED,
-						mDrm.getFd(), mreq.offset);
+						mFd, mreq.offset);
 
 		if (map == MAP_FAILED)
 		{
@@ -85,7 +85,7 @@ Dumb::Dumb(Device& drm, uint32_t width, uint32_t height, uint32_t bpp) :
 		mBuffer = map;
 
 		DLOG("Dumb", DEBUG) << "Create dumb, handle: " << mHandle << ", size: "
-						   << mSize << ", pitch: " << mPitch;
+						   << mSize << ", stride: " << mStride;
 
 	}
 	catch(const exception& e)
@@ -116,7 +116,7 @@ void Dumb::release()
 
 		dreq.handle = mHandle;
 
-		if (drmIoctl(mDrm.getFd(), DRM_IOCTL_MODE_DESTROY_DUMB, &dreq) < 0)
+		if (drmIoctl(mFd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq) < 0)
 		{
 			DLOG("Dumb" , ERROR) << "Cannot destroy dumb";
 		}

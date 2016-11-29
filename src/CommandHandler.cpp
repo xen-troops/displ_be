@@ -24,9 +24,6 @@
 #include <cstring>
 #include <sys/mman.h>
 
-//#include "DisplayBackend.hpp"
-#include "drm/Exception.hpp"
-
 using std::make_pair;
 using std::memcpy;
 using std::min;
@@ -39,13 +36,6 @@ using std::vector;
 
 using XenBackend::XenException;
 using XenBackend::XenGnttabBuffer;
-
-using Drm::Connector;
-using Drm::Device;
-using Drm::DrmException;
-using Drm::Dumb;
-using Drm::FrameBuffer;
-using Drm::cInvalidId;
 
 unordered_map<int, CommandHandler::CommandFn> CommandHandler::sCmdTable =
 {
@@ -75,14 +65,13 @@ ConEventRingBuffer::ConEventRingBuffer(int id, int domId, int port,
  * CommandHandler
  ******************************************************************************/
 
-CommandHandler::CommandHandler(uint32_t connectorId, int domId, Device& drm,
+CommandHandler::CommandHandler(shared_ptr<DisplayItf> display,
+							   uint32_t conId, int domId,
 							   shared_ptr<ConEventRingBuffer> eventBuffer) :
-	mRemoteConnectorId(connectorId),
 	mDomId(domId),
 	mEventBuffer(eventBuffer),
-	mDrm(drm),
-	mLocalConnectorId(cInvalidId),
-	mCrtcId(cInvalidId),
+	mDisplay(display),
+	mConnector(mDisplay->getConnectorById(conId)),
 	mLog("CommandHandler")
 {
 	LOG(mLog, DEBUG) << "Create command handler, dom: " << mDomId;
@@ -111,7 +100,7 @@ uint8_t CommandHandler::processCommand(const xendispl_req& req)
 
 		status = XENDISPL_RSP_NOTSUPP;
 	}
-	catch(const DrmException& e)
+	catch(const DisplayItfException& e)
 	{
 		LOG(mLog, ERROR) << e.what();
 
@@ -135,13 +124,12 @@ void CommandHandler::pageFlip(const xendispl_req& req)
 					  << flipReq.fb_cookie << ", conn idx: "
 					  << static_cast<int>(flipReq.conn_idx);
 
-	FrameBuffer& frameBuffer = getLocalFb(flipReq.fb_cookie);
+	auto frameBuffer = getLocalFb(flipReq.fb_cookie);
 
 	copyBuffer(flipReq.fb_cookie);
 
-	frameBuffer.pageFlip(mCrtcId, [flipReq, this] ()
-								  { sendFlipEvent(flipReq.conn_idx,
-								  flipReq.fb_cookie); });
+	mConnector->pageFlip(frameBuffer, [flipReq, this] ()
+			{ sendFlipEvent(flipReq.conn_idx, flipReq.fb_cookie); });
 }
 
 void CommandHandler::createDisplayBuffer(const xendispl_req& req)
@@ -151,9 +139,10 @@ void CommandHandler::createDisplayBuffer(const xendispl_req& req)
 	DLOG(mLog, DEBUG) << "Handle command [CREATE DBUF], handle: "
 					  << dbufReq->dbuf_cookie;
 
-	LocalDisplayBuffer displayBuffer { mDrm.createDumb(dbufReq->width,
-													   dbufReq->height,
-													   dbufReq->bpp) };
+	LocalDisplayBuffer displayBuffer {
+		mDisplay->createDisplayBuffer(dbufReq->width,
+									  dbufReq->height,
+									  dbufReq->bpp) };
 
 	vector<grant_ref_t> refs;
 
@@ -172,8 +161,6 @@ void CommandHandler::destroyDisplayBuffer(const xendispl_req& req)
 	DLOG(mLog, DEBUG) << "Handle command [DESTROY DBUF], handle: "
 					  << dbufReq->dbuf_cookie;
 
-	mDrm.deleteDumb(getLocalDb(dbufReq->dbuf_cookie).getHandle());
-
 	mDisplayBuffers.erase(dbufReq->dbuf_cookie);
 }
 
@@ -184,10 +171,10 @@ void CommandHandler::attachFrameBuffer(const xendispl_req& req)
 	DLOG(mLog, DEBUG) << "Handle command [ATTACH FB], handle: "
 					  << fbReq->fb_cookie << ", id: " << fbReq->fb_cookie;
 
-	FrameBuffer& frameBuffer =
-			mDrm.createFrameBuffer(getLocalDb(fbReq->dbuf_cookie),
-								   fbReq->width, fbReq->height,
-								   fbReq->pixel_format);
+	auto frameBuffer =
+			mDisplay->createFrameBuffer(getLocalDb(fbReq->dbuf_cookie),
+									    fbReq->width, fbReq->height,
+									    fbReq->pixel_format);
 
 	mFrameBuffers.emplace(fbReq->fb_cookie, frameBuffer);
 }
@@ -197,8 +184,6 @@ void CommandHandler::detachFrameBuffer(const xendispl_req& req)
 	const xendispl_fb_detach_req* fbReq = &req.op.fb_detach;
 
 	DLOG(mLog, DEBUG) << "Handle command [DETACH FB], id: " << fbReq->fb_cookie;
-
-	mDrm.deleteFrameBuffer(getLocalFb(fbReq->fb_cookie).getId());
 
 	mFrameBuffers.erase(fbReq->fb_cookie);
 }
@@ -210,24 +195,15 @@ void CommandHandler::setConfig(const xendispl_req& req)
 	DLOG(mLog, DEBUG) << "Handle command [SET CONFIG], fb ID: "
 					  << configReq->fb_cookie;
 
-	if (configReq->fb_cookie != cInvalidId)
+	if (configReq->fb_cookie != 0)
 	{
-		Connector& connector = mDrm.getConnectorById(getLocalConnectorId());
-
-		connector.init(configReq->x, configReq->y,
-					   configReq->width, configReq->height,
-					   configReq->bpp, getLocalFb(configReq->fb_cookie).getId());
-
-		mLocalConnectorId = connector.getId();
-		mCrtcId = connector.getCrtcId();
+		mConnector->init(configReq->x, configReq->y,
+						 configReq->width, configReq->height,
+						 configReq->bpp, getLocalFb(configReq->fb_cookie));
 	}
 	else
 	{
-		if (mLocalConnectorId != cInvalidId)
-		{
-			mDrm.getConnectorById(mLocalConnectorId).release();
-			mCrtcId = cInvalidId;
-		}
+		mConnector->release();
 	}
 }
 
@@ -265,64 +241,48 @@ void CommandHandler::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 	DLOG(mLog, DEBUG) << "Get buffer refs, num refs: " << refs.size();
 }
 
-uint32_t CommandHandler::getLocalConnectorId()
-{
-	for (size_t i = 0; i < mDrm.getConnectorsCount(); i++)
-	{
-		Connector& connector = mDrm.getConnectorByIndex(i);
-
-		if (connector.isConnected() && !connector.isInitialized())
-		{
-			return connector.getId();
-		}
-	}
-
-	throw DrmException("No available connectors found");
-}
-
-Dumb& CommandHandler::getLocalDb(uint64_t cookie)
+shared_ptr<DisplayBufferItf> CommandHandler::getLocalDb(uint64_t cookie)
 {
 	auto iter = mDisplayBuffers.find(cookie);
 
 	if (iter == mDisplayBuffers.end())
 	{
-		throw DrmException("Dumb cookie not found");
+		throw DisplayItfException("Dumb cookie not found");
 	}
 
-	return iter->second.dumb;
+	return iter->second.displayBuffer;
 }
 
-Drm::FrameBuffer& CommandHandler::getLocalFb(uint64_t cookie)
+std::shared_ptr<FrameBufferItf> CommandHandler::getLocalFb(uint64_t cookie)
 {
 	auto iter = mFrameBuffers.find(cookie);
 
 	if (iter == mFrameBuffers.end())
 	{
-		throw DrmException("Frame buffer cookie not found");
+		throw DisplayItfException("Frame buffer cookie not found");
 	}
 
 	return iter->second;
 }
 
-void CommandHandler::copyBuffer(uint64_t fbId)
+void CommandHandler::copyBuffer(uint64_t cookie)
 {
-	auto handle = getLocalFb(fbId).getDumb().getHandle();
+	auto displayBuffer = getLocalFb(cookie)->getDisplayBuffer();
+
 	auto iter = mDisplayBuffers.begin();
 
 	for (; iter != mDisplayBuffers.end(); iter++)
 	{
-		Dumb& dumb = iter->second.dumb;
-
-		if (handle == dumb.getHandle())
+		if (displayBuffer == iter->second.displayBuffer)
 		{
-			memcpy(dumb.getBuffer(), iter->second.buffer->get(),
-				   dumb.getSize());
+			memcpy(displayBuffer->getBuffer(), iter->second.buffer->get(),
+				   displayBuffer->getSize());
 
 			return;
 		}
 	}
 
-	throw DrmException("Handle not found");
+	throw DisplayItfException("Handle not found");
 }
 
 void CommandHandler::sendFlipEvent(uint8_t conIdx, uint64_t fb_cookie)

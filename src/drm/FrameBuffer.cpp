@@ -27,6 +27,7 @@
 #include "Dumb.hpp"
 
 using std::chrono::milliseconds;
+using std::shared_ptr;
 using std::string;
 using std::this_thread::sleep_for;
 
@@ -38,21 +39,20 @@ extern const uint32_t cInvalidId;
  * FrameBuffer
  ******************************************************************************/
 
-FrameBuffer::FrameBuffer(Device& drm, Dumb& dumb, uint32_t width,
-						 uint32_t height, uint32_t pixelFormat,
-						 uint32_t pitch) :
-	mDrm(drm),
+FrameBuffer::FrameBuffer(shared_ptr<Dumb> dumb,
+						 uint32_t width, uint32_t height,
+						 uint32_t pixelFormat) :
 	mDumb(dumb),
 	mId(cInvalidId),
 	mFlipPending(false)
 {
 	uint32_t handles[4], pitches[4], offsets[4] = {0};
 
-	handles[0] = mDumb.getHandle();
-	pitches[0] = pitch;
+	handles[0] = mDumb->mHandle;
+	pitches[0] = mDumb->mStride;
 
-	auto ret = drmModeAddFB2(mDrm.getFd(), width, height, pixelFormat, handles,
-							 pitches, offsets, &mId, 0);
+	auto ret = drmModeAddFB2(mDumb->mFd, width, height, pixelFormat,
+							 handles, pitches, offsets, &mId, 0);
 
 	DLOG("FrameBuffer", DEBUG) << "Create frame buffer, handle: " << handles[0]
 							  << ", id: " << mId;
@@ -79,10 +79,9 @@ FrameBuffer::~FrameBuffer()
 
 	if (mId != cInvalidId)
 	{
-		DLOG("FrameBuffer", DEBUG) << "Delete frame buffer, handle: "
-								  << getHandle() << ", id: " << mId;
+		DLOG("FrameBuffer", DEBUG) << "Delete frame buffer, id: " << mId;
 
-		drmModeRmFB(mDrm.getFd(), mId);
+		drmModeRmFB(mDumb->mFd, mId);
 	}
 }
 
@@ -90,19 +89,9 @@ FrameBuffer::~FrameBuffer()
  * Public
  ******************************************************************************/
 
-uint32_t FrameBuffer::getHandle() const
-{
-	return mDumb.getHandle();
-}
-
 void FrameBuffer::pageFlip(uint32_t crtcId, FlipCallback cbk)
 {
-	if (mDrm.isStopped())
-	{
-		throw DrmException("Page flip when DRM is stopped");
-	}
-
-	auto ret = drmModePageFlip(mDrm.getFd(), crtcId, mId,
+	auto ret = drmModePageFlip(mDumb->mFd, crtcId, mId,
 							   DRM_MODE_PAGE_FLIP_EVENT, this);
 
 	if (ret)
@@ -113,7 +102,6 @@ void FrameBuffer::pageFlip(uint32_t crtcId, FlipCallback cbk)
 
 	DLOG("FrameBuffer", DEBUG) << "Page flip, id: " << mId;
 
-	mDrm.pageFlipScheduled();
 	mFlipPending = true;
 	mFlipCallback = cbk;
 }
@@ -124,8 +112,6 @@ void FrameBuffer::pageFlip(uint32_t crtcId, FlipCallback cbk)
 
 void FrameBuffer::flipFinished()
 {
-	mDrm.pageFlipDone();
-
 	if (!mFlipPending)
 	{
 		LOG("FrameBuffer", ERROR) << "Not expected flip event";

@@ -27,6 +27,8 @@
 #include "Exception.hpp"
 #include "Modes.hpp"
 
+#include "DisplayItf.hpp"
+
 namespace Drm {
 
 extern const uint32_t cInvalidId;
@@ -37,60 +39,61 @@ class Device;
  * Provides DRM connector functionality.
  * @ingroup drm
  ******************************************************************************/
-class Connector
+class Connector : public ConnectorItf
 {
 public:
 
 	/**
-	 * @param dev DRM device
-	 * @param connectorId connector id
+	 * @param device DRM device
+	 * @param conId  connector id
 	 */
-	Connector(Device& dev, int connectorId);
+	Connector(Device& device, int conId);
 
 	~Connector();
 
 	/**
 	 * Returns assigned CRTC id
-	 * @return CRTC id
 	 */
 	uint32_t getCrtcId() const { return mCrtcId; }
-
-	/**
-	 * Returns connector id
-	 * @return connector id
-	 */
-	uint32_t getId() const { return mConnector->connector_id; }
 
 	/**
 	 * Checks if the connector is connected
 	 * @return <i>true</i> if connected
 	 */
-	bool isConnected() const { return mConnector->connection ==
-									  DRM_MODE_CONNECTED;
-	}
+	bool isConnected() const override { return mConnector->connection ==
+										DRM_MODE_CONNECTED; }
 
 	/**
 	 * Checks if the connector is initialized and CRTC is assigned
 	 * @return <i>true</i> if initialized
 	 */
-	bool isInitialized() const { return mCrtcId != cInvalidId; }
+	bool isInitialized() const override { return mCrtcId != cInvalidId; }
 
 	/**
 	 * Initializes CRTC mode
-	 * @param x      horizontal offset
-	 * @param y      vertical offset
-	 * @param width  width
-	 * @param height height
-	 * @param bpp    bits per pixel
-	 * @param fbId   frame buffer id
+	 * @param x           horizontal offset
+	 * @param y           vertical offset
+	 * @param width       width
+	 * @param height      height
+	 * @param bpp         bits per pixel
+	 * @param frameBuffer frame buffer
 	 */
-	void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
-			  uint32_t bpp, uint32_t fbId);
+	void init(uint32_t x, uint32_t y,
+			  uint32_t width, uint32_t height, uint32_t bpp,
+			  std::shared_ptr<FrameBufferItf> frameBuffer) override;
 
 	/**
 	 * Releases the previously initialized CRTC mode
 	 */
-	void release();
+	void release() override;
+
+	/**
+	 * Performs page flip
+	 * @param frameBuffer frame buffer
+	 * @param cbk         callback which will be called when page flip is done
+	 */
+	virtual void pageFlip(std::shared_ptr<FrameBufferItf> frameBuffer,
+						  FlipCallback cbk) override;
 
 private:
 

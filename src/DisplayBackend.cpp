@@ -41,6 +41,7 @@
  ******************************************************************************/
 
 using std::cout;
+using std::dynamic_pointer_cast;
 using std::endl;
 using std::exception;
 using std::shared_ptr;
@@ -57,31 +58,28 @@ using XenBackend::RingBufferBase;
 using XenBackend::RingBufferInBase;
 using XenBackend::XenStore;
 
-using Drm::Connector;
-using Drm::Device;
-
-unique_ptr <DisplayBackend> gDrmBackend;
+unique_ptr <DisplayBackend> gDisplayBackend;
 
 /*******************************************************************************
  * ConCtrlRingBuffer
  ******************************************************************************/
 
-ConCtrlRingBuffer::ConCtrlRingBuffer(Device& displ,
+ConCtrlRingBuffer::ConCtrlRingBuffer(shared_ptr<DisplayItf> display,
+									 uint32_t conId,
 									 shared_ptr<ConEventRingBuffer> eventBuffer,
-									 int id, int domId, int port, int ref) :
+									 int domId, int port, int ref) :
 	RingBufferInBase<xen_displif_back_ring, xen_displif_sring,
 					 xendispl_req, xendispl_resp>(domId, port, ref),
-	mId(id),
-	mCommandHandler(mId, domId, displ, eventBuffer),
+	mCommandHandler(display, conId, domId, eventBuffer),
 	mLog("ConCtrlRing")
 {
-	LOG(mLog, DEBUG) << "Create ctrl ring buffer: id = " << mId;
+	LOG(mLog, DEBUG) << "Create ctrl ring buffer";
 }
 
 void ConCtrlRingBuffer::processRequest(const xendispl_req& req)
 {
-	DLOG(mLog, DEBUG) << "Request received, id: " << mId
-					  << ", cmd:" << static_cast<int>(req.operation);
+	DLOG(mLog, DEBUG) << "Request received, cmd:"
+					  << static_cast<int>(req.operation);
 
 	xendispl_resp rsp {};
 
@@ -105,19 +103,9 @@ void DisplayFrontendHandler::onBind()
 
 	LOG(mLog, DEBUG) << "On frontend bind : " << getDomId();
 
-	for (size_t i = 0; i < mDrm.getConnectorsCount(); i++)
-	{
-		Connector& connector = mDrm.getConnectorByIndex(i);
-
-		LOG("Main", DEBUG) << "Local connector: "
-						   << connector.getId()
-						   << ", connected: "
-						   << connector.isConnected();
-	}
-
 	if (cons.size() == 0)
 	{
-		LOG(mLog, WARNING) << "No DRM connectors found : " << getDomId();
+		LOG(mLog, WARNING) << "No display connectors found : " << getDomId();
 	}
 
 	for(auto conId : cons)
@@ -126,8 +114,6 @@ void DisplayFrontendHandler::onBind()
 
 		createConnector(conBasePath + "/" + conId, stoi(conId));
 	}
-
-	mDrm.start();
 }
 
 void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
@@ -153,7 +139,7 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 								XENDISPL_FIELD_CTRL_RING_REF);
 
 	shared_ptr<RingBufferBase> ctrlRingBuffer(
-			new ConCtrlRingBuffer(mDrm, eventRingBuffer, conId,
+			new ConCtrlRingBuffer(mDisplay, mConId, eventRingBuffer,
 								  getDomId(), port, ref));
 
 	addRingBuffer(ctrlRingBuffer);
@@ -167,22 +153,52 @@ DisplayBackend::DisplayBackend(int domId, const string& deviceName, int id) :
 	BackendBase(domId, deviceName, id)
 {
 
+	auto drmDevice = new Drm::Device("/dev/dri/card0");
+
+	for (size_t i = 0; i < drmDevice->getConnectorsCount(); i++)
+	{
+		auto connector = drmDevice->getConnectorByIndex(i);
+
+		LOG("Main", DEBUG) << "Connector: "
+						   << connector->getId()
+						   << ", connected: "
+						   << connector->isConnected();
+	}
+
+	mDisplay.reset(drmDevice);
 }
 
 void DisplayBackend::onNewFrontend(int domId, int id)
 {
+
 	addFrontendHandler(shared_ptr<FrontendHandlerBase>(
-					   new DisplayFrontendHandler("/dev/dri/card0", domId,
-					   *this, id)));
+			new DisplayFrontendHandler(mDisplay, getConnectorId(),
+									   domId, *this, id)));
 }
 
+uint32_t DisplayBackend::getConnectorId()
+{
+	auto drmDevice = dynamic_pointer_cast<Drm::Device>(mDisplay);
+
+	for (size_t i = 0; i < drmDevice->getConnectorsCount(); i++)
+	{
+		auto connector = drmDevice->getConnectorByIndex(i);
+
+		if (connector->isConnected() && !connector->isInitialized())
+		{
+			return connector->getId();
+		}
+	}
+
+	throw DisplayItfException("No available connectors found");
+}
 /*******************************************************************************
  *
  ******************************************************************************/
 
 void terminateHandler(int signal)
 {
-	gDrmBackend->stop();
+	gDisplayBackend->stop();
 }
 
 void segmentationHandler(int sig)
@@ -243,9 +259,9 @@ int main(int argc, char *argv[])
 
 		if (commandLineOptions(argc, argv))
 		{
-			gDrmBackend.reset(new DisplayBackend(0, XENDISPL_DRIVER_NAME, 0));
+			gDisplayBackend.reset(new DisplayBackend(0, XENDISPL_DRIVER_NAME, 0));
 
-			gDrmBackend->run();
+			gDisplayBackend->run();
 		}
 		else
 		{

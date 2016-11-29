@@ -23,11 +23,12 @@
 #define SRC_DRM_FRAMEBUFFER_HPP_
 
 #include <atomic>
+#include <memory>
 #include <functional>
 
-namespace Drm {
+#include "DisplayItf.hpp"
 
-typedef std::function<void()> FlipCallback;
+namespace Drm {
 
 class Device;
 class Dumb;
@@ -36,40 +37,30 @@ class Dumb;
  * Provides DRM frame buffer functionality.
  * @ingroup drm
  ******************************************************************************/
-class FrameBuffer
+class FrameBuffer : public FrameBufferItf
 {
 public:
 
 	/**
-	 * @param drm         DRM device
-	 * @param dumb        reference to the dumb object
+	 * Callback which is called when page flip is done
+	 */
+	typedef std::function<void()> FlipCallback;
+
+	/**
+	 * @param dumb        dumb
 	 * @param width       frame buffer width
 	 * @param height      frame buffer height
 	 * @param pixelFormat frame buffer pixel format
-	 * @param pitch       frame buffer pitch
 	 */
-	FrameBuffer(Device& drm, Dumb& dumb, uint32_t width, uint32_t height,
-				uint32_t pixelFormat, uint32_t pitch);
+	FrameBuffer(std::shared_ptr<Dumb> dumb, uint32_t width, uint32_t height,
+				uint32_t pixelFormat);
 
 	~FrameBuffer();
 
 	/**
 	 * Returns frame buffer id
-	 * @return frame buffer id
 	 */
 	uint32_t getId() const { return mId; }
-
-	/**
-	 * Returns reference to the dumb object associated with this frame buffer
-	 * @return reference to the dumb object
-	 */
-	Dumb& getDumb() const { return mDumb; }
-
-	/**
-	 * Returns dumb handle associated with this frame buffer
-	 * @return dumb handle
-	 */
-	uint32_t getHandle() const;
 
 	/**
 	 * Performs page flip
@@ -78,10 +69,17 @@ public:
 	 */
 	void pageFlip(uint32_t crtcId, FlipCallback cbk);
 
+	/**
+	 * Returns pointer to the display buffer
+	 */
+	std::shared_ptr<DisplayBufferItf> getDisplayBuffer() override
+	{
+		return std::dynamic_pointer_cast<DisplayBufferItf>(mDumb);
+	}
+
 private:
 
-	Device& mDrm;
-	Dumb& mDumb;
+	std::shared_ptr<Dumb> mDumb;
 	uint32_t mId;
 	std::atomic_bool mFlipPending;
 	FlipCallback mFlipCallback;

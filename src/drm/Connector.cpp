@@ -23,6 +23,8 @@
 
 #include "Device.hpp"
 
+using std::dynamic_pointer_cast;
+using std::shared_ptr;
 using std::to_string;
 
 namespace Drm {
@@ -31,11 +33,11 @@ namespace Drm {
  * Connector
  ******************************************************************************/
 
-Connector::Connector(Device& dev, int connectorId) :
-	mDev(dev),
-	mFd(dev.getFd()),
+Connector::Connector(Device& device, int conId) : ConnectorItf(conId),
+	mDev(device),
+	mFd(device.getFd()),
 	mCrtcId(cInvalidId),
-	mConnector(mFd, connectorId),
+	mConnector(mFd, conId),
 	mSavedCrtc(nullptr),
 	mLog("Connector")
 {
@@ -54,7 +56,7 @@ Connector::~Connector()
  ******************************************************************************/
 
 void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
-					 uint32_t bpp, uint32_t fbId)
+					 uint32_t bpp, shared_ptr<FrameBufferItf> frameBuffer)
 {
 
 	if (mConnector->connection != DRM_MODE_CONNECTED)
@@ -66,6 +68,8 @@ void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 	{
 		throw DrmException("Already initialized");
 	}
+
+	auto fbId = dynamic_pointer_cast<FrameBuffer>(frameBuffer)->getId();
 
 	LOG(mLog, DEBUG) << "Init, con id:" << mConnector->connector_id
 					 << ", w: " << width << ", h: " << height
@@ -110,6 +114,17 @@ void Connector::release()
 	}
 }
 
+void Connector::pageFlip(shared_ptr<FrameBufferItf> frameBuffer,
+						 FlipCallback cbk)
+{
+	if (!isInitialized())
+	{
+		throw DrmException("Connector is not initialized");
+	}
+
+	dynamic_pointer_cast<FrameBuffer>(frameBuffer)->pageFlip(mCrtcId, cbk);
+}
+
 /*******************************************************************************
  * Private
  ******************************************************************************/
@@ -130,7 +145,7 @@ bool Connector::isCrtcIdUsedByOther(uint32_t crtcId)
 {
 	for (size_t i = 0; i < mDev.getConnectorsCount(); i++)
 	{
-		if (crtcId == mDev.getConnectorByIndex(i).getCrtcId())
+		if (crtcId == mDev.getConnectorByIndex(i)->getCrtcId())
 		{
 			LOG(mLog, DEBUG) << "Crtc id is used by other connector, con id"
 							 << mConnector->connector_id;
