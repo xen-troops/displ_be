@@ -23,8 +23,10 @@
 
 #include "Device.hpp"
 
+using std::chrono::milliseconds;
 using std::dynamic_pointer_cast;
 using std::shared_ptr;
+using std::this_thread::sleep_for;
 using std::to_string;
 
 namespace Drm {
@@ -39,6 +41,8 @@ Connector::Connector(Device& device, int conId) : ConnectorItf(conId),
 	mCrtcId(cInvalidId),
 	mConnector(mFd, conId),
 	mSavedCrtc(nullptr),
+	mFlipPending(false),
+	mFlipCallback(nullptr),
 	mLog("Connector")
 {
 	LOG(mLog, DEBUG) << "Create, id: " << mConnector->connector_id;
@@ -46,6 +50,16 @@ Connector::Connector(Device& device, int conId) : ConnectorItf(conId),
 
 Connector::~Connector()
 {
+	if (mFlipPending)
+	{
+		sleep_for(milliseconds(100));
+	}
+
+	if (mFlipPending)
+	{
+		LOG("FrameBuffer", ERROR) << "Delete frame buffer on pending flip";
+	}
+
 	release();
 
 	LOG(mLog, DEBUG) << "Delete, id: " << mConnector->connector_id;
@@ -122,7 +136,26 @@ void Connector::pageFlip(shared_ptr<FrameBufferItf> frameBuffer,
 		throw DrmException("Connector is not initialized");
 	}
 
-	dynamic_pointer_cast<FrameBuffer>(frameBuffer)->pageFlip(mCrtcId, cbk);
+	if (mFlipPending)
+	{
+		throw DrmException("Page flip already scheduled");
+	}
+
+	mFlipPending = true;
+	mFlipCallback = cbk;
+
+	auto fbId = dynamic_pointer_cast<FrameBuffer>(frameBuffer)->getId();
+
+	auto ret = drmModePageFlip(mDev.getFd(), mCrtcId, fbId,
+							   DRM_MODE_PAGE_FLIP_EVENT, this);
+
+	if (ret)
+	{
+		throw DrmException("Cannot flip CRTC: " + fbId);
+	}
+
+
+	DLOG(mLog, DEBUG) << "Page flip, fb id: " << fbId;
 }
 
 /*******************************************************************************
@@ -230,6 +263,25 @@ drmModeModeInfoPtr Connector::findMode(uint32_t width, uint32_t height)
 	}
 
 	return nullptr;
+}
+
+void Connector::flipFinished()
+{
+	if (!mFlipPending)
+	{
+		DLOG(mLog, ERROR) << "Not expected flip event";
+
+		return;
+	}
+
+	DDLOG(mLog, DEBUG) << "Flip done";
+
+	mFlipPending = false;
+
+	if (mFlipCallback)
+	{
+		mFlipCallback();
+	}
 }
 
 }

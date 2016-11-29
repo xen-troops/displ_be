@@ -22,7 +22,6 @@
 #ifndef SRC_DRM_FRAMEBUFFER_HPP_
 #define SRC_DRM_FRAMEBUFFER_HPP_
 
-#include <atomic>
 #include <memory>
 #include <functional>
 
@@ -42,11 +41,6 @@ class FrameBuffer : public FrameBufferItf
 public:
 
 	/**
-	 * Callback which is called when page flip is done
-	 */
-	typedef std::function<void()> FlipCallback;
-
-	/**
 	 * @param dumb        dumb
 	 * @param width       frame buffer width
 	 * @param height      frame buffer height
@@ -63,13 +57,6 @@ public:
 	uint32_t getId() const { return mId; }
 
 	/**
-	 * Performs page flip
-	 * @param crtcId CRTC id
-	 * @param cbk    callback which will be called when page flip is done
-	 */
-	void pageFlip(uint32_t crtcId, FlipCallback cbk);
-
-	/**
 	 * Returns pointer to the display buffer
 	 */
 	std::shared_ptr<DisplayBufferItf> getDisplayBuffer() override
@@ -81,12 +68,6 @@ private:
 
 	std::shared_ptr<Dumb> mDumb;
 	uint32_t mId;
-	std::atomic_bool mFlipPending;
-	FlipCallback mFlipCallback;
-
-	friend class Device;
-
-	void flipFinished();
 };
 
 }

@@ -102,6 +102,8 @@ private:
 	uint32_t mCrtcId;
 	ModeConnector mConnector;
 	drmModeCrtc* mSavedCrtc;
+	std::atomic_bool mFlipPending;
+	FlipCallback mFlipCallback;
 	XenBackend::Log mLog;
 
 	uint32_t findCrtcId();
@@ -109,6 +111,11 @@ private:
 	uint32_t findMatchingCrtcId();
 	bool isCrtcIdUsedByOther(uint32_t crtcId);
 	drmModeModeInfoPtr findMode(uint32_t width, uint32_t height);
+
+
+	friend class Device;
+
+	void flipFinished();
 };
 
 }

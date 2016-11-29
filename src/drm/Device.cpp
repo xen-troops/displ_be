@@ -250,7 +250,7 @@ void Device::handleFlipEvent(int fd, unsigned int sequence,
 {
 	if (user_data)
 	{
-		static_cast<FrameBuffer*>(user_data)->flipFinished();
+		static_cast<Connector*>(user_data)->flipFinished();
 	}
 }
 

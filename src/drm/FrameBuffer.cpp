@@ -26,10 +26,8 @@
 #include "Device.hpp"
 #include "Dumb.hpp"
 
-using std::chrono::milliseconds;
 using std::shared_ptr;
 using std::string;
-using std::this_thread::sleep_for;
 
 namespace Drm {
 
@@ -43,8 +41,7 @@ FrameBuffer::FrameBuffer(shared_ptr<Dumb> dumb,
 						 uint32_t width, uint32_t height,
 						 uint32_t pixelFormat) :
 	mDumb(dumb),
-	mId(cInvalidId),
-	mFlipPending(false)
+	mId(cInvalidId)
 {
 	uint32_t handles[4], pitches[4], offsets[4] = {0};
 
@@ -67,16 +64,6 @@ FrameBuffer::FrameBuffer(shared_ptr<Dumb> dumb,
 
 FrameBuffer::~FrameBuffer()
 {
-	if (mFlipPending)
-	{
-		sleep_for(milliseconds(100));
-	}
-
-	if (mFlipPending)
-	{
-		LOG("FrameBuffer", ERROR) << "Delete frame buffer on pending flip";
-	}
-
 	if (mId != cInvalidId)
 	{
 		DLOG("FrameBuffer", DEBUG) << "Delete frame buffer, id: " << mId;
@@ -89,45 +76,9 @@ FrameBuffer::~FrameBuffer()
  * Public
  ******************************************************************************/
 
-void FrameBuffer::pageFlip(uint32_t crtcId, FlipCallback cbk)
-{
-	auto ret = drmModePageFlip(mDumb->mFd, crtcId, mId,
-							   DRM_MODE_PAGE_FLIP_EVENT, this);
-
-	if (ret)
-	{
-		throw DrmException("Cannot flip CRTC: " + mId);
-	}
-
-
-	DLOG("FrameBuffer", DEBUG) << "Page flip, id: " << mId;
-
-	mFlipPending = true;
-	mFlipCallback = cbk;
-}
-
 /*******************************************************************************
  * Private
  ******************************************************************************/
-
-void FrameBuffer::flipFinished()
-{
-	if (!mFlipPending)
-	{
-		LOG("FrameBuffer", ERROR) << "Not expected flip event";
-
-		return;
-	}
-
-	DLOG("FrameBuffer", DEBUG) << "Flip done, id: " << mId;
-
-	mFlipPending = false;
-
-	if (mFlipCallback)
-	{
-		mFlipCallback();
-	}
-}
 
 }
 
