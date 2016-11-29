@@ -26,6 +26,8 @@ public:
 
 	void setTopLevel();
 
+	std::shared_ptr<Surface> getSurface() const { return mSurfacePtr; }
+
 public:
 
 	ShellSurface(wl_shell* shell, std::shared_ptr<Surface> surface);

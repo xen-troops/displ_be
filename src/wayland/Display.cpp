@@ -1,8 +1,22 @@
 /*
- * Display.cpp
+ *  Display class
  *
- *  Created on: Nov 24, 2016
- *      Author: al1
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ *
+ * Copyright (C) 2016 EPAM Systems Inc.
+ *
  */
 
 #include "Display.hpp"
@@ -11,8 +25,10 @@
 
 #include "Exception.hpp"
 
+using std::dynamic_pointer_cast;
 using std::exception;
 using std::shared_ptr;
+using std::to_string;
 using std::thread;
 
 namespace Wayland {
@@ -49,42 +65,16 @@ Display::~Display()
 /*******************************************************************************
  * Public
  ******************************************************************************/
-
-shared_ptr<Compositor> Display::getCompositor() const
+void Display::createConnector(uint32_t id, uint32_t x, uint32_t y,
+							  uint32_t width, uint32_t height)
 {
-	if (!mCompositor)
-	{
-		throw WlException("Can't get compositor");
-	}
+	LOG(mLog, DEBUG) << "Create connector, id: " << id;
 
-	return mCompositor;
-}
+	auto shellSurface = mShell->getShellSurface(mCompositor->createSurface());
 
-shared_ptr<Shell> Display::getShell() const
-{
-	if (!mShell)
-	{
-		throw WlException("Can't get shell");
-	}
+	auto connector = new Connector(shellSurface, id, x, y, width, height);
 
-	return mShell;
-}
-
-std::shared_ptr<SharedMemory> Display::getSharedMemory() const
-{
-	if (!mSharedMemory)
-	{
-		throw WlException("Can't get shared memory");
-	}
-
-	return mSharedMemory;
-}
-
-void Display::dispatch()
-{
-	LOG(mLog, DEBUG) << "Dispatch";
-
-	while(wl_display_dispatch(mDisplay) != -1);
+	mConnectors.emplace(id, shared_ptr<Connector>(connector));
 }
 
 void Display::start()
@@ -106,6 +96,34 @@ void Display::stop()
 	{
 		mThread.join();
 	}
+}
+
+shared_ptr<ConnectorItf> Display::getConnectorById(uint32_t id)
+{
+	auto iter = mConnectors.find(id);
+
+	if (iter == mConnectors.end())
+	{
+		throw WlException("Wrong connector id " + to_string(id));
+	}
+
+	return dynamic_pointer_cast<ConnectorItf>(iter->second);
+}
+
+shared_ptr<DisplayBufferItf> Display::createDisplayBuffer(uint32_t width,
+														  uint32_t height,
+														  uint32_t bpp)
+{
+	return mSharedMemory->createSharedFile(width, height, bpp);
+}
+
+shared_ptr<FrameBufferItf> Display::createFrameBuffer(
+		shared_ptr<DisplayBufferItf> displayBuffer,
+		uint32_t width, uint32_t height, uint32_t pixelFormat)
+{
+	return mSharedMemory->createSharedBuffer(
+			dynamic_pointer_cast<SharedFile>(displayBuffer), width,
+			height, pixelFormat);
 }
 
 /*******************************************************************************
@@ -150,21 +168,6 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 void Display::registryRemover(wl_registry *registry, uint32_t id)
 {
 	LOG(mLog, DEBUG) << "Registry removed event, id: " << id;
-
-	if (mCompositor && id == mCompositor->getId())
-	{
-		mCompositor.reset();
-	}
-
-	if (mShell && id == mShell->getId())
-	{
-		mShell.reset();
-	}
-
-	if (mSharedMemory && id == mSharedMemory->getId())
-	{
-		mSharedMemory.reset();
-	}
 }
 
 void Display::init()
@@ -191,6 +194,21 @@ void Display::init()
 
 	wl_display_dispatch(mDisplay);
 	wl_display_roundtrip(mDisplay);
+
+	if (!mCompositor)
+	{
+		throw WlException("Can't get compositor");
+	}
+
+	if (!mShell)
+	{
+		throw WlException("Can't get shell");
+	}
+
+	if (!mSharedMemory)
+	{
+		throw WlException("Can't get shared memory");
+	}
 }
 
 void Display::release()

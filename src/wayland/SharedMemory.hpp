@@ -30,8 +30,7 @@ public:
 
 	std::shared_ptr<SharedBuffer> createSharedBuffer(
 			std::shared_ptr<SharedFile> sharedFile,
-			uint32_t width, uint32_t height, uint32_t stride,
-			uint32_t pixelFormat);
+			uint32_t width, uint32_t height, uint32_t pixelFormat);
 
 private:
 

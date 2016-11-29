@@ -51,7 +51,7 @@ public:
 	/**
 	 * Returns dumb size
 	 */
-	uint32_t getSize() const { return mSize; }
+	size_t getSize() const { return mSize; }
 
 	/**
 	 * Returns pointer to the dumb buffer

@@ -63,7 +63,7 @@ public:
 	/**
 	 * Returns buffer size
 	 */
-	virtual uint32_t getSize() const = 0;
+	virtual size_t getSize() const = 0;
 
 	/**
 	 * Returns pointer to the data buffer

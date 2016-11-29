@@ -16,9 +16,11 @@ namespace Wayland {
 /*******************************************************************************
  * SharedBuffer
  ******************************************************************************/
-SharedBuffer::SharedBuffer(wl_shm* sharedMemory, int fd, uint32_t width,
-						   uint32_t height, uint32_t stride,
+SharedBuffer::SharedBuffer(wl_shm* sharedMemory,
+						   shared_ptr<SharedFile> sharedFile,
+						   uint32_t width, uint32_t height,
 						   uint32_t pixelFormat) :
+	mSharedFile(sharedFile),
 	mBuffer(nullptr),
 	mPool(nullptr),
 	mWidth(width),
@@ -27,7 +29,7 @@ SharedBuffer::SharedBuffer(wl_shm* sharedMemory, int fd, uint32_t width,
 {
 	try
 	{
-		init(sharedMemory, fd, stride, pixelFormat);
+		init(sharedMemory, pixelFormat);
 	}
 	catch(const WlException& e)
 	{
@@ -50,17 +52,18 @@ SharedBuffer::~SharedBuffer()
  * Private
  ******************************************************************************/
 
-void SharedBuffer::init(wl_shm* sharedMemory, int fd,
-						uint32_t stride, uint32_t pixelFormat)
+void SharedBuffer::init(wl_shm* sharedMemory, uint32_t pixelFormat)
 {
-	mPool = wl_shm_create_pool(sharedMemory, fd, mHeight * stride);
+	mPool = wl_shm_create_pool(sharedMemory, mSharedFile->mFd,
+							   mHeight * mSharedFile->mStride);
 
 	if (!mPool)
 	{
 		throw WlException("Can't create pool");
 	}
 
-	mBuffer = wl_shm_pool_create_buffer(mPool, 0, mWidth, mHeight, stride,
+	mBuffer = wl_shm_pool_create_buffer(mPool, 0, mWidth, mHeight,
+										mSharedFile->mStride,
 										pixelFormat);
 
 	if (!mBuffer)
@@ -73,7 +76,8 @@ void SharedBuffer::init(wl_shm* sharedMemory, int fd,
 	mPool = nullptr;
 
 	LOG(mLog, DEBUG) << "Create, w: " << mWidth << ", h: " << mHeight
-					 << ", stride: " << stride << ", fd: " << fd
+					 << ", stride: " << mSharedFile->mStride
+					 << ", fd: " << mSharedFile->mFd
 					 << ", format: " << pixelFormat;
 }
 

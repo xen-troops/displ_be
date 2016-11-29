@@ -33,6 +33,12 @@
  * Backend related classes.
  ******************************************************************************/
 
+enum class DisplayMode
+{
+	DRM,
+	WAYLAND
+};
+
 /***************************************************************************//**
  * Ring buffer used for the connector control.
  * @ingroup displ_be
@@ -78,12 +84,10 @@ public:
 	 * @param backend   backend instance
 	 * @param id        frontend instance id
 	 */
-	DisplayFrontendHandler(std::shared_ptr<DisplayItf> display,
-						   uint32_t conId, int domId,
+	DisplayFrontendHandler(std::shared_ptr<DisplayItf> display, int domId,
 						   XenBackend::BackendBase& backend, int id) :
 		FrontendHandlerBase(domId, backend, id),
 		mDisplay(display),
-		mConId(conId),
 		mLog("DisplayFrontend") {}
 
 protected:
@@ -96,10 +100,14 @@ protected:
 private:
 
 	std::shared_ptr<DisplayItf> mDisplay;
-	uint32_t mConId;
 	XenBackend::Log mLog;
 
 	void createConnector(const std::string& streamPath, int conId);
+	uint32_t getDrmConnectorId();
+	void createWaylandConnector(uint32_t id, uint32_t x, uint32_t y,
+								uint32_t width, uint32_t height);
+	void convertResolution(const std::string& res, uint32_t& width,
+						   uint32_t& height);
 };
 
 /***************************************************************************//**
@@ -128,8 +136,6 @@ protected:
 private:
 
 	std::shared_ptr<DisplayItf> mDisplay;
-
-	uint32_t getConnectorId();
 };
 
 #endif /* DISPLAYBACKEND_HPP_ */

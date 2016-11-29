@@ -11,6 +11,7 @@ set(SOURCES
 	src/drm/FrameBuffer.cpp
 	src/drm/Modes.cpp
 	src/wayland/Compositor.cpp
+	src/wayland/Connector.cpp
 	src/wayland/Display.cpp
 	src/wayland/SharedBuffer.cpp
 	src/wayland/SharedFile.cpp

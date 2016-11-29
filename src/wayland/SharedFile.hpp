@@ -1,8 +1,22 @@
 /*
- * SharedFile.hpp
+ *  SharedFile class
  *
- *  Created on: Nov 25, 2016
- *      Author: al1
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ *
+ * Copyright (C) 2016 EPAM Systems Inc.
+ *
  */
 
 #ifndef SRC_WAYLAND_SHAREDFILE_HPP_
@@ -10,26 +24,23 @@
 
 #include <xen/be/Log.hpp>
 
+#include "DisplayItf.hpp"
+
 namespace Wayland {
 
-class SharedFile
+class SharedFile : public DisplayBufferItf
 {
 public:
 
 	~SharedFile();
 
-	int getFd() const { return mFd; }
-
-	uint32_t getWidth() const { return mWidth; }
-	uint32_t getHeight() const { return mHeight; }
-	uint32_t getStride() const { return mStride; }
-
-	void* getBuffer() const { return mBuffer; }
-	size_t getSize() const { return mSize; }
+	void* getBuffer() const override { return mBuffer; }
+	size_t getSize() const override { return mSize; }
 
 private:
 
 	friend class SharedMemory;
+	friend class SharedBuffer;
 
 	SharedFile(uint32_t width, uint32_t height, uint32_t bpp);
 

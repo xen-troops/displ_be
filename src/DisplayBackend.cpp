@@ -20,6 +20,7 @@
 
 #include "DisplayBackend.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -31,6 +32,7 @@
 #include <xen/be/XenStore.hpp>
 
 #include "drm/Device.hpp"
+#include "wayland/Display.hpp"
 
 /***************************************************************************//**
  * @mainpage displ_be
@@ -49,6 +51,8 @@ using std::signal;
 using std::stoi;
 using std::string;
 using std::to_string;
+using std::toupper;
+using std::transform;
 using std::unique_ptr;
 using std::vector;
 
@@ -58,6 +62,7 @@ using XenBackend::RingBufferBase;
 using XenBackend::RingBufferInBase;
 using XenBackend::XenStore;
 
+DisplayMode gDisplayMode = DisplayMode::WAYLAND;
 unique_ptr <DisplayBackend> gDisplayBackend;
 
 /*******************************************************************************
@@ -138,45 +143,53 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 	ref = getXenStore().readInt(conPath + "/" +
 								XENDISPL_FIELD_CTRL_RING_REF);
 
+	if (gDisplayMode == DisplayMode::DRM)
+	{
+		conId = getDrmConnectorId();
+	}
+	else
+	{
+		uint32_t width, height;
+		string res = getXenStore().readString(conPath + "/" +
+											  XENDISPL_FIELD_RESOLUTION);
+
+		convertResolution(res, width, height);
+
+		createWaylandConnector(conId, 0, 0, width, height);
+	}
+
 	shared_ptr<RingBufferBase> ctrlRingBuffer(
-			new ConCtrlRingBuffer(mDisplay, mConId, eventRingBuffer,
+			new ConCtrlRingBuffer(mDisplay, conId, eventRingBuffer,
 								  getDomId(), port, ref));
 
 	addRingBuffer(ctrlRingBuffer);
 }
 
-/*******************************************************************************
- * DisplayBackend
- ******************************************************************************/
-
-DisplayBackend::DisplayBackend(int domId, const string& deviceName, int id) :
-	BackendBase(domId, deviceName, id)
+void DisplayFrontendHandler::convertResolution(const std::string& res,
+											   uint32_t& width,
+											   uint32_t& height)
 {
+	auto find = res.find_first_of(XENDISPL_RESOLUTION_SEPARATOR);
 
-	auto drmDevice = new Drm::Device("/dev/dri/card0");
-
-	for (size_t i = 0; i < drmDevice->getConnectorsCount(); i++)
+	if (find == string::npos)
 	{
-		auto connector = drmDevice->getConnectorByIndex(i);
-
-		LOG("Main", DEBUG) << "Connector: "
-						   << connector->getId()
-						   << ", connected: "
-						   << connector->isConnected();
+		throw DisplayItfException("Wrong format of resolution");
 	}
 
-	mDisplay.reset(drmDevice);
+	width = stoul(res.substr(0, find));
+	height = stoul(res.substr(find + 1, string::npos));
 }
 
-void DisplayBackend::onNewFrontend(int domId, int id)
+void DisplayFrontendHandler::createWaylandConnector(uint32_t id, uint32_t x,
+													uint32_t y, uint32_t width,
+													uint32_t height)
 {
+	auto wlDisplay = dynamic_pointer_cast<Wayland::Display>(mDisplay);
 
-	addFrontendHandler(shared_ptr<FrontendHandlerBase>(
-			new DisplayFrontendHandler(mDisplay, getConnectorId(),
-									   domId, *this, id)));
+	wlDisplay->createConnector(id, x, y, width, height);
 }
 
-uint32_t DisplayBackend::getConnectorId()
+uint32_t DisplayFrontendHandler::getDrmConnectorId()
 {
 	auto drmDevice = dynamic_pointer_cast<Drm::Device>(mDisplay);
 
@@ -192,6 +205,46 @@ uint32_t DisplayBackend::getConnectorId()
 
 	throw DisplayItfException("No available connectors found");
 }
+
+/*******************************************************************************
+ * DisplayBackend
+ ******************************************************************************/
+
+DisplayBackend::DisplayBackend(int domId, const string& deviceName, int id) :
+	BackendBase(domId, deviceName, id)
+{
+
+	if (gDisplayMode == DisplayMode::DRM)
+	{
+		auto drmDevice = new Drm::Device("/dev/dri/card0");
+
+		for (size_t i = 0; i < drmDevice->getConnectorsCount(); i++)
+		{
+			auto connector = drmDevice->getConnectorByIndex(i);
+
+			LOG("Main", DEBUG) << "Connector: "
+							   << connector->getId()
+							   << ", connected: "
+							   << connector->isConnected();
+		}
+
+		mDisplay.reset(drmDevice);
+	}
+	else
+	{
+		mDisplay.reset(new Wayland::Display());
+	}
+
+	mDisplay->start();
+}
+
+void DisplayBackend::onNewFrontend(int domId, int id)
+{
+
+	addFrontendHandler(shared_ptr<FrontendHandlerBase>(
+			new DisplayFrontendHandler(mDisplay, domId, *this, id)));
+}
+
 /*******************************************************************************
  *
  ******************************************************************************/
@@ -227,7 +280,7 @@ bool commandLineOptions(int argc, char *argv[])
 
 	int opt = -1;
 
-	while((opt = getopt(argc, argv, "v:fh?")) != -1)
+	while((opt = getopt(argc, argv, "m:v:fh?")) != -1)
 	{
 		switch(opt)
 		{
@@ -239,6 +292,20 @@ bool commandLineOptions(int argc, char *argv[])
 
 			break;
 
+		case 'm':
+		{
+			string strMode(optarg);
+
+			transform(strMode.begin(), strMode.end(), strMode.begin(),
+					  (int (*)(int))toupper);
+
+			if (strMode == "DRM")
+			{
+				gDisplayMode = DisplayMode::DRM;
+			}
+
+			break;
+		}
 		case 'f':
 			Log::setShowFileAndLine(true);
 			break;
@@ -265,9 +332,11 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			cout << "Usage: " << argv[0] << " [-v <level>]" << endl;
+			cout << "Usage: " << argv[0] << " [-m <mode>] [-v <level>]" << endl;
 			cout << "\t-v -- verbose level "
 				 << "(disable, error, warning, info, debug)" << endl;
+			cout << "\t-m -- mode "
+				 << "(drm, wayland)" << endl;
 		}
 	}
 	catch(const exception& e)
