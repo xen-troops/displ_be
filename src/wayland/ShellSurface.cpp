@@ -50,6 +50,21 @@ void ShellSurface::setTopLevel()
 	wl_shell_surface_set_toplevel(mShellSurface);
 }
 
+void ShellSurface::setFullScreen()
+{
+	LOG(mLog, DEBUG) << "Set full screen";
+
+	wl_shell_surface_set_fullscreen(mShellSurface,
+			WL_SHELL_SURFACE_FULLSCREEN_METHOD_DEFAULT, 0, nullptr);
+}
+
+void ShellSurface::setConfigCallback(ConfigCallback cbk)
+{
+	LOG(mLog, DEBUG) << "Set config callback";
+
+	mConfigCallback = cbk;
+}
+
 /*******************************************************************************
  * Private
  ******************************************************************************/
@@ -62,7 +77,16 @@ void ShellSurface::sPingHandler(void *data, wl_shell_surface *shell_surface,
 void ShellSurface::sConfigHandler(void *data, wl_shell_surface *shell_surface,
 								  uint32_t edges, int32_t width, int32_t height)
 {
-	static_cast<ShellSurface*>(data)->configHandler(edges, width, height);
+	auto shellSurface = static_cast<ShellSurface*>(data);
+
+	if (shellSurface->mConfigCallback)
+	{
+		shellSurface->mConfigCallback(edges, width, height);
+	}
+	else
+	{
+		shellSurface->configHandler(edges, width, height);
+	}
 }
 
 void ShellSurface::sPopupDone(void *data, wl_shell_surface *shell_surface)

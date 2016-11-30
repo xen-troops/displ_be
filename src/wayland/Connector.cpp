@@ -58,7 +58,7 @@ Connector::~Connector()
  ******************************************************************************/
 
 void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
-					 uint32_t bpp, shared_ptr<FrameBufferItf> frameBuffer)
+					 shared_ptr<FrameBufferItf> frameBuffer)
 {
 	LOG(mLog, DEBUG) << "Init, id: " << getId() << ", x: " << x << ", y: " << y
 					 << ", w: " << width << ", height: " << height;

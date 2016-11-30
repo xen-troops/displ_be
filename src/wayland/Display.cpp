@@ -25,6 +25,9 @@
 
 #include "Exception.hpp"
 
+using namespace std::placeholders;
+
+using std::bind;
 using std::dynamic_pointer_cast;
 using std::exception;
 using std::shared_ptr;
@@ -71,6 +74,13 @@ void Display::createConnector(uint32_t id, uint32_t x, uint32_t y,
 	LOG(mLog, DEBUG) << "Create connector, id: " << id;
 
 	auto shellSurface = mShell->getShellSurface(mCompositor->createSurface());
+
+
+	wl_shell_surface_set_transient(shellSurface->mShellSurface,
+								   mMainShellSurface->getSurface()->mSurface,
+								   x, y, WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
+
+//	shellSurface->setTopLevel();
 
 	auto connector = new Connector(shellSurface, id, x, y, width, height);
 
@@ -170,6 +180,21 @@ void Display::registryRemover(wl_registry *registry, uint32_t id)
 	LOG(mLog, DEBUG) << "Registry removed event, id: " << id;
 }
 
+void Display::mainShellSurfaceConfigCbk(uint32_t edges, int32_t width,
+										int32_t height)
+{
+	LOG(mLog, DEBUG) << "Main shell surface config, w: " << width
+					 << ", h: " << height;
+
+	auto file = mSharedMemory->createSharedFile(width, height, 32);
+
+	mMainSharedBuffer =
+			mSharedMemory->createSharedBuffer(file, width, height,
+											  WL_SHM_FORMAT_XRGB8888);
+
+	mMainShellSurface->getSurface()->draw(mMainSharedBuffer);
+}
+
 void Display::init()
 {
 	mDisplay = wl_display_connect(nullptr);
@@ -209,6 +234,14 @@ void Display::init()
 	{
 		throw WlException("Can't get shared memory");
 	}
+
+
+	mMainShellSurface = mShell->getShellSurface(mCompositor->createSurface());
+
+	mMainShellSurface->setConfigCallback(
+			bind(&Display::mainShellSurfaceConfigCbk, this, _1, _2, _3));
+
+	mMainShellSurface->setFullScreen();
 }
 
 void Display::release()

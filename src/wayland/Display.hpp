@@ -113,6 +113,9 @@ private:
 	std::shared_ptr<Shell> mShell;
 	std::shared_ptr<SharedMemory> mSharedMemory;
 
+	std::shared_ptr<ShellSurface> mMainShellSurface;
+	std::shared_ptr<SharedBuffer> mMainSharedBuffer;
+
 	std::unordered_map<uint32_t, std::shared_ptr<Connector>> mConnectors;
 
 	std::thread mThread;
@@ -126,6 +129,9 @@ private:
 	void registryHandler(wl_registry *registry, uint32_t id,
 						 const std::string& interface, uint32_t version);
 	void registryRemover(wl_registry *registry, uint32_t id);
+
+	void mainShellSurfaceConfigCbk(uint32_t edges, int32_t width,
+								   int32_t height);
 
 	void init();
 	void release();

@@ -132,8 +132,7 @@ public:
 	 * @param bpp         bits per pixel
 	 * @param frameBuffer frame buffer
 	 */
-	virtual void init(uint32_t x, uint32_t y,
-					  uint32_t width, uint32_t height, uint32_t bpp,
+	virtual void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 					  std::shared_ptr<FrameBufferItf> frameBuffer) = 0;
 
 	/**

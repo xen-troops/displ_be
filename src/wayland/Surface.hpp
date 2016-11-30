@@ -29,6 +29,7 @@ public:
 
 private:
 
+	friend class Display;
 	friend class ShellSurface;
 	friend class Compositor;
 

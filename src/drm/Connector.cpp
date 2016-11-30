@@ -70,7 +70,7 @@ Connector::~Connector()
  ******************************************************************************/
 
 void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
-					 uint32_t bpp, shared_ptr<FrameBufferItf> frameBuffer)
+					 shared_ptr<FrameBufferItf> frameBuffer)
 {
 
 	if (mConnector->connection != DRM_MODE_CONNECTED)
@@ -87,7 +87,7 @@ void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 
 	LOG(mLog, DEBUG) << "Init, con id:" << mConnector->connector_id
 					 << ", w: " << width << ", h: " << height
-					 << ", bpp " << bpp << ", fb id: " << fbId;
+					 << ", fb id: " << fbId;
 
 	mCrtcId = findCrtcId();
 

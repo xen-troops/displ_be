@@ -22,13 +22,22 @@ class ShellSurface
 {
 public:
 
+	typedef std::function<void(uint32_t edges, int32_t width, int32_t height)>
+			ConfigCallback;
+
 	~ShellSurface();
 
 	void setTopLevel();
+	void setFullScreen();
+
+	void setConfigCallback(ConfigCallback cbk);
 
 	std::shared_ptr<Surface> getSurface() const { return mSurfacePtr; }
 
-public:
+private:
+
+	friend class Display;
+	friend class Shell;
 
 	ShellSurface(wl_shell* shell, std::shared_ptr<Surface> surface);
 
@@ -37,6 +46,8 @@ public:
 	wl_shell_surface_listener mListener;
 
 	XenBackend::Log mLog;
+
+	ConfigCallback mConfigCallback;
 
 	static void sPingHandler(void *data, wl_shell_surface *shell_surface,
 							 uint32_t serial);

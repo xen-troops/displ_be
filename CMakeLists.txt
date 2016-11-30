@@ -14,6 +14,7 @@ set(SOURCES
 	src/wayland/Connector.cpp
 	src/wayland/Display.cpp
 	src/wayland/SharedBuffer.cpp
+	src/wayland/Seat.cpp
 	src/wayland/SharedFile.cpp
 	src/wayland/SharedMemory.cpp
 	src/wayland/Shell.cpp
@@ -21,6 +22,20 @@ set(SOURCES
 	src/wayland/Surface.cpp
 	src/CommandHandler.cpp
 	src/DisplayBackend.cpp
+)
+
+set(WL_TEST_SOURCES
+	src/wayland/Compositor.cpp
+	src/wayland/Connector.cpp
+	src/wayland/Display.cpp
+	src/wayland/SharedBuffer.cpp
+	src/wayland/Seat.cpp
+	src/wayland/SharedFile.cpp
+	src/wayland/SharedMemory.cpp
+	src/wayland/Shell.cpp
+	src/wayland/ShellSurface.cpp
+	src/wayland/Surface.cpp
+	src/WlTest.cpp
 )
 
 include_directories(
@@ -38,6 +53,19 @@ link_directories(${XEN_LIB_PATH} ${XENBE_LIB_PATH})
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
+	xenbe
+	xenctrl
+	xenstore
+	xenevtchn
+	xengnttab
+	drm
+	wayland-client
+	pthread
+)
+
+add_executable(wl_test ${WL_TEST_SOURCES})
+
+target_link_libraries(wl_test
 	xenbe
 	xenctrl
 	xenstore

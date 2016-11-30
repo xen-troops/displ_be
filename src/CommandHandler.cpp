@@ -199,7 +199,7 @@ void CommandHandler::setConfig(const xendispl_req& req)
 	{
 		mConnector->init(configReq->x, configReq->y,
 						 configReq->width, configReq->height,
-						 configReq->bpp, getLocalFb(configReq->fb_cookie));
+						 getLocalFb(configReq->fb_cookie));
 	}
 	else
 	{
