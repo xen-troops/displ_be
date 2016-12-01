@@ -75,12 +75,11 @@ void Display::createConnector(uint32_t id, uint32_t x, uint32_t y,
 
 	auto shellSurface = mShell->getShellSurface(mCompositor->createSurface());
 
-
 	wl_shell_surface_set_transient(shellSurface->mShellSurface,
 								   mMainShellSurface->getSurface()->mSurface,
 								   x, y, WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
 
-//	shellSurface->setTopLevel();
+	// shellSurface->setTopLevel();
 
 	auto connector = new Connector(shellSurface, id, x, y, width, height);
 

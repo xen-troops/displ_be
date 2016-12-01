@@ -46,12 +46,12 @@ void Surface::draw(std::shared_ptr<SharedBuffer> sharedBuffer,
 {
 	DLOG(mLog, DEBUG) << "Draw";
 
-	mStoredCallback = callback;
-
 	if (mFrameCallback)
 	{
 		throw WlException("Draw event is in progress");
 	}
+
+	mStoredCallback = callback;
 
 	if (mStoredCallback)
 	{

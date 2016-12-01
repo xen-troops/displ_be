@@ -27,11 +27,9 @@
 #include <vector>
 
 #include <xen/be/RingBufferBase.hpp>
-#include <xen/be/XenGnttab.hpp>
 #include <xen/be/Log.hpp>
 
-#include <xen/io/displif.h>
-
+#include "BuffersStorage.hpp"
 #include "DisplayItf.hpp"
 
 /***************************************************************************//**
@@ -39,7 +37,7 @@
  * @ingroup displ_be
  ******************************************************************************/
 class ConEventRingBuffer : public XenBackend::RingBufferOutBase<
-										xendispl_event_page, xendispl_evt>
+											  xendispl_event_page, xendispl_evt>
 {
 public:
 	/**
@@ -66,13 +64,13 @@ class CommandHandler
 {
 public:
 	/**
-	 * @param display     display
-	 * @param conId       connector id
-	 * @param domId       domain id
-	 * @param eventBuffer event ring buffer
+	 * @param connector      connector object
+	 * @param buffersStorage buffers storage
+	 * @param eventBuffer    event ring buffer
 	 */
-	CommandHandler(std::shared_ptr<DisplayItf> display, uint32_t conId,
-				   int domId, std::shared_ptr<ConEventRingBuffer> eventBuffer);
+	CommandHandler(std::shared_ptr<ConnectorItf> connector,
+				   std::shared_ptr<BuffersStorage> buffersStorage,
+				   std::shared_ptr<ConEventRingBuffer> eventBuffer);
 	~CommandHandler();
 
 	/**
@@ -87,21 +85,11 @@ private:
 
 	static std::unordered_map<int, CommandFn> sCmdTable;
 
-	int mDomId;
-	std::shared_ptr<ConEventRingBuffer> mEventBuffer;
-	std::shared_ptr<DisplayItf> mDisplay;
 	std::shared_ptr<ConnectorItf> mConnector;
+	std::shared_ptr<BuffersStorage> mBuffersStorage;
+	std::shared_ptr<ConEventRingBuffer> mEventBuffer;
 
 	XenBackend::Log mLog;
-
-	struct LocalDisplayBuffer
-	{
-		std::shared_ptr<DisplayBufferItf> displayBuffer;
-		std::unique_ptr<XenBackend::XenGnttabBuffer> buffer;
-	};
-
-	std::unordered_map<uint64_t, std::shared_ptr<FrameBufferItf>> mFrameBuffers;
-	std::unordered_map<uint64_t, LocalDisplayBuffer> mDisplayBuffers;
 
 	void pageFlip(const xendispl_req& req);
 	void createDisplayBuffer(const xendispl_req& req);
@@ -110,14 +98,7 @@ private:
 	void detachFrameBuffer(const xendispl_req& req);
 	void setConfig(const xendispl_req& req);
 
-	void getBufferRefs(grant_ref_t startDirectory, uint32_t size,
-					   std::vector<grant_ref_t>& refs);
-
-	uint32_t getLocalConnectorId();
-	std::shared_ptr<DisplayBufferItf> getLocalDb(uint64_t cookie);
-	std::shared_ptr<FrameBufferItf> getLocalFb(uint64_t cookie);
-	void copyBuffer(uint64_t cookie);
-	void sendFlipEvent(uint8_t conIdx, uint64_t fb_id);
+	void sendFlipEvent(uint8_t conIdx, uint64_t fbCookie);
 };
 
 #endif /* SRC_COMMANDHANDLER_HPP_ */

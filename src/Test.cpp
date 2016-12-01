@@ -28,6 +28,11 @@ using std::cin;
 
 using Wayland::Display;
 
+void flipped()
+{
+	LOG("Main", DEBUG) << "Flipped";
+}
+
 int main(int argc, char *argv[])
 {
 	try
@@ -38,20 +43,26 @@ int main(int argc, char *argv[])
 
 		display.start();
 
-		display.createConnector(1, 0, 0, 640, 800);
+		display.createConnector(0, 0, 0, 800, 600);
 
-		display.createConnector(2, 640, 0, 640, 800);
+		auto connector = display.getConnectorById(0);
 
-		auto displayBuffer1 = display.createDisplayBuffer(640, 800, 32);
+//		display.createConnector(2, 640, 0, 640, 800);
 
-		auto frameBuffer1 = display.createFrameBuffer(displayBuffer1, 640, 800,
+		auto displayBuffer1 = display.createDisplayBuffer(800, 600, 32);
+
+		auto frameBuffer1 = display.createFrameBuffer(displayBuffer1, 800, 600,
 													  WL_SHM_FORMAT_XRGB8888);
 
-		auto displayBuffer2 = display.createDisplayBuffer(640, 800, 32);
 
-		auto frameBuffer2 = display.createFrameBuffer(displayBuffer2, 640, 800,
+		connector->init(0, 0, 800, 600, frameBuffer1);
+
+		auto displayBuffer2 = display.createDisplayBuffer(800, 600, 32);
+
+		auto frameBuffer2 = display.createFrameBuffer(displayBuffer2, 800, 600,
 													  WL_SHM_FORMAT_XRGB8888);
 
+#if 0
 		struct Rgb
 		{
 			uint8_t x;
@@ -78,9 +89,10 @@ int main(int argc, char *argv[])
 			data2[i].g = 0x00;
 			data2[i].b = 0x00;
 		}
+#endif
 
-		display.getConnectorById(1)->init(0, 0, 640, 800, frameBuffer1);
-		display.getConnectorById(2)->init(0, 0, 640, 800, frameBuffer2);
+	//	display.getConnectorById(1)->init(0, 0, 800, 600, frameBuffer1);
+	//	display.getConnectorById(2)->init(0, 0, 640, 800, frameBuffer2);
 
 #if 0
 		gSurface1 = display.getCompositor()->createSurface();
@@ -143,6 +155,16 @@ int main(int argc, char *argv[])
 		gSurface2->draw(gSharedBuffer2);
 
 #endif
+
+		try
+		{
+			connector->pageFlip(frameBuffer2, flipped);
+//			display.getConnectorById(2)->pageFlip(frameBuffer2, flipped);
+		}
+		catch(const DisplayItfException& e)
+		{
+			LOG("Main", DEBUG) << e.what();
+		}
 
 		string str;
 		cin >> str;

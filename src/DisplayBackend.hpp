@@ -51,14 +51,15 @@ class ConCtrlRingBuffer : public XenBackend::RingBufferInBase<
 {
 public:
 	/**
-	 * @param display     display
-	 * @param conId       connector id
-	 * @param eventBuffer event ring buffer
-	 * @param domId       frontend domain id
-	 * @param port        event channel port number
-	 * @param ref         grant table reference
+	 * @param connector      connector object
+	 * @param buffersStorage buffers storage
+	 * @param eventBuffer    event ring buffer
+	 * @param domId          frontend domain id
+	 * @param port           event channel port number
+	 * @param ref            grant table reference
 	 */
-	ConCtrlRingBuffer(std::shared_ptr<DisplayItf> display, uint32_t conId,
+	ConCtrlRingBuffer(std::shared_ptr<ConnectorItf> connector,
+					  std::shared_ptr<BuffersStorage> buffersStorage,
 					  std::shared_ptr<ConEventRingBuffer> eventBuffer,
 					  int domId, int port, int ref);
 
@@ -79,7 +80,6 @@ public:
 
 	/**
 	 * @param display   display
-	 * @param conId     connector id
 	 * @param domId     frontend domain id
 	 * @param backend   backend instance
 	 * @param id        frontend instance id
@@ -87,7 +87,9 @@ public:
 	DisplayFrontendHandler(std::shared_ptr<DisplayItf> display, int domId,
 						   XenBackend::BackendBase& backend, int id) :
 		FrontendHandlerBase(domId, backend, id),
+		mCurrentConId(0),
 		mDisplay(display),
+		mBuffersStorage(new BuffersStorage(domId, display)),
 		mLog("DisplayFrontend") {}
 
 protected:
@@ -99,13 +101,14 @@ protected:
 
 private:
 
+	uint32_t mCurrentConId;
 	std::shared_ptr<DisplayItf> mDisplay;
+	std::shared_ptr<BuffersStorage> mBuffersStorage;
 	XenBackend::Log mLog;
 
 	void createConnector(const std::string& streamPath, int conId);
 	uint32_t getDrmConnectorId();
-	void createWaylandConnector(uint32_t id, uint32_t x, uint32_t y,
-								uint32_t width, uint32_t height);
+	uint32_t createWaylandConnector(uint32_t width, uint32_t height);
 	void convertResolution(const std::string& res, uint32_t& width,
 						   uint32_t& height);
 };

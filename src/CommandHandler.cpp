@@ -20,19 +20,21 @@
 
 #include "CommandHandler.hpp"
 
+#include <iomanip>
+
 #include <cstddef>
 #include <cstring>
 #include <sys/mman.h>
 
-using std::make_pair;
-using std::memcpy;
-using std::min;
-using std::move;
+#include <wayland-client.h>
+#include <drm_fourcc.h>
+
+using std::hex;
 using std::out_of_range;
+using std::setfill;
+using std::setw;
 using std::shared_ptr;
-using std::to_string;
 using std::unordered_map;
-using std::vector;
 
 using XenBackend::XenException;
 using XenBackend::XenGnttabBuffer;
@@ -65,21 +67,22 @@ ConEventRingBuffer::ConEventRingBuffer(int id, int domId, int port,
  * CommandHandler
  ******************************************************************************/
 
-CommandHandler::CommandHandler(shared_ptr<DisplayItf> display,
-							   uint32_t conId, int domId,
+CommandHandler::CommandHandler(shared_ptr<ConnectorItf> connector,
+							   shared_ptr<BuffersStorage> buffersStorage,
 							   shared_ptr<ConEventRingBuffer> eventBuffer) :
-	mDomId(domId),
+	mConnector(connector),
+	mBuffersStorage(buffersStorage),
 	mEventBuffer(eventBuffer),
-	mDisplay(display),
-	mConnector(mDisplay->getConnectorById(conId)),
 	mLog("CommandHandler")
 {
-	LOG(mLog, DEBUG) << "Create command handler, dom: " << mDomId;
+	LOG(mLog, DEBUG) << "Create command handler, con ID: "
+					 << mConnector->getId();
 }
 
 CommandHandler::~CommandHandler()
 {
-	LOG(mLog, DEBUG) << "Delete command handler, dom: " << mDomId;
+	LOG(mLog, DEBUG) << "Delete command handler, con ID: "
+					 << mConnector->getId();
 }
 
 /*******************************************************************************
@@ -120,86 +123,84 @@ void CommandHandler::pageFlip(const xendispl_req& req)
 {
 	xendispl_page_flip_req flipReq = req.op.pg_flip;
 
-	DLOG(mLog, DEBUG) << "Handle command [PAGE FLIP], fb ID: "
-					  << flipReq.fb_cookie << ", conn idx: "
-					  << static_cast<int>(flipReq.conn_idx);
+	DLOG(mLog, DEBUG) << "Handle command [PAGE FLIP], conn idx:"
+					  << static_cast<int>(flipReq.conn_idx) << ", fb ID: "
+					  << hex << setfill('0') << setw(16)
+					  << flipReq.fb_cookie;
 
-	auto frameBuffer = getLocalFb(flipReq.fb_cookie);
+	mBuffersStorage->copyBuffer(flipReq.fb_cookie);
 
-	copyBuffer(flipReq.fb_cookie);
-
-	mConnector->pageFlip(frameBuffer, [flipReq, this] ()
-			{ sendFlipEvent(flipReq.conn_idx, flipReq.fb_cookie); });
+	mConnector->pageFlip(mBuffersStorage->getFrameBuffer(flipReq.fb_cookie),
+						 [flipReq, this] ()
+						 { sendFlipEvent(flipReq.conn_idx,
+								 	 	 flipReq.fb_cookie); });
 }
 
 void CommandHandler::createDisplayBuffer(const xendispl_req& req)
 {
 	const xendispl_dbuf_create_req* dbufReq = &req.op.dbuf_create;
 
-	DLOG(mLog, DEBUG) << "Handle command [CREATE DBUF], handle: "
+	DLOG(mLog, DEBUG) << "Handle command [CREATE DBUF], cookie: "
+					  << hex << setfill('0') << setw(16)
 					  << dbufReq->dbuf_cookie;
 
-	LocalDisplayBuffer displayBuffer {
-		mDisplay->createDisplayBuffer(dbufReq->width,
-									  dbufReq->height,
-									  dbufReq->bpp) };
-
-	vector<grant_ref_t> refs;
-
-	getBufferRefs(dbufReq->gref_directory_start, dbufReq->buffer_sz, refs);
-
-	displayBuffer.buffer.reset(new XenGnttabBuffer(mDomId, refs.data(),
-												   refs.size()));
-
-	mDisplayBuffers.emplace(dbufReq->dbuf_cookie, move(displayBuffer));
+	mBuffersStorage->createDisplayBuffer(dbufReq->dbuf_cookie,
+										 dbufReq->gref_directory_start,
+										 dbufReq->buffer_sz,
+										 dbufReq->width, dbufReq->height,
+										 dbufReq->bpp);
 }
 
 void CommandHandler::destroyDisplayBuffer(const xendispl_req& req)
 {
 	const xendispl_dbuf_destroy_req* dbufReq = &req.op.dbuf_destroy;
 
-	DLOG(mLog, DEBUG) << "Handle command [DESTROY DBUF], handle: "
+	DLOG(mLog, DEBUG) << "Handle command [DESTROY DBUF], cookie: "
+					  << hex << setfill('0') << setw(16)
 					  << dbufReq->dbuf_cookie;
 
-	mDisplayBuffers.erase(dbufReq->dbuf_cookie);
+	mBuffersStorage->destroyDisplayBuffer(dbufReq->dbuf_cookie);
 }
 
 void CommandHandler::attachFrameBuffer(const xendispl_req& req)
 {
 	const xendispl_fb_attach_req* fbReq = &req.op.fb_attach;
 
-	DLOG(mLog, DEBUG) << "Handle command [ATTACH FB], handle: "
-					  << fbReq->fb_cookie << ", id: " << fbReq->fb_cookie;
+	DLOG(mLog, DEBUG) << "Handle command [ATTACH FB], DB cookie: "
+					  << hex << setfill('0') << setw(16)
+					  << fbReq->dbuf_cookie << ", FB cookie: "
+					  << setw(16) << fbReq->fb_cookie;
 
-	auto frameBuffer =
-			mDisplay->createFrameBuffer(getLocalDb(fbReq->dbuf_cookie),
-									    fbReq->width, fbReq->height,
-									    fbReq->pixel_format);
+	mBuffersStorage->createFrameBuffer(fbReq->dbuf_cookie, fbReq->fb_cookie,
+									   fbReq->width, fbReq->height,
+									   fbReq->pixel_format);
 
-	mFrameBuffers.emplace(fbReq->fb_cookie, frameBuffer);
 }
 
 void CommandHandler::detachFrameBuffer(const xendispl_req& req)
 {
 	const xendispl_fb_detach_req* fbReq = &req.op.fb_detach;
 
-	DLOG(mLog, DEBUG) << "Handle command [DETACH FB], id: " << fbReq->fb_cookie;
+	DLOG(mLog, DEBUG) << "Handle command [DETACH FB], cookie: "
+					  << hex << setfill('0') << setw(16)
+					  << fbReq->fb_cookie;
 
-	mFrameBuffers.erase(fbReq->fb_cookie);
+	mBuffersStorage->destroyFrameBuffer(fbReq->fb_cookie);
 }
 
 void CommandHandler::setConfig(const xendispl_req& req)
 {
 	const xendispl_set_config_req* configReq = &req.op.set_config;
 
-	DLOG(mLog, DEBUG) << "Handle command [SET CONFIG], fb ID: "
+	DLOG(mLog, DEBUG) << "Handle command [SET CONFIG], FB cookie: "
+					  << hex << setfill('0') << setw(16)
 					  << configReq->fb_cookie;
 
 	if (configReq->fb_cookie != 0)
 	{
 		mConnector->init(configReq->x, configReq->y,
 						 configReq->width, configReq->height,
-						 getLocalFb(configReq->fb_cookie));
+						 mBuffersStorage->getFrameBuffer(configReq->fb_cookie));
 	}
 	else
 	{
@@ -207,93 +208,18 @@ void CommandHandler::setConfig(const xendispl_req& req)
 	}
 }
 
-void CommandHandler::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
-								   vector<grant_ref_t>& refs)
+void CommandHandler::sendFlipEvent(uint8_t conIdx, uint64_t fbCookie)
 {
-	refs.clear();
-
-	size_t requestedNumGrefs = (size + XC_PAGE_SIZE - 1) / XC_PAGE_SIZE;
-
-	DLOG(mLog, DEBUG) << "Get buffer refs, directory: " << startDirectory
-					  << ", size: " << size
-					  << ", in grefs: " << requestedNumGrefs;
-
-
-	while(startDirectory != 0)
-	{
-
-		XenGnttabBuffer pageBuffer(mDomId, startDirectory);
-
-		xendispl_page_directory* pageDirectory =
-				static_cast<xendispl_page_directory*>(pageBuffer.get());
-
-		size_t numGrefs = min(requestedNumGrefs, XC_PAGE_SIZE -
-							  offsetof(xendispl_page_directory, gref));
-
-		refs.insert(refs.end(), pageDirectory->gref,
-					pageDirectory->gref + numGrefs);
-
-		requestedNumGrefs -= numGrefs;
-
-		startDirectory = pageDirectory->gref_dir_next_page;
-	}
-
-	DLOG(mLog, DEBUG) << "Get buffer refs, num refs: " << refs.size();
-}
-
-shared_ptr<DisplayBufferItf> CommandHandler::getLocalDb(uint64_t cookie)
-{
-	auto iter = mDisplayBuffers.find(cookie);
-
-	if (iter == mDisplayBuffers.end())
-	{
-		throw DisplayItfException("Dumb cookie not found");
-	}
-
-	return iter->second.displayBuffer;
-}
-
-std::shared_ptr<FrameBufferItf> CommandHandler::getLocalFb(uint64_t cookie)
-{
-	auto iter = mFrameBuffers.find(cookie);
-
-	if (iter == mFrameBuffers.end())
-	{
-		throw DisplayItfException("Frame buffer cookie not found");
-	}
-
-	return iter->second;
-}
-
-void CommandHandler::copyBuffer(uint64_t cookie)
-{
-	auto displayBuffer = getLocalFb(cookie)->getDisplayBuffer();
-
-	auto iter = mDisplayBuffers.begin();
-
-	for (; iter != mDisplayBuffers.end(); iter++)
-	{
-		if (displayBuffer == iter->second.displayBuffer)
-		{
-			memcpy(displayBuffer->getBuffer(), iter->second.buffer->get(),
-				   displayBuffer->getSize());
-
-			return;
-		}
-	}
-
-	throw DisplayItfException("Handle not found");
-}
-
-void CommandHandler::sendFlipEvent(uint8_t conIdx, uint64_t fb_cookie)
-{
-	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], conn idx: "
-					  << static_cast<int>(conIdx);
+	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], conn idx: " << conIdx
+					  << static_cast<int>(conIdx) << ", fb ID: "
+					  << hex << setfill('0') << setw(16) << fbCookie;
 
 	xendispl_evt event {};
 
+	event.type = XENDISPL_EVT_PG_FLIP;
+
 	event.op.pg_flip.conn_idx = conIdx;
-	event.op.pg_flip.fb_cookie = fb_cookie;
+	event.op.pg_flip.fb_cookie = fbCookie;
 
 	mEventBuffer->sendEvent(event);
 }

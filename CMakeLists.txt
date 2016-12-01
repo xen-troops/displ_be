@@ -4,12 +4,15 @@ set(PROJECT_NAME "displ_be")
 
 project(${PROJECT_NAME})
 
-set(SOURCES
+set(DRM_SOURCES
 	src/drm/Connector.cpp
 	src/drm/Device.cpp
 	src/drm/Dumb.cpp
 	src/drm/FrameBuffer.cpp
 	src/drm/Modes.cpp
+)
+
+set(WL_SOURCES
 	src/wayland/Compositor.cpp
 	src/wayland/Connector.cpp
 	src/wayland/Display.cpp
@@ -20,22 +23,16 @@ set(SOURCES
 	src/wayland/Shell.cpp
 	src/wayland/ShellSurface.cpp
 	src/wayland/Surface.cpp
+)
+
+set(BE_SOURCES
+	src/BuffersStorage.cpp
 	src/CommandHandler.cpp
 	src/DisplayBackend.cpp
 )
 
-set(WL_TEST_SOURCES
-	src/wayland/Compositor.cpp
-	src/wayland/Connector.cpp
-	src/wayland/Display.cpp
-	src/wayland/SharedBuffer.cpp
-	src/wayland/Seat.cpp
-	src/wayland/SharedFile.cpp
-	src/wayland/SharedMemory.cpp
-	src/wayland/Shell.cpp
-	src/wayland/ShellSurface.cpp
-	src/wayland/Surface.cpp
-	src/WlTest.cpp
+set(TEST_SOURCES
+	src/Test.cpp
 )
 
 include_directories(
@@ -50,9 +47,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -Wall")
 
 link_directories(${XEN_LIB_PATH} ${XENBE_LIB_PATH})
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_library(be_drm STATIC ${DRM_SOURCES})
+
+add_library(be_wl STATIC ${WL_SOURCES})
+
+add_executable(${PROJECT_NAME} ${BE_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
+	be_drm
+	be_wl
 	xenbe
 	xenctrl
 	xenstore
@@ -63,9 +66,11 @@ target_link_libraries(${PROJECT_NAME}
 	pthread
 )
 
-add_executable(wl_test ${WL_TEST_SOURCES})
+add_executable(displ_test ${TEST_SOURCES})
 
-target_link_libraries(wl_test
+target_link_libraries(displ_test
+	be_drm
+	be_wl
 	xenbe
 	xenctrl
 	xenstore

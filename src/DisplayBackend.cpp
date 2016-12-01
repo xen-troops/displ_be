@@ -69,13 +69,13 @@ unique_ptr <DisplayBackend> gDisplayBackend;
  * ConCtrlRingBuffer
  ******************************************************************************/
 
-ConCtrlRingBuffer::ConCtrlRingBuffer(shared_ptr<DisplayItf> display,
-									 uint32_t conId,
+ConCtrlRingBuffer::ConCtrlRingBuffer(shared_ptr<ConnectorItf> connector,
+									 shared_ptr<BuffersStorage> buffersStorage,
 									 shared_ptr<ConEventRingBuffer> eventBuffer,
 									 int domId, int port, int ref) :
 	RingBufferInBase<xen_displif_back_ring, xen_displif_sring,
 					 xendispl_req, xendispl_resp>(domId, port, ref),
-	mCommandHandler(display, conId, domId, eventBuffer),
+	mCommandHandler(connector, buffersStorage, eventBuffer),
 	mLog("ConCtrlRing")
 {
 	LOG(mLog, DEBUG) << "Create ctrl ring buffer";
@@ -131,7 +131,7 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 
 	shared_ptr<ConEventRingBuffer> eventRingBuffer(
 			new ConEventRingBuffer(conId, getDomId(), port, ref,
-								   XENDISPL_IN_RING_SIZE,
+								   XENDISPL_IN_RING_OFFS,
 								   XENDISPL_IN_RING_SIZE));
 
 	addRingBuffer(eventRingBuffer);
@@ -155,11 +155,13 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 
 		convertResolution(res, width, height);
 
-		createWaylandConnector(conId, 0, 0, width, height);
+		conId = createWaylandConnector(width, height);
 	}
 
 	shared_ptr<RingBufferBase> ctrlRingBuffer(
-			new ConCtrlRingBuffer(mDisplay, conId, eventRingBuffer,
+			new ConCtrlRingBuffer(mDisplay->getConnectorById(conId),
+								  mBuffersStorage,
+								  eventRingBuffer,
 								  getDomId(), port, ref));
 
 	addRingBuffer(ctrlRingBuffer);
@@ -180,13 +182,14 @@ void DisplayFrontendHandler::convertResolution(const std::string& res,
 	height = stoul(res.substr(find + 1, string::npos));
 }
 
-void DisplayFrontendHandler::createWaylandConnector(uint32_t id, uint32_t x,
-													uint32_t y, uint32_t width,
-													uint32_t height)
+uint32_t DisplayFrontendHandler::createWaylandConnector(uint32_t width,
+														uint32_t height)
 {
 	auto wlDisplay = dynamic_pointer_cast<Wayland::Display>(mDisplay);
 
-	wlDisplay->createConnector(id, x, y, width, height);
+	wlDisplay->createConnector(mCurrentConId, mCurrentConId * width, 0, width, height);
+
+	return mCurrentConId++;
 }
 
 uint32_t DisplayFrontendHandler::getDrmConnectorId()
@@ -261,7 +264,7 @@ void segmentationHandler(int sig)
 
 	LOG("Main", ERROR) << "Segmentation fault!";
 
-	size = backtrace(array, 2);
+	size = backtrace(array, 20);
 
 	backtrace_symbols_fd(array, size, STDERR_FILENO);
 
