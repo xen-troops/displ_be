@@ -123,17 +123,16 @@ void CommandHandler::pageFlip(const xendispl_req& req)
 {
 	xendispl_page_flip_req flipReq = req.op.pg_flip;
 
-	DLOG(mLog, DEBUG) << "Handle command [PAGE FLIP], conn idx:"
-					  << static_cast<int>(flipReq.conn_idx) << ", fb ID: "
-					  << hex << setfill('0') << setw(16)
-					  << flipReq.fb_cookie;
+	auto cookie = flipReq.fb_cookie;
 
-	mBuffersStorage->copyBuffer(flipReq.fb_cookie);
+	DLOG(mLog, DEBUG) << "Handle command [PAGE FLIP], fb ID: "
+					  << hex << setfill('0') << setw(16)
+					  << cookie;
+
+	mBuffersStorage->copyBuffer(cookie);
 
 	mConnector->pageFlip(mBuffersStorage->getFrameBuffer(flipReq.fb_cookie),
-						 [flipReq, this] ()
-						 { sendFlipEvent(flipReq.conn_idx,
-								 	 	 flipReq.fb_cookie); });
+						 [cookie, this] () { sendFlipEvent(cookie); });
 }
 
 void CommandHandler::createDisplayBuffer(const xendispl_req& req)
@@ -208,17 +207,14 @@ void CommandHandler::setConfig(const xendispl_req& req)
 	}
 }
 
-void CommandHandler::sendFlipEvent(uint8_t conIdx, uint64_t fbCookie)
+void CommandHandler::sendFlipEvent(uint64_t fbCookie)
 {
-	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], conn idx: " << conIdx
-					  << static_cast<int>(conIdx) << ", fb ID: "
+	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], fb ID: "
 					  << hex << setfill('0') << setw(16) << fbCookie;
 
 	xendispl_evt event {};
 
 	event.type = XENDISPL_EVT_PG_FLIP;
-
-	event.op.pg_flip.conn_idx = conIdx;
 	event.op.pg_flip.fb_cookie = fbCookie;
 
 	mEventBuffer->sendEvent(event);

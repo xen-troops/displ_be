@@ -98,7 +98,7 @@ private:
 	void detachFrameBuffer(const xendispl_req& req);
 	void setConfig(const xendispl_req& req);
 
-	void sendFlipEvent(uint8_t conIdx, uint64_t fbCookie);
+	void sendFlipEvent(uint64_t fbCookie);
 };
 
 #endif /* SRC_COMMANDHANDLER_HPP_ */
