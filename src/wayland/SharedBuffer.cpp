@@ -7,6 +7,8 @@
 
 #include "SharedBuffer.hpp"
 
+#include <drm_fourcc.h>
+
 #include "Exception.hpp"
 
 using std::shared_ptr;
@@ -52,6 +54,21 @@ SharedBuffer::~SharedBuffer()
  * Private
  ******************************************************************************/
 
+uint32_t SharedBuffer::convertPixelFormat(uint32_t format)
+{
+	if (format == DRM_FORMAT_ARGB8888)
+	{
+		return WL_SHM_FORMAT_ARGB8888;
+	}
+
+	if (format == DRM_FORMAT_XRGB8888)
+	{
+		return WL_SHM_FORMAT_XRGB8888;
+	}
+
+	return format;
+}
+
 void SharedBuffer::init(wl_shm* sharedMemory, uint32_t pixelFormat)
 {
 	mPool = wl_shm_create_pool(sharedMemory, mSharedFile->mFd,
@@ -64,7 +81,7 @@ void SharedBuffer::init(wl_shm* sharedMemory, uint32_t pixelFormat)
 
 	mBuffer = wl_shm_pool_create_buffer(mPool, 0, mWidth, mHeight,
 										mSharedFile->mStride,
-										pixelFormat);
+										convertPixelFormat(pixelFormat));
 
 	if (!mBuffer)
 	{

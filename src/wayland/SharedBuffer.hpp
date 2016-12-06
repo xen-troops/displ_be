@@ -51,6 +51,7 @@ private:
 	uint32_t mHeight;
 	XenBackend::Log mLog;
 
+	uint32_t convertPixelFormat(uint32_t format);
 	void init(wl_shm* sharedMemory, uint32_t pixelFormat);
 	void release();
 };
