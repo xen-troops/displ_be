@@ -27,13 +27,46 @@
 
 namespace Drm {
 
+
+template <typename T>
+/***************************************************************************//**
+ * Mode data template.
+ * It provides pointer like functionality for mode data.
+ * @ingroup drm
+ ******************************************************************************/
+class ModeData
+{
+public:
+
+	ModeData() {};
+	ModeData(const ModeData&) = delete;
+	ModeData& operator=(ModeData const&) = delete;
+
+	/**
+	 * Provide access to the DRM mode data fields.
+	 */
+	const T operator->() const { return mData; }
+
+	/**
+	 * Provide access to the DRM mode data structure.
+	 */
+	const T& operator*() const { return *mData; }
+
+protected:
+
+	/**
+	 * Mode data object
+	 */
+	T mData;
+};
+
 /***************************************************************************//**
  * Wrapper for DRM mode resource object.
  * It creates the DRM mode resource object in the constructor and
  * deletes it in the destructor.
  * @ingroup drm
  ******************************************************************************/
-class ModeResource
+class ModeResource : public ModeData<drmModeResPtr>
 {
 public:
 
@@ -43,23 +76,6 @@ public:
 	explicit ModeResource(int fd);
 
 	~ModeResource();
-
-	ModeResource(const ModeResource&) = delete;
-	ModeResource& operator=(ModeResource const&) = delete;
-
-	/**
-	 * Provide access to the DRM mode resource fields.
-	 */
-	const drmModeResPtr operator->() const;
-
-	/**
-	 * Provide access to the DRM mode resource structure.
-	 */
-	const drmModeRes& operator*() const;
-
-private:
-
-	drmModeResPtr mRes;
 };
 
 /***************************************************************************//**
@@ -68,7 +84,7 @@ private:
  * deletes it in the destructor.
  * @ingroup drm
  ******************************************************************************/
-class ModeConnector
+class ModeConnector : public ModeData<drmModeConnectorPtr>
 {
 public:
 
@@ -79,23 +95,6 @@ public:
 	ModeConnector(int fd, int connectorId);
 
 	~ModeConnector();
-
-	ModeConnector(const ModeConnector&) = delete;
-	ModeConnector& operator=(ModeConnector const&) = delete;
-
-	/**
-	 * Provide access to the DRM mode connector fields.
-	 */
-	const drmModeConnectorPtr operator->() const;
-
-	/**
-	 * Provide access to the DRM mode connector structure.
-	 */
-	const drmModeConnector& operator*() const;
-
-private:
-
-	drmModeConnectorPtr mConnector;
 };
 
 /***************************************************************************//**
@@ -104,7 +103,7 @@ private:
  * deletes it in the destructor.
  * @ingroup drm
  ******************************************************************************/
-class ModeEncoder
+class ModeEncoder : public ModeData<drmModeEncoderPtr>
 {
 public:
 
@@ -115,23 +114,6 @@ public:
 	ModeEncoder(int fd, int encoderId);
 
 	~ModeEncoder();
-
-	ModeEncoder(const ModeEncoder&) = delete;
-	ModeEncoder& operator=(ModeEncoder const&) = delete;
-
-	/**
-	 * Provide access to the DRM mode encoder fields.
-	 */
-	const drmModeEncoderPtr operator->() const;
-
-	/**
-	 * Provide access to the DRM mode encoder structure.
-	 */
-	const drmModeEncoder& operator*() const;
-
-private:
-
-	drmModeEncoderPtr mEncoder;
 };
 
 }

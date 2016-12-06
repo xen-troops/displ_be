@@ -37,9 +37,9 @@ ModeResource::ModeResource(int fd)
 {
 	DLOG("ModeResource", DEBUG) << "Create";
 
-	mRes = drmModeGetResources(fd);
+	mData = drmModeGetResources(fd);
 
-	if (!mRes)
+	if (!mData)
 	{
 		throw DrmException("Cannot retrieve DRM resources");
 	}
@@ -49,20 +49,10 @@ ModeResource::~ModeResource()
 {
 	DLOG("ModeResource", DEBUG) << "Delete";
 
-	if (mRes)
+	if (mData)
 	{
-		drmModeFreeResources(mRes);
+		drmModeFreeResources(mData);
 	}
-}
-
-const drmModeResPtr ModeResource::operator->() const
-{
-	return mRes;
-}
-
-const drmModeRes& ModeResource::operator*() const
-{
-	return *mRes;
 }
 
 /*******************************************************************************
@@ -73,9 +63,9 @@ ModeConnector::ModeConnector(int fd, int connectorId)
 {
 	DLOG("ModeConnector", DEBUG) << "Create, id: " << connectorId;
 
-	mConnector = drmModeGetConnector(fd, connectorId);
+	mData = drmModeGetConnector(fd, connectorId);
 
-	if (!mConnector)
+	if (!mData)
 	{
 		throw DrmException("Cannot retrieve DRM connector");
 	}
@@ -83,23 +73,13 @@ ModeConnector::ModeConnector(int fd, int connectorId)
 
 ModeConnector::~ModeConnector()
 {
-	if (mConnector)
+	if (mData)
 	{
 		DLOG("ModeConnector", DEBUG) << "Delete, id: "
-									<< mConnector->connector_id;
+									<< mData->connector_id;
 
-		drmModeFreeConnector(mConnector);
+		drmModeFreeConnector(mData);
 	}
-}
-
-const drmModeConnectorPtr ModeConnector::operator->() const
-{
-	return mConnector;
-}
-
-const drmModeConnector& ModeConnector::operator*() const
-{
-	return *mConnector;
 }
 
 /*******************************************************************************
@@ -108,36 +88,26 @@ const drmModeConnector& ModeConnector::operator*() const
 
 ModeEncoder::ModeEncoder(int fd, int encoderId)
 {
-	mEncoder = drmModeGetEncoder(fd, encoderId);
+	mData = drmModeGetEncoder(fd, encoderId);
 
-	if (!mEncoder)
+	if (!mData)
 	{
 		throw DrmException("Cannot retrieve DRM encoder: " + to_string(encoderId));
 	}
 
 	DLOG("ModeEncoder", DEBUG) << "Create ModeEncoder, id: " << encoderId
-							  << ", crtc id: " << mEncoder->crtc_id;
+							  << ", crtc id: " << mData->crtc_id;
 }
 
 ModeEncoder::~ModeEncoder()
 {
-	if (mEncoder)
+	if (mData)
 	{
 		DLOG("ModeEncoder", DEBUG) << "Delete ModeEncoder, id: "
-								   << mEncoder->encoder_id;
+								   << mData->encoder_id;
 
-		drmModeFreeEncoder(mEncoder);
+		drmModeFreeEncoder(mData);
 	}
-}
-
-const drmModeEncoderPtr ModeEncoder::operator->() const
-{
-	return mEncoder;
-}
-
-const drmModeEncoder& ModeEncoder::operator*() const
-{
-	return *mEncoder;
 }
 
 }
