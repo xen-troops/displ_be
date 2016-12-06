@@ -20,6 +20,10 @@
 
 namespace Wayland {
 
+/***************************************************************************//**
+ * Shared buffer class.
+ * @ingroup wayland
+ ******************************************************************************/
 class SharedBuffer : public FrameBufferItf
 {
 public:

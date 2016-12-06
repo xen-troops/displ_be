@@ -28,13 +28,24 @@
 
 namespace Wayland {
 
+/***************************************************************************//**
+ * Shared file class.
+ * @ingroup wayland
+ ******************************************************************************/
 class SharedFile : public DisplayBufferItf
 {
 public:
 
 	~SharedFile();
 
+	/**
+	 * Returns pointer to the beginning of buffer
+	 */
 	void* getBuffer() const override { return mBuffer; }
+
+	/**
+	 * Returns buffer size
+	 */
 	size_t getSize() const override { return mSize; }
 
 private:

@@ -18,20 +18,41 @@
 
 namespace Wayland {
 
+/***************************************************************************//**
+ * Wayland shell surface class.
+ * @ingroup wayland
+ ******************************************************************************/
 class ShellSurface
 {
 public:
 
+	/**
+	 * Callback which is called when shell surface configuration is changed
+	 */
 	typedef std::function<void(uint32_t edges, int32_t width, int32_t height)>
 			ConfigCallback;
 
 	~ShellSurface();
 
+	/**
+	 * Sets shell surface as top level
+	 */
 	void setTopLevel();
+
+	/**
+	 * Sets shell surface as fullscreen
+	 */
 	void setFullScreen();
 
+	/**
+	 * Sets configuration change callback
+	 * @param cbk
+	 */
 	void setConfigCallback(ConfigCallback cbk);
 
+	/**
+	 * Returns associated surface
+	 */
 	std::shared_ptr<Surface> getSurface() const { return mSurfacePtr; }
 
 private:

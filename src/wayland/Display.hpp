@@ -44,8 +44,8 @@ namespace Wayland {
  ******************************************************************************/
 
 /***************************************************************************//**
- * DRM Device class.
- * @ingroup drm
+ * Wayland display class.
+ * @ingroup wayland
  ******************************************************************************/
 class Display : public DisplayItf
 {
@@ -56,7 +56,11 @@ public:
 
 	/**
 	 * Creates virtual connector
-	 * @param id connector id
+	 * @param id     connector id
+	 * @param x      horizontal offset
+	 * @param y      vertical offset
+	 * @param width  width
+	 * @param height height
 	 */
 	void createConnector(uint32_t id, uint32_t x, uint32_t y,
 						 uint32_t width, uint32_t height);

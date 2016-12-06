@@ -33,15 +33,16 @@
 
 namespace Wayland {
 
+/***************************************************************************//**
+ * Virtual connector class.
+ * @ingroup wayland
+ ******************************************************************************/
 class Connector : public ConnectorItf
 {
 public:
 
-	Connector(std::shared_ptr<ShellSurface> shellSurface,
-			  uint32_t id, uint32_t x, uint32_t y,
-			  uint32_t width, uint32_t height);
-
 	~Connector();
+
 	/**
 	 * Checks if the connector is connected
 	 * @return <i>true</i> if connected
@@ -79,6 +80,13 @@ public:
 				  FlipCallback cbk) override;
 
 private:
+
+	friend class Display;
+
+	Connector(std::shared_ptr<ShellSurface> shellSurface,
+			  uint32_t id, uint32_t x, uint32_t y,
+			  uint32_t width, uint32_t height);
+
 	std::shared_ptr<ShellSurface> mShellSurface;
 	uint32_t mX;
 	uint32_t mY;

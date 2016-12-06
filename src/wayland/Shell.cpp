@@ -42,9 +42,9 @@ Shell::~Shell()
 /*******************************************************************************
  * Public
  ******************************************************************************/
-shared_ptr<ShellSurface> Shell::getShellSurface(shared_ptr<Surface> surface)
+shared_ptr<ShellSurface> Shell::createShellSurface(shared_ptr<Surface> surface)
 {
-	LOG(mLog, DEBUG) << "Get shell surface";
+	LOG(mLog, DEBUG) << "Create shell surface";
 
 	return shared_ptr<ShellSurface>(new ShellSurface(mShell, surface));
 }

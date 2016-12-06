@@ -73,7 +73,8 @@ void Display::createConnector(uint32_t id, uint32_t x, uint32_t y,
 {
 	LOG(mLog, DEBUG) << "Create connector, id: " << id;
 
-	auto shellSurface = mShell->getShellSurface(mCompositor->createSurface());
+	auto shellSurface = mShell->createShellSurface(
+			mCompositor->createSurface());
 
 	wl_shell_surface_set_transient(shellSurface->mShellSurface,
 								   mMainShellSurface->getSurface()->mSurface,
@@ -235,7 +236,8 @@ void Display::init()
 	}
 
 
-	mMainShellSurface = mShell->getShellSurface(mCompositor->createSurface());
+	mMainShellSurface = mShell->createShellSurface(
+			mCompositor->createSurface());
 
 	mMainShellSurface->setConfigCallback(
 			bind(&Display::mainShellSurfaceConfigCbk, this, _1, _2, _3));

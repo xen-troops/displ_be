@@ -16,14 +16,26 @@
 
 namespace Wayland {
 
+/***************************************************************************//**
+ * Wayland surface class.
+ * @ingroup wayland
+ ******************************************************************************/
 class Surface
 {
 public:
 
+	/**
+	 * Callback which is called when frame is displayed
+	 */
 	typedef std::function<void()> FrameCallback;
 
 	~Surface();
 
+	/**
+	 * Draws shared buffer content
+	 * @param sharedBuffer shared buffer
+	 * @param callback     called when frame with the content is displayed
+	 */
 	void draw(std::shared_ptr<SharedBuffer> sharedBuffer,
 			  FrameCallback callback = nullptr);
 

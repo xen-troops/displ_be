@@ -44,6 +44,7 @@ using std::thread;
 #define BPP 32
 #define BUFFER_SIZE (WIDTH*HEIGHT*BPP/4)
 
+/// @cond HIDDEN_SYMBOLS
 struct Rgb
 {
 	uint8_t x;
@@ -51,6 +52,8 @@ struct Rgb
 	uint8_t g;
 	uint8_t b;
 };
+/// @endcond
+
 
 std::atomic_bool gTerminate;
 std::condition_variable gCondVar;
@@ -164,7 +167,6 @@ int main(int argc, char *argv[])
 			}
 
 			connector->init(0, 0, WIDTH, HEIGHT, frameBuffer1);
-
 
 			gTerminate = false;
 

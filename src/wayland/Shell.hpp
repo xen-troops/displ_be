@@ -15,13 +15,21 @@
 
 namespace Wayland {
 
+/***************************************************************************//**
+ * Wayland shell class.
+ * @ingroup wayland
+ ******************************************************************************/
 class Shell : public Registry
 {
 public:
 
 	~Shell();
 
-	std::shared_ptr<ShellSurface> getShellSurface(std::shared_ptr<Surface>
+	/**
+	 * Creates shell surface
+	 * @param surface surface
+	 */
+	std::shared_ptr<ShellSurface> createShellSurface(std::shared_ptr<Surface>
 												  surface);
 
 private:

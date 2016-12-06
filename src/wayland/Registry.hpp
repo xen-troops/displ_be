@@ -12,20 +12,41 @@
 
 namespace Wayland {
 
+/***************************************************************************//**
+ * Base class for Wayland registry.
+ * @ingroup wayland
+ ******************************************************************************/
 class Registry
 {
 public:
+
+	/**
+	 * Returns registry id
+	 */
 	uint32_t getId() const { return mId; }
 
 protected:
 
+	/**
+	 * @param registry wl registry structure
+	 * @param id       registry id
+	 * @param version  registry version
+	 */
 	Registry(wl_registry* registry, uint32_t id, uint32_t version) :
 		mRegistry(registry), mId(id), mVersion(version) {}
 
+	/**
+	 * Returns wl registry structure
+	 */
 	wl_registry* getRegistry() const { return mRegistry; }
+
+	/**
+	 * Returns registry version
+	 */
 	uint32_t getVersion() const { return mVersion; }
 
 private:
+
 	wl_registry* mRegistry;
 	uint32_t mId;
 	uint32_t mVersion;

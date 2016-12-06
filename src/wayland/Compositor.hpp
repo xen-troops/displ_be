@@ -17,12 +17,19 @@
 
 namespace Wayland {
 
+/***************************************************************************//**
+ * Wayland compositor class.
+ * @ingroup wayland
+ ******************************************************************************/
 class Compositor : public Registry
 {
 public:
 
 	~Compositor();
 
+	/**
+	 * Creates surface
+	 */
 	std::shared_ptr<Surface> createSurface();
 
 private:

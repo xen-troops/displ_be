@@ -76,6 +76,8 @@ void Surface::draw(std::shared_ptr<SharedBuffer> sharedBuffer,
 
 	wl_surface_commit(mSurface);
 
+	// as above wl commands are added async we have to push wl
+
 	if (wl_display_dispatch_pending(mDisplay) == -1)
 	{
 		throw WlException("Failed to dispatch pending events");

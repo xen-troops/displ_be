@@ -18,16 +18,35 @@
 
 namespace Wayland {
 
+/***************************************************************************//**
+ * Wayland shared memory class.
+ * @ingroup wayland
+ ******************************************************************************/
 class SharedMemory : public Registry
 {
 public:
 
 	~SharedMemory();
 
+	/**
+	 * Creates shared file
+	 * @param width  width
+	 * @param height height
+	 * @param bpp    bits per pixel
+	 * @return
+	 */
 	std::shared_ptr<SharedFile> createSharedFile(uint32_t width,
 												 uint32_t height,
 												 uint32_t bpp);
 
+	/**
+	 * Creates shared buffer
+	 * @param sharedFile  shared file
+	 * @param width       width
+	 * @param height      height
+	 * @param pixelFormat pixel format
+	 * @return
+	 */
 	std::shared_ptr<SharedBuffer> createSharedBuffer(
 			std::shared_ptr<SharedFile> sharedFile,
 			uint32_t width, uint32_t height, uint32_t pixelFormat);
