@@ -75,7 +75,6 @@ public:
 	 * @param y           vertical offset
 	 * @param width       width
 	 * @param height      height
-	 * @param bpp         bits per pixel
 	 * @param frameBuffer frame buffer
 	 */
 	void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,

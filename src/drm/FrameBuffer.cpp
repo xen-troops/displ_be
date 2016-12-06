@@ -51,15 +51,14 @@ FrameBuffer::FrameBuffer(shared_ptr<Dumb> dumb,
 	auto ret = drmModeAddFB2(mDumb->mFd, width, height, pixelFormat,
 							 handles, pitches, offsets, &mId, 0);
 
-	DLOG("FrameBuffer", DEBUG) << "Create frame buffer, handle: " << handles[0]
-							  << ", id: " << mId;
-
 	if (ret)
 	{
 		throw DrmException ("Cannot create frame buffer: " +
 							string(strerror(errno)));
 	}
 
+	DLOG("FrameBuffer", DEBUG) << "Create frame buffer, handle: " << handles[0]
+							  << ", id: " << mId;
 }
 
 FrameBuffer::~FrameBuffer()

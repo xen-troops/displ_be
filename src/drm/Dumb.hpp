@@ -67,7 +67,7 @@ private:
 	uint32_t mStride;
 	uint32_t mWidth;
 	uint32_t mHeight;
-	uint64_t mSize;
+	size_t mSize;
 	void* mBuffer;
 
 	void release();
