@@ -160,7 +160,7 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 
 	if (interface == "wl_compositor")
 	{
-		mCompositor.reset(new Compositor(registry, id, version));
+		mCompositor.reset(new Compositor(mDisplay, registry, id, version));
 	}
 
 	if (interface == "wl_shell")

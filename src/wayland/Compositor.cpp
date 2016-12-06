@@ -17,8 +17,10 @@ namespace Wayland {
  * Compositor
  ******************************************************************************/
 
-Compositor::Compositor(wl_registry* registry, uint32_t id, uint32_t version) :
+Compositor::Compositor(wl_display* display, wl_registry* registry,
+					  uint32_t id, uint32_t version) :
 	Registry(registry, id, version),
+	mDisplay(display),
 	mCompositor(nullptr),
 	mLog("Compositor")
 {
@@ -47,7 +49,7 @@ shared_ptr<Surface> Compositor::createSurface()
 {
 	LOG(mLog, DEBUG) << "Create surface";
 
-	return shared_ptr<Surface>(new Surface(mCompositor));
+	return shared_ptr<Surface>(new Surface(mDisplay, mCompositor));
 }
 
 /*******************************************************************************

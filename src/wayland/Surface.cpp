@@ -15,7 +15,8 @@ namespace Wayland {
  * Surface
  ******************************************************************************/
 
-Surface::Surface(wl_compositor* compositor) :
+Surface::Surface(wl_display* display, wl_compositor* compositor) :
+	mDisplay(display),
 	mSurface(nullptr),
 	mFrameCallback(nullptr),
 	mLog("Surface")
@@ -74,6 +75,16 @@ void Surface::draw(std::shared_ptr<SharedBuffer> sharedBuffer,
 	wl_surface_attach(mSurface, sharedBuffer->mBuffer, 0, 0);
 
 	wl_surface_commit(mSurface);
+
+	if (wl_display_dispatch_pending(mDisplay) == -1)
+	{
+		throw WlException("Failed to dispatch pending events");
+	}
+
+	if (wl_display_flush(mDisplay) == -1)
+	{
+		throw WlException("Failed to flush display");
+	}
 }
 
 /*******************************************************************************

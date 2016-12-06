@@ -1,5 +1,5 @@
 /*
- *  WlTest
+ *  Test
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,19 +18,100 @@
  * Copyright (C) 2016 EPAM Systems Inc.
  */
 
+#include "drm/Device.hpp"
 #include "wayland/Display.hpp"
 
+#include <atomic>
+#include <condition_variable>
+#include <iomanip>
 #include <iostream>
 
-using std::exception;
-using std::string;
+#include <sys/time.h>
+
+#include <drm_fourcc.h>
+
+using std::bind;
 using std::cin;
+using std::exception;
+using std::shared_ptr;
+using std::setprecision;
+using std::fixed;
+using std::string;
+using std::thread;
 
-using Wayland::Display;
+#define WIDTH (1920/2)
+#define HEIGHT 1080
+#define BPP 32
+#define BUFFER_SIZE (WIDTH*HEIGHT*BPP/4)
 
-void flipped()
+struct Rgb
 {
-	LOG("Main", DEBUG) << "Flipped";
+	uint8_t x;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+};
+
+std::atomic_bool gTerminate;
+std::condition_variable gCondVar;
+std::mutex gMutex;
+
+uint8_t gBuffer1[BUFFER_SIZE];
+uint8_t gBuffer2[BUFFER_SIZE];
+
+void flipDone()
+{
+	LOG("Test", DEBUG) << "Flip done";
+
+	std::unique_lock<std::mutex> lock(gMutex);
+	gCondVar.notify_one();
+}
+
+void flipHandler(shared_ptr<ConnectorItf> connector,
+			 shared_ptr<FrameBufferItf> frameBuffer1,
+			 shared_ptr<FrameBufferItf> frameBuffer2)
+{
+	static int count = 0;
+
+	while(!gTerminate)
+	{
+		LOG("Test", DEBUG) << "Flip handler";
+
+		if (count % 2)
+		{
+			memcpy(frameBuffer1->getDisplayBuffer()->getBuffer(), gBuffer2, frameBuffer1->getDisplayBuffer()->getSize());
+		}
+		else
+		{
+			memcpy(frameBuffer1->getDisplayBuffer()->getBuffer(), gBuffer1, frameBuffer1->getDisplayBuffer()->getSize());
+		}
+
+		connector->pageFlip(frameBuffer1, flipDone);
+
+		count++;
+
+		if (count == 60)
+		{
+			static timeval start;
+			timeval end;
+
+			gettimeofday(&end, NULL);
+			double t = end.tv_sec + end.tv_usec * 1e-6 - (start.tv_sec + start.tv_usec * 1e-6);
+
+			LOG("Test", INFO) << "Freq: " << fixed << setprecision(2) << ((double)count / t);
+
+			LOG("Test", INFO) << "Size: " << frameBuffer1->getDisplayBuffer()->getSize()
+								<<  ", Q: " << (frameBuffer1->getDisplayBuffer()->getSize() % 4096);
+
+			count = 0;
+			start = end;
+		}
+
+		std::unique_lock<std::mutex> lock(gMutex);
+		gCondVar.wait(lock);
+	}
+
+	LOG("Test", DEBUG) << "Finished";
 }
 
 int main(int argc, char *argv[])
@@ -39,139 +120,79 @@ int main(int argc, char *argv[])
 	{
 		XenBackend::Log::setLogLevel("DEBUG");
 
-		Display display;
-
-		display.start();
-
-		display.createConnector(0, 0, 0, 800, 600);
-
-		auto connector = display.getConnectorById(0);
-
-//		display.createConnector(2, 640, 0, 640, 800);
-
-		auto displayBuffer1 = display.createDisplayBuffer(800, 600, 32);
-
-		auto frameBuffer1 = display.createFrameBuffer(displayBuffer1, 800, 600,
-													  WL_SHM_FORMAT_XRGB8888);
-
-
-		connector->init(0, 0, 800, 600, frameBuffer1);
-
-		auto displayBuffer2 = display.createDisplayBuffer(800, 600, 32);
-
-		auto frameBuffer2 = display.createFrameBuffer(displayBuffer2, 800, 600,
-													  WL_SHM_FORMAT_XRGB8888);
-
-#if 0
-		struct Rgb
-		{
-			uint8_t x;
-			uint8_t r;
-			uint8_t g;
-			uint8_t b;
-		};
-
-		Rgb* data1 = static_cast<Rgb*>(displayBuffer1->getBuffer());
-		Rgb* data2 = static_cast<Rgb*>(displayBuffer2->getBuffer());
-
-		for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
-		{
-			data1[i].x = 0x00;
-			data1[i].r = 0x00;
-			data1[i].g = 0xFF;
-			data1[i].b = 0x00;
-		}
-
-		for (size_t i = 0; i < displayBuffer2->getSize() / sizeof(Rgb); i++)
-		{
-			data2[i].x = 0x00;
-			data2[i].r = 0xFF;
-			data2[i].g = 0x00;
-			data2[i].b = 0x00;
-		}
-#endif
-
-	//	display.getConnectorById(1)->init(0, 0, 800, 600, frameBuffer1);
-	//	display.getConnectorById(2)->init(0, 0, 640, 800, frameBuffer2);
-
-#if 0
-		gSurface1 = display.getCompositor()->createSurface();
-		gSurface2 = display.getCompositor()->createSurface();
-
-		auto shellSurface1 = display.getShell()->getShellSurface(gSurface1);
-		auto shellSurface2 = display.getShell()->getShellSurface(gSurface2);
-
-		shellSurface1->setTopLevel();
-		shellSurface2->setTopLevel();
-
-		gSharedFile1 = display.getSharedMemory()->
-				createSharedFile(320, 240, 32);
-
-		gSharedBuffer1 = display.getSharedMemory()->
-								  createSharedBuffer(gSharedFile1, 320, 240,
-										  gSharedFile1->getStride(),
-								  WL_SHM_FORMAT_XRGB8888);
-
-		gSharedFile2 = display.getSharedMemory()->
-				createSharedFile(320, 240, 32);
-
-		gSharedBuffer2 = display.getSharedMemory()->
-								  createSharedBuffer(gSharedFile2, 320, 240,
-										  gSharedFile2->getStride(),
-								  WL_SHM_FORMAT_XRGB8888);
-
-		LOG("Main", DEBUG) << "Buffer size: " << gSharedFile1->getSize();
-
-		struct Rgb
-		{
-			uint8_t x;
-			uint8_t r;
-			uint8_t g;
-			uint8_t b;
-		};
-
-		Rgb* data1 = static_cast<Rgb*>(gSharedFile1->getBuffer());
-		Rgb* data2 = static_cast<Rgb*>(gSharedFile2->getBuffer());
-
-		for (size_t i = 0; i < gSharedFile1->getSize() / sizeof(Rgb); i++)
-		{
-			data1[i].x = 0x00;
-			data1[i].r = 0x00;
-			data1[i].g = 0xFF;
-			data1[i].b = 0x00;
-		}
-
-		for (size_t i = 0; i < gSharedFile2->getSize() / sizeof(Rgb); i++)
-		{
-			data2[i].x = 0x00;
-			data2[i].r = 0xFF;
-			data2[i].g = 0x00;
-			data2[i].b = 0x00;
-		}
-
-//		drawFrame(gSharedFile1, gSharedBuffer1, gSharedFile2, gSharedBuffer2);
-
-		gSurface1->draw(gSharedBuffer1);
-		gSurface2->draw(gSharedBuffer2);
-
-#endif
-
 		try
 		{
-			connector->pageFlip(frameBuffer2, flipped);
-//			display.getConnectorById(2)->pageFlip(frameBuffer2, flipped);
+//			Drm::Device display("/dev/dri/card0");
+			Wayland::Display display;
+
+			display.start();
+
+			display.createConnector(37, 0, 0, WIDTH, HEIGHT);
+
+			auto connector = display.getConnectorById(37);
+
+			auto displayBuffer1 = display.createDisplayBuffer(WIDTH, HEIGHT, 32);
+
+			auto frameBuffer1 = display.createFrameBuffer(displayBuffer1,
+														  WIDTH, HEIGHT,
+														  DRM_FORMAT_XRGB8888);
+
+			auto displayBuffer2 = display.createDisplayBuffer(WIDTH, HEIGHT, 32);
+
+			auto frameBuffer2 = display.createFrameBuffer(displayBuffer2,
+														  WIDTH, HEIGHT,
+														  DRM_FORMAT_XRGB8888);
+
+			Rgb* data1 = reinterpret_cast<Rgb*>(gBuffer1);
+
+			for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
+			{
+				data1[i].x = 0x00;
+				data1[i].r = 0x00;
+				data1[i].g = 0xFF;
+				data1[i].b = 0x00;
+			}
+
+			Rgb* data2 = reinterpret_cast<Rgb*>(gBuffer2);
+
+			for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
+			{
+				data2[i].x = 0x00;
+				data2[i].r = 0xFF;
+				data2[i].g = 0x00;
+				data2[i].b = 0x00;
+			}
+
+			connector->init(0, 0, WIDTH, HEIGHT, frameBuffer1);
+
+
+			gTerminate = false;
+
+			thread flipThread(bind(flipHandler, connector, frameBuffer1, frameBuffer2));
+
+			string str;
+			cin >> str;
+
+			{
+				std::unique_lock<std::mutex> lock(gMutex);
+
+				gTerminate = true;
+
+				gCondVar.notify_one();
+			}
+
+			flipThread.join();
+
 		}
 		catch(const DisplayItfException& e)
 		{
-			LOG("Main", DEBUG) << e.what();
+			LOG("Test", DEBUG) << e.what();
 		}
 
-		string str;
-		cin >> str;
 	}
 	catch(const exception& e)
 	{
-		LOG("Main", ERROR) << e.what();
+		LOG("Test", DEBUG) << e.what();
 	}
 	return 0;
 }

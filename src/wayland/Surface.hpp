@@ -33,8 +33,9 @@ private:
 	friend class ShellSurface;
 	friend class Compositor;
 
-	Surface(wl_compositor* compositor);
+	Surface(wl_display* display, wl_compositor* compositor);
 
+	wl_display* mDisplay;
 	wl_surface* mSurface;
 	wl_callback *mFrameCallback;
 	XenBackend::Log mLog;

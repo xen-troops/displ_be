@@ -29,8 +29,10 @@ private:
 
 	friend class Display;
 
-	Compositor(wl_registry* registry, uint32_t id, uint32_t version);
+	Compositor(wl_display* display, wl_registry* registry,
+			   uint32_t id, uint32_t version);
 
+	wl_display* mDisplay;
 	wl_compositor* mCompositor;
 	XenBackend::Log mLog;
 
