@@ -107,9 +107,9 @@ public:
 private:
 	const int cPoolEventTimeoutMs = 100;
 
-	wl_display* mDisplay;
-	wl_registry* mRegistry;
-	wl_registry_listener mRegistryListener;
+	wl_display* mWlDisplay;
+	wl_registry* mWlRegistry;
+	wl_registry_listener mWlRegistryListener;
 	std::atomic_bool mTerminate;
 	XenBackend::Log mLog;
 

@@ -19,7 +19,7 @@ namespace Wayland {
 
 SharedMemory::SharedMemory(wl_registry* registry, uint32_t id, uint32_t version) :
 	Registry(registry, id, version),
-	mSharedMemory(nullptr),
+	mWlSharedMemory(nullptr),
 	mLog("SharedMemory")
 {
 	try
@@ -59,7 +59,7 @@ shared_ptr<SharedBuffer> SharedMemory::createSharedBuffer(
 {
 	LOG(mLog, DEBUG) << "Create shared buffer";
 
-	return shared_ptr<SharedBuffer>(new SharedBuffer(mSharedMemory,
+	return shared_ptr<SharedBuffer>(new SharedBuffer(mWlSharedMemory,
 													 sharedFile,
 													 width, height,
 													 pixelFormat));
@@ -71,11 +71,11 @@ shared_ptr<SharedBuffer> SharedMemory::createSharedBuffer(
 
 void SharedMemory::init()
 {
-	mSharedMemory = static_cast<wl_shm*>(
+	mWlSharedMemory = static_cast<wl_shm*>(
 			wl_registry_bind(getRegistry(), getId(),
 							 &wl_shm_interface, getVersion()));
 
-	if (!mSharedMemory)
+	if (!mWlSharedMemory)
 	{
 		throw WlException("Can't bind shared memory");
 	}
@@ -85,9 +85,9 @@ void SharedMemory::init()
 
 void SharedMemory::release()
 {
-	if (mSharedMemory)
+	if (mWlSharedMemory)
 	{
-		wl_shm_destroy(mSharedMemory);
+		wl_shm_destroy(mWlSharedMemory);
 
 		LOG(mLog, DEBUG) << "Delete";
 	}

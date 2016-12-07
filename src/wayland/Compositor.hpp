@@ -39,8 +39,8 @@ private:
 	Compositor(wl_display* display, wl_registry* registry,
 			   uint32_t id, uint32_t version);
 
-	wl_display* mDisplay;
-	wl_compositor* mCompositor;
+	wl_display* mWlDisplay;
+	wl_compositor* mWlCompositor;
 	XenBackend::Log mLog;
 
 	void init();

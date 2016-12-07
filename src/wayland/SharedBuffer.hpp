@@ -49,8 +49,8 @@ private:
 				 uint32_t pixelFormat);
 
 	std::shared_ptr<SharedFile> mSharedFile;
-	wl_buffer* mBuffer;
-	wl_shm_pool* mPool;
+	wl_buffer* mWlBuffer;
+	wl_shm_pool* mWlPool;
 	uint32_t mWidth;
 	uint32_t mHeight;
 	XenBackend::Log mLog;

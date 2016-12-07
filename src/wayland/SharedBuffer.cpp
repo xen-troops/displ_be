@@ -23,8 +23,8 @@ SharedBuffer::SharedBuffer(wl_shm* sharedMemory,
 						   uint32_t width, uint32_t height,
 						   uint32_t pixelFormat) :
 	mSharedFile(sharedFile),
-	mBuffer(nullptr),
-	mPool(nullptr),
+	mWlBuffer(nullptr),
+	mWlPool(nullptr),
 	mWidth(width),
 	mHeight(height),
 	mLog("SharedBuffer")
@@ -71,26 +71,26 @@ uint32_t SharedBuffer::convertPixelFormat(uint32_t format)
 
 void SharedBuffer::init(wl_shm* sharedMemory, uint32_t pixelFormat)
 {
-	mPool = wl_shm_create_pool(sharedMemory, mSharedFile->mFd,
+	mWlPool = wl_shm_create_pool(sharedMemory, mSharedFile->mFd,
 							   mHeight * mSharedFile->mStride);
 
-	if (!mPool)
+	if (!mWlPool)
 	{
 		throw WlException("Can't create pool");
 	}
 
-	mBuffer = wl_shm_pool_create_buffer(mPool, 0, mWidth, mHeight,
+	mWlBuffer = wl_shm_pool_create_buffer(mWlPool, 0, mWidth, mHeight,
 										mSharedFile->mStride,
 										convertPixelFormat(pixelFormat));
 
-	if (!mBuffer)
+	if (!mWlBuffer)
 	{
 		throw WlException("Can't create shared buffer");
 	}
 
-	wl_shm_pool_destroy(mPool);
+	wl_shm_pool_destroy(mWlPool);
 
-	mPool = nullptr;
+	mWlPool = nullptr;
 
 	LOG(mLog, DEBUG) << "Create, w: " << mWidth << ", h: " << mHeight
 					 << ", stride: " << mSharedFile->mStride
@@ -100,14 +100,14 @@ void SharedBuffer::init(wl_shm* sharedMemory, uint32_t pixelFormat)
 
 void SharedBuffer::release()
 {
-	if (mPool)
+	if (mWlPool)
 	{
-		wl_shm_pool_destroy(mPool);
+		wl_shm_pool_destroy(mWlPool);
 	}
 
-	if (mBuffer)
+	if (mWlBuffer)
 	{
-		wl_buffer_destroy(mBuffer);
+		wl_buffer_destroy(mWlBuffer);
 
 		LOG(mLog, DEBUG) << "Delete";
 	}

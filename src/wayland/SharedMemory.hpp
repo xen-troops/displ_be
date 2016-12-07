@@ -57,7 +57,7 @@ private:
 
 	SharedMemory(wl_registry* registry, uint32_t id, uint32_t version);
 
-	wl_shm* mSharedMemory;
+	wl_shm* mWlSharedMemory;
 	XenBackend::Log mLog;
 
 	void init();

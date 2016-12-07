@@ -20,7 +20,7 @@ namespace Wayland {
 
 Seat::Seat(wl_registry* registry, uint32_t id, uint32_t version) :
 	Registry(registry, id, version),
-	mSeat(nullptr),
+	mWlSeat(nullptr),
 	mLog("Seat")
 {
 	try
@@ -84,18 +84,18 @@ void Seat::readName(const std::string& name)
 
 void Seat::init()
 {
-	mSeat = static_cast<wl_seat*>(
+	mWlSeat = static_cast<wl_seat*>(
 			wl_registry_bind(getRegistry(), getId(),
 							 &wl_seat_interface, getVersion()));
 
-	if (!mSeat)
+	if (!mWlSeat)
 	{
 		throw WlException("Can't bind seat");
 	}
 
-	mListener = {sReadCapabilities, sReadName};
+	mWlListener = {sReadCapabilities, sReadName};
 
-	if (wl_seat_add_listener(mSeat, &mListener, this) < 0)
+	if (wl_seat_add_listener(mWlSeat, &mWlListener, this) < 0)
 	{
 		throw WlException("Can't add listener");
 	}
@@ -105,9 +105,9 @@ void Seat::init()
 
 void Seat::release()
 {
-	if (mSeat)
+	if (mWlSeat)
 	{
-		wl_seat_destroy(mSeat);
+		wl_seat_destroy(mWlSeat);
 
 		LOG(mLog, DEBUG) << "Delete";
 	}

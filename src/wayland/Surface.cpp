@@ -16,9 +16,9 @@ namespace Wayland {
  ******************************************************************************/
 
 Surface::Surface(wl_display* display, wl_compositor* compositor) :
-	mDisplay(display),
-	mSurface(nullptr),
-	mFrameCallback(nullptr),
+	mWlDisplay(display),
+	mWlSurface(nullptr),
+	mWlFrameCallback(nullptr),
 	mLog("Surface")
 {
 	try
@@ -47,7 +47,7 @@ void Surface::draw(std::shared_ptr<SharedBuffer> sharedBuffer,
 {
 	DLOG(mLog, DEBUG) << "Draw";
 
-	if (mFrameCallback)
+	if (mWlFrameCallback)
 	{
 		throw WlException("Draw event is in progress");
 	}
@@ -56,34 +56,34 @@ void Surface::draw(std::shared_ptr<SharedBuffer> sharedBuffer,
 
 	if (mStoredCallback)
 	{
-		mFrameCallback = wl_surface_frame(mSurface);
+		mWlFrameCallback = wl_surface_frame(mWlSurface);
 
-		if (!mFrameCallback)
+		if (!mWlFrameCallback)
 		{
 			throw WlException("Can't get frame callback");
 		}
 
-		if (wl_callback_add_listener(mFrameCallback, &mFrameListener, this) < 0)
+		if (wl_callback_add_listener(mWlFrameCallback, &mWlFrameListener, this) < 0)
 		{
 			throw WlException("Can't add listener");
 		}
 	}
 
-	wl_surface_damage(mSurface, 0, 0,
+	wl_surface_damage(mWlSurface, 0, 0,
 					  sharedBuffer->mWidth, sharedBuffer->mHeight);
 
-	wl_surface_attach(mSurface, sharedBuffer->mBuffer, 0, 0);
+	wl_surface_attach(mWlSurface, sharedBuffer->mWlBuffer, 0, 0);
 
-	wl_surface_commit(mSurface);
+	wl_surface_commit(mWlSurface);
 
 	// as above wl commands are added async we have to push wl
 
-	if (wl_display_dispatch_pending(mDisplay) == -1)
+	if (wl_display_dispatch_pending(mWlDisplay) == -1)
 	{
 		throw WlException("Failed to dispatch pending events");
 	}
 
-	if (wl_display_flush(mDisplay) == -1)
+	if (wl_display_flush(mWlDisplay) == -1)
 	{
 		throw WlException("Failed to flush display");
 	}
@@ -102,9 +102,9 @@ void Surface::frameHandler()
 {
 	DLOG(mLog, DEBUG) << "Frame handler";
 
-	wl_callback_destroy(mFrameCallback);
+	wl_callback_destroy(mWlFrameCallback);
 
-	mFrameCallback = nullptr;
+	mWlFrameCallback = nullptr;
 
 	if (mStoredCallback)
 	{
@@ -114,28 +114,28 @@ void Surface::frameHandler()
 
 void Surface::init(wl_compositor* compositor)
 {
-	mSurface = wl_compositor_create_surface(compositor);
+	mWlSurface = wl_compositor_create_surface(compositor);
 
-	if (!mSurface)
+	if (!mWlSurface)
 	{
 		throw WlException("Can't create surface");
 	}
 
-	mFrameListener = { sFrameHandler };
+	mWlFrameListener = { sFrameHandler };
 
 	LOG(mLog, DEBUG) << "Create";
 }
 
 void Surface::release()
 {
-	if (mFrameCallback)
+	if (mWlFrameCallback)
 	{
-		wl_callback_destroy(mFrameCallback);
+		wl_callback_destroy(mWlFrameCallback);
 	}
 
-	if (mSurface)
+	if (mWlSurface)
 	{
-		wl_surface_destroy(mSurface);
+		wl_surface_destroy(mWlSurface);
 
 		LOG(mLog, DEBUG) << "Delete";
 	}

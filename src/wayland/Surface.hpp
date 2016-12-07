@@ -47,12 +47,12 @@ private:
 
 	Surface(wl_display* display, wl_compositor* compositor);
 
-	wl_display* mDisplay;
-	wl_surface* mSurface;
-	wl_callback *mFrameCallback;
+	wl_display* mWlDisplay;
+	wl_surface* mWlSurface;
+	wl_callback *mWlFrameCallback;
 	XenBackend::Log mLog;
 
-	wl_callback_listener mFrameListener;
+	wl_callback_listener mWlFrameListener;
 
 	FrameCallback mStoredCallback;
 

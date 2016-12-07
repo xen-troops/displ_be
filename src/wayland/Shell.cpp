@@ -19,7 +19,7 @@ namespace Wayland {
 
 Shell::Shell(wl_registry* registry, uint32_t id, uint32_t version) :
 	Registry(registry, id, version),
-	mShell(nullptr),
+	mWlShell(nullptr),
 	mLog("Shell")
 {
 	try
@@ -46,7 +46,7 @@ shared_ptr<ShellSurface> Shell::createShellSurface(shared_ptr<Surface> surface)
 {
 	LOG(mLog, DEBUG) << "Create shell surface";
 
-	return shared_ptr<ShellSurface>(new ShellSurface(mShell, surface));
+	return shared_ptr<ShellSurface>(new ShellSurface(mWlShell, surface));
 }
 
 /*******************************************************************************
@@ -55,11 +55,11 @@ shared_ptr<ShellSurface> Shell::createShellSurface(shared_ptr<Surface> surface)
 
 void Shell::init()
 {
-	mShell = static_cast<wl_shell*>(
+	mWlShell = static_cast<wl_shell*>(
 			wl_registry_bind(getRegistry(), getId(),
 							 &wl_shell_interface, getVersion()));
 
-	if (!mShell)
+	if (!mWlShell)
 	{
 		throw WlException("Can't bind shell");
 	}
@@ -69,9 +69,9 @@ void Shell::init()
 
 void Shell::release()
 {
-	if (mShell)
+	if (mWlShell)
 	{
-		wl_shell_destroy(mShell);
+		wl_shell_destroy(mWlShell);
 
 		LOG(mLog, DEBUG) << "Delete";
 	}

@@ -41,8 +41,8 @@ namespace Wayland {
  ******************************************************************************/
 
 Display::Display() :
-	mDisplay(nullptr),
-	mRegistry(nullptr),
+	mWlDisplay(nullptr),
+	mWlRegistry(nullptr),
 	mTerminate(false),
 	mLog("Display")
 {
@@ -76,8 +76,8 @@ void Display::createConnector(uint32_t id, uint32_t x, uint32_t y,
 	auto shellSurface = mShell->createShellSurface(
 			mCompositor->createSurface());
 
-	wl_shell_surface_set_transient(shellSurface->mShellSurface,
-								   mMainShellSurface->getSurface()->mSurface,
+	wl_shell_surface_set_transient(shellSurface->mWlShellSurface,
+								   mMainShellSurface->getSurface()->mWlSurface,
 								   x, y, WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
 
 	// shellSurface->setTopLevel();
@@ -161,7 +161,7 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 
 	if (interface == "wl_compositor")
 	{
-		mCompositor.reset(new Compositor(mDisplay, registry, id, version));
+		mCompositor.reset(new Compositor(mWlDisplay, registry, id, version));
 	}
 
 	if (interface == "wl_shell")
@@ -197,28 +197,28 @@ void Display::mainShellSurfaceConfigCbk(uint32_t edges, int32_t width,
 
 void Display::init()
 {
-	mDisplay = wl_display_connect(nullptr);
+	mWlDisplay = wl_display_connect(nullptr);
 
-	if (!mDisplay)
+	if (!mWlDisplay)
 	{
 		throw WlException("Can't connect to display");
 	}
 
 	LOG(mLog, DEBUG) << "Connected";
 
-	mRegistryListener = {sRegistryHandler, sRegistryRemover};
+	mWlRegistryListener = {sRegistryHandler, sRegistryRemover};
 
-	mRegistry = wl_display_get_registry(mDisplay);
+	mWlRegistry = wl_display_get_registry(mWlDisplay);
 
-	if (!mRegistry)
+	if (!mWlRegistry)
 	{
 		throw WlException("Can't get registry");
 	}
 
-	wl_registry_add_listener(mRegistry, &mRegistryListener, this);
+	wl_registry_add_listener(mWlRegistry, &mWlRegistryListener, this);
 
-	wl_display_dispatch(mDisplay);
-	wl_display_roundtrip(mDisplay);
+	wl_display_dispatch(mWlDisplay);
+	wl_display_roundtrip(mWlDisplay);
 
 	if (!mCompositor)
 	{
@@ -247,15 +247,15 @@ void Display::init()
 
 void Display::release()
 {
-	if (mRegistry)
+	if (mWlRegistry)
 	{
-		wl_registry_destroy(mRegistry);
+		wl_registry_destroy(mWlRegistry);
 	}
 
-	if (mDisplay)
+	if (mWlDisplay)
 	{
-		wl_display_flush(mDisplay);
-		wl_display_disconnect(mDisplay);
+		wl_display_flush(mWlDisplay);
+		wl_display_disconnect(mWlDisplay);
 
 		LOG(mLog, DEBUG) << "Disconnected";
 	}
@@ -265,14 +265,14 @@ bool Display::pollDisplayFd()
 {
 	pollfd fds;
 
-	fds.fd = wl_display_get_fd(mDisplay);
+	fds.fd = wl_display_get_fd(mWlDisplay);
 	fds.events = POLLIN;
 
 	while(!mTerminate)
 	{
 		fds.revents = 0;
 
-		wl_display_flush(mDisplay);
+		wl_display_flush(mWlDisplay);
 
 		auto ret = poll(&fds, 1, cPoolEventTimeoutMs);
 
@@ -295,9 +295,9 @@ void Display::dispatchThread()
 	{
 		while(!mTerminate)
 		{
-			while (wl_display_prepare_read(mDisplay) != 0)
+			while (wl_display_prepare_read(mWlDisplay) != 0)
 			{
-				auto val = wl_display_dispatch_pending(mDisplay);
+				auto val = wl_display_dispatch_pending(mWlDisplay);
 
 				if (val < 0)
 				{
@@ -309,17 +309,17 @@ void Display::dispatchThread()
 
 			if (pollDisplayFd())
 			{
-				wl_display_read_events(mDisplay);
+				wl_display_read_events(mWlDisplay);
 			}
 			else
 			{
-				wl_display_cancel_read(mDisplay);
+				wl_display_cancel_read(mWlDisplay);
 			}
 		}
 	}
 	catch(const exception& e)
 	{
-		wl_display_cancel_read(mDisplay);
+		wl_display_cancel_read(mWlDisplay);
 
 		LOG(mLog, ERROR) << e.what();
 	}

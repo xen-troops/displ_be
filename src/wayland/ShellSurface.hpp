@@ -53,7 +53,7 @@ public:
 	/**
 	 * Returns associated surface
 	 */
-	std::shared_ptr<Surface> getSurface() const { return mSurfacePtr; }
+	std::shared_ptr<Surface> getSurface() const { return mSurface; }
 
 private:
 
@@ -62,9 +62,9 @@ private:
 
 	ShellSurface(wl_shell* shell, std::shared_ptr<Surface> surface);
 
-	wl_shell_surface* mShellSurface;
-	std::shared_ptr<Surface> mSurfacePtr;
-	wl_shell_surface_listener mListener;
+	wl_shell_surface* mWlShellSurface;
+	std::shared_ptr<Surface> mSurface;
+	wl_shell_surface_listener mWlListener;
 
 	XenBackend::Log mLog;
 

@@ -18,8 +18,8 @@ namespace Wayland {
  ******************************************************************************/
 
 ShellSurface::ShellSurface(wl_shell* shell, shared_ptr<Surface> surface) :
-	mShellSurface(nullptr),
-	mSurfacePtr(surface),
+	mWlShellSurface(nullptr),
+	mSurface(surface),
 	mLog("ShellSurface")
 {
 	try
@@ -47,14 +47,14 @@ void ShellSurface::setTopLevel()
 {
 	LOG(mLog, DEBUG) << "Set top level";
 
-	wl_shell_surface_set_toplevel(mShellSurface);
+	wl_shell_surface_set_toplevel(mWlShellSurface);
 }
 
 void ShellSurface::setFullScreen()
 {
 	LOG(mLog, DEBUG) << "Set full screen";
 
-	wl_shell_surface_set_fullscreen(mShellSurface,
+	wl_shell_surface_set_fullscreen(mWlShellSurface,
 			WL_SHELL_SURFACE_FULLSCREEN_METHOD_DEFAULT, 0, nullptr);
 }
 
@@ -98,7 +98,7 @@ void ShellSurface::pingHandler(uint32_t serial)
 {
 	DLOG(mLog, DEBUG) << "Ping handler: " << serial;
 
-	wl_shell_surface_pong(mShellSurface, serial);
+	wl_shell_surface_pong(mWlShellSurface, serial);
 }
 
 void ShellSurface::configHandler(uint32_t edges, int32_t width, int32_t height)
@@ -114,16 +114,16 @@ void ShellSurface::popupDone()
 
 void ShellSurface::init(wl_shell* shell)
 {
-	mShellSurface = wl_shell_get_shell_surface(shell, mSurfacePtr->mSurface);
+	mWlShellSurface = wl_shell_get_shell_surface(shell, mSurface->mWlSurface);
 
-	if (!mShellSurface)
+	if (!mWlShellSurface)
 	{
 		throw WlException("Can't create shell surface");
 	}
 
-	mListener = {sPingHandler, sConfigHandler, sPopupDone};
+	mWlListener = {sPingHandler, sConfigHandler, sPopupDone};
 
-	if (wl_shell_surface_add_listener(mShellSurface, &mListener, this) < 0)
+	if (wl_shell_surface_add_listener(mWlShellSurface, &mWlListener, this) < 0)
 	{
 		throw WlException("Can't add listener");
 	}
@@ -133,9 +133,9 @@ void ShellSurface::init(wl_shell* shell)
 
 void ShellSurface::release()
 {
-	if (mShellSurface)
+	if (mWlShellSurface)
 	{
-		wl_shell_surface_destroy(mShellSurface);
+		wl_shell_surface_destroy(mWlShellSurface);
 
 		LOG(mLog, DEBUG) << "Delete";
 	}

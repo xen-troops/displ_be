@@ -31,10 +31,10 @@ private:
 
 	Seat(wl_registry* registry, uint32_t id, uint32_t version);
 
-	wl_seat* mSeat;
+	wl_seat* mWlSeat;
 	XenBackend::Log mLog;
 
-	wl_seat_listener mListener;
+	wl_seat_listener mWlListener;
 
 	static void sReadCapabilities(void *data, wl_seat* seat,
 								  uint32_t capabilities);

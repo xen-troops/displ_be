@@ -38,7 +38,7 @@ private:
 
 	Shell(wl_registry* registry, uint32_t id, uint32_t version);
 
-	wl_shell* mShell;
+	wl_shell* mWlShell;
 	XenBackend::Log mLog;
 
 	void init();

@@ -20,8 +20,8 @@ namespace Wayland {
 Compositor::Compositor(wl_display* display, wl_registry* registry,
 					  uint32_t id, uint32_t version) :
 	Registry(registry, id, version),
-	mDisplay(display),
-	mCompositor(nullptr),
+	mWlDisplay(display),
+	mWlCompositor(nullptr),
 	mLog("Compositor")
 {
 	try
@@ -49,7 +49,7 @@ shared_ptr<Surface> Compositor::createSurface()
 {
 	LOG(mLog, DEBUG) << "Create surface";
 
-	return shared_ptr<Surface>(new Surface(mDisplay, mCompositor));
+	return shared_ptr<Surface>(new Surface(mWlDisplay, mWlCompositor));
 }
 
 /*******************************************************************************
@@ -58,11 +58,11 @@ shared_ptr<Surface> Compositor::createSurface()
 
 void Compositor::init()
 {
-	mCompositor = static_cast<wl_compositor*>(
+	mWlCompositor = static_cast<wl_compositor*>(
 			wl_registry_bind(getRegistry(), getId(),
 							 &wl_compositor_interface, getVersion()));
 
-	if (!mCompositor)
+	if (!mWlCompositor)
 	{
 		throw WlException("Can't bind compositor");
 	}
@@ -72,9 +72,9 @@ void Compositor::init()
 
 void Compositor::release()
 {
-	if (mCompositor)
+	if (mWlCompositor)
 	{
-		wl_compositor_destroy(mCompositor);
+		wl_compositor_destroy(mWlCompositor);
 
 		LOG(mLog, DEBUG) << "Delete";
 	}
