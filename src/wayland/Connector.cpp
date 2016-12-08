@@ -31,23 +31,13 @@ namespace Wayland {
  * Connector
  ******************************************************************************/
 
-Connector::Connector(shared_ptr<Surface> surface,
-					 shared_ptr<ShellSurface> shellSurface,
-					 uint32_t id, uint32_t x, uint32_t y,
-					 uint32_t width, uint32_t height) :
+Connector::Connector(uint32_t id, std::shared_ptr<Surface> surface) :
 	ConnectorItf(id),
 	mSurface(surface),
-	mShellSurface(shellSurface),
-	mX(x),
-	mY(y),
-	mWidth(width),
-	mHeight(height),
 	mInitialized(false),
 	mLog("Connector")
 {
-	LOG(mLog, DEBUG) << "Create, id: "  << getId()
-					 << ", x: " << mX << ", y: " << mY
-					 << ", w: " << mWidth << ", h: " << mHeight;
+	LOG(mLog, DEBUG) << "Create, id: "  << getId();
 }
 
 Connector::~Connector()
@@ -64,11 +54,6 @@ void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 {
 	LOG(mLog, DEBUG) << "Init, id: " << getId() << ", x: " << x << ", y: " << y
 					 << ", w: " << width << ", height: " << height;
-
-	if ((width != mWidth) || (height != mHeight))
-	{
-		throw WlException("Unsupported mode");
-	}
 
 	mSurface->draw(dynamic_pointer_cast<SharedBuffer>(frameBuffer));
 

@@ -41,7 +41,7 @@ class Connector : public ConnectorItf
 {
 public:
 
-	~Connector();
+	virtual ~Connector();
 
 	/**
 	 * Checks if the connector is connected
@@ -82,20 +82,31 @@ public:
 private:
 
 	friend class Display;
+	template<class T> friend class ConnectorType;
 
-	Connector(std::shared_ptr<Surface> surface,
-			  std::shared_ptr<ShellSurface> shellSurface,
-			  uint32_t id, uint32_t x, uint32_t y,
-			  uint32_t width, uint32_t height);
+	Connector(uint32_t id, std::shared_ptr<Surface> surface);
 
 	std::shared_ptr<Surface> mSurface;
-	std::shared_ptr<ShellSurface> mShellSurface;
-	uint32_t mX;
-	uint32_t mY;
-	uint32_t mWidth;
-	uint32_t mHeight;
 	std::atomic_bool mInitialized;
 	XenBackend::Log mLog;
+};
+
+/***************************************************************************//**
+ * Type specific connector class.
+ * @ingroup wayland
+ ******************************************************************************/
+template<class T>
+class ConnectorType : public Connector
+{
+private:
+
+	friend class Display;
+
+	ConnectorType(uint32_t id, std::shared_ptr<T> type) :
+		Connector(id, type->getSurface()),
+		mType(type) {}
+
+	std::shared_ptr<T> mType;
 };
 
 }

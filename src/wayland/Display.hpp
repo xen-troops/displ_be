@@ -123,6 +123,8 @@ private:
 	std::atomic_bool mTerminate;
 	XenBackend::Log mLog;
 
+	std::unordered_map<uint32_t, std::shared_ptr<Connector>> mConnectors;
+
 	std::shared_ptr<Compositor> mCompositor;
 	std::shared_ptr<Shell> mShell;
 	std::shared_ptr<SharedMemory> mSharedMemory;
@@ -130,12 +132,12 @@ private:
 
 	std::shared_ptr<ShellSurface> mBackgroundSurface;
 
-	std::unordered_map<uint32_t, std::shared_ptr<Connector>> mConnectors;
-
 	std::thread mThread;
 
-	std::shared_ptr<ShellSurface> createShellSurface(
-			uint32_t x, uint32_t y, std::shared_ptr<Surface> surface);
+	std::shared_ptr<ShellSurface> createShellSurface(uint32_t x, uint32_t y);
+	std::shared_ptr<IviSurface> createIviSurface(uint32_t x, uint32_t y,
+												 uint32_t width,
+												 uint32_t height);
 
 	static void sRegistryHandler(void *data, wl_registry *registry,
 								 uint32_t id, const char *interface,

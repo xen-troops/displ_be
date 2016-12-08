@@ -99,18 +99,23 @@ shared_ptr<ConnectorItf> Display::createConnector(uint32_t id, uint32_t x,
 												  uint32_t y, uint32_t width,
 												  uint32_t height)
 {
-	auto surface = mCompositor->createSurface();
-	shared_ptr<ShellSurface> shellSurface;
+
+	Connector* connector = nullptr;
 
 	if (mShell)
 	{
-		shellSurface = createShellSurface(x, y, surface);
+		connector = new ConnectorType<ShellSurface>(id, createShellSurface(x, y));
+	}
+	else if (mIviApplication)
+	{
+		connector = new ConnectorType<IviSurface>(id, createIviSurface(x, y, width, height));
+	}
+	else
+	{
+		connector = new Connector(id, mCompositor->createSurface());
 	}
 
 	LOG(mLog, DEBUG) << "Create connector, id: " << id;
-
-	auto connector = new Connector(surface, shellSurface, id, x, y,
-								   width, height);
 
 	mConnectors.emplace(id, shared_ptr<Connector>(connector));
 
@@ -170,10 +175,10 @@ shared_ptr<FrameBufferItf> Display::createFrameBuffer(
  * Private
  ******************************************************************************/
 
-shared_ptr<ShellSurface> Display::createShellSurface(
-		uint32_t x, uint32_t y, shared_ptr<Surface> surface)
+shared_ptr<ShellSurface> Display::createShellSurface(uint32_t x, uint32_t y)
 {
-	auto shellSurface = mShell->createShellSurface(surface);
+	auto shellSurface =
+			mShell->createShellSurface(mCompositor->createSurface());
 
 	if (mBackgroundSurface)
 	{
@@ -191,6 +196,14 @@ shared_ptr<ShellSurface> Display::createShellSurface(
 	}
 
 	return shellSurface;
+}
+
+shared_ptr<IviSurface> Display::createIviSurface(uint32_t x, uint32_t y,
+												 uint32_t width,
+												 uint32_t height)
+{
+	return mIviApplication->createIviSurface(mCompositor->createSurface(),
+											 width, height, 0);
 }
 
 void Display::sRegistryHandler(void *data, wl_registry *registry, uint32_t id,
@@ -276,6 +289,8 @@ void Display::init()
 
 void Display::release()
 {
+	mConnectors.clear();
+
 	if (mWlRegistry)
 	{
 		wl_registry_destroy(mWlRegistry);
