@@ -55,15 +55,24 @@ public:
 	~Display();
 
 	/**
-	 * Creates virtual connector
-	 * @param id     connector id
-	 * @param x      horizontal offset
-	 * @param y      vertical offset
+	 * Creates background surface
 	 * @param width  width
 	 * @param height height
 	 */
-	void createConnector(uint32_t id, uint32_t x, uint32_t y,
-						 uint32_t width, uint32_t height);
+	void createBackgroundSurface(uint32_t width, uint32_t height);
+
+	/**
+	 * Creates virtual connector
+	 * @param id         connector id
+	 * @param x          horizontal offset
+	 * @param y          vertical offset
+	 * @param width      width
+	 * @param height     height
+	 * @return created connector
+	 */
+	std::shared_ptr<ConnectorItf> createConnector(uint32_t id, uint32_t x,
+												  uint32_t y, uint32_t width,
+												  uint32_t height);
 
 	/**
 	 * Starts events handling
@@ -117,12 +126,14 @@ private:
 	std::shared_ptr<Shell> mShell;
 	std::shared_ptr<SharedMemory> mSharedMemory;
 
-	std::shared_ptr<ShellSurface> mMainShellSurface;
-	std::shared_ptr<SharedBuffer> mMainSharedBuffer;
+	std::shared_ptr<ShellSurface> mBackgroundSurface;
 
 	std::unordered_map<uint32_t, std::shared_ptr<Connector>> mConnectors;
 
 	std::thread mThread;
+
+	std::shared_ptr<ShellSurface> createShellSurface(
+			uint32_t x, uint32_t y, std::shared_ptr<Surface> surface);
 
 	static void sRegistryHandler(void *data, wl_registry *registry,
 								 uint32_t id, const char *interface,
@@ -133,9 +144,6 @@ private:
 	void registryHandler(wl_registry *registry, uint32_t id,
 						 const std::string& interface, uint32_t version);
 	void registryRemover(wl_registry *registry, uint32_t id);
-
-	void mainShellSurfaceConfigCbk(uint32_t edges, int32_t width,
-								   int32_t height);
 
 	void init();
 	void release();

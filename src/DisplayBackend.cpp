@@ -29,6 +29,8 @@
 #include <execinfo.h>
 #include <getopt.h>
 
+#include <drm_fourcc.h>
+
 #include <xen/be/XenStore.hpp>
 
 #include "drm/Device.hpp"
@@ -63,6 +65,9 @@ using XenBackend::RingBufferInBase;
 using XenBackend::XenStore;
 
 DisplayMode gDisplayMode = DisplayMode::WAYLAND;
+const uint32_t cWlBackgroundWidth = 1920;
+const uint32_t cWlBackgroundHeight = 1080;
+
 unique_ptr <DisplayBackend> gDisplayBackend;
 
 /*******************************************************************************
@@ -187,7 +192,9 @@ uint32_t DisplayFrontendHandler::createWaylandConnector(uint32_t width,
 {
 	auto wlDisplay = dynamic_pointer_cast<Wayland::Display>(mDisplay);
 
-	wlDisplay->createConnector(mCurrentConId, mCurrentConId * width, 0, width, height);
+	wlDisplay->createConnector(mCurrentConId,
+							   mCurrentConId * width, 0,
+							   width, height);
 
 	return mCurrentConId++;
 }
@@ -235,7 +242,12 @@ DisplayBackend::DisplayBackend(int domId, const string& deviceName, int id) :
 	}
 	else
 	{
-		mDisplay.reset(new Wayland::Display());
+		auto wlDisplay = new Wayland::Display();
+
+		wlDisplay->createBackgroundSurface(cWlBackgroundWidth,
+										   cWlBackgroundHeight);
+
+		mDisplay.reset(wlDisplay);
 	}
 
 	mDisplay->start();
@@ -329,7 +341,8 @@ int main(int argc, char *argv[])
 
 		if (commandLineOptions(argc, argv))
 		{
-			gDisplayBackend.reset(new DisplayBackend(0, XENDISPL_DRIVER_NAME, 0));
+			gDisplayBackend.reset(
+					new DisplayBackend(0, XENDISPL_DRIVER_NAME, 0));
 
 			gDisplayBackend->run();
 		}

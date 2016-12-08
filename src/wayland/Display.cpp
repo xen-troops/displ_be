@@ -23,6 +23,8 @@
 
 #include <poll.h>
 
+#include <drm_fourcc.h>
+
 #include "Exception.hpp"
 
 using namespace std::placeholders;
@@ -68,23 +70,51 @@ Display::~Display()
 /*******************************************************************************
  * Public
  ******************************************************************************/
-void Display::createConnector(uint32_t id, uint32_t x, uint32_t y,
-							  uint32_t width, uint32_t height)
+
+void Display::createBackgroundSurface(uint32_t width, uint32_t height)
 {
+	if (mShell)
+	{
+		LOG(mLog, DEBUG) << "Create background surface, w: " << width
+						 << ", h: " << height;
+
+		mBackgroundSurface = mShell->createShellSurface(
+				mCompositor->createSurface());
+
+		mBackgroundSurface->setFullScreen();
+
+		auto sharedFile = mSharedMemory->createSharedFile(width, height, 32);
+		auto sharedBuffer = mSharedMemory->createSharedBuffer(
+							sharedFile, width, height, DRM_FORMAT_XRGB8888);
+
+		mBackgroundSurface->mSurface->draw(sharedBuffer);
+	}
+	else
+	{
+		LOG(mLog, WARNING) << "Can't create background surface";
+	}
+}
+
+shared_ptr<ConnectorItf> Display::createConnector(uint32_t id, uint32_t x,
+												  uint32_t y, uint32_t width,
+												  uint32_t height)
+{
+	auto surface = mCompositor->createSurface();
+	shared_ptr<ShellSurface> shellSurface;
+
+	if (mShell)
+	{
+		shellSurface = createShellSurface(x, y, surface);
+	}
+
 	LOG(mLog, DEBUG) << "Create connector, id: " << id;
 
-	auto shellSurface = mShell->createShellSurface(
-			mCompositor->createSurface());
-
-	wl_shell_surface_set_transient(shellSurface->mWlShellSurface,
-								   mMainShellSurface->getSurface()->mWlSurface,
-								   x, y, WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
-
-	// shellSurface->setTopLevel();
-
-	auto connector = new Connector(shellSurface, id, x, y, width, height);
+	auto connector = new Connector(surface, shellSurface, id, x, y,
+								   width, height);
 
 	mConnectors.emplace(id, shared_ptr<Connector>(connector));
+
+	return getConnectorById(id);
 }
 
 void Display::start()
@@ -140,6 +170,29 @@ shared_ptr<FrameBufferItf> Display::createFrameBuffer(
  * Private
  ******************************************************************************/
 
+shared_ptr<ShellSurface> Display::createShellSurface(
+		uint32_t x, uint32_t y, shared_ptr<Surface> surface)
+{
+	auto shellSurface = mShell->createShellSurface(surface);
+
+	if (mBackgroundSurface)
+	{
+		LOG(mLog, DEBUG) << "Create child surface";
+
+		wl_shell_surface_set_transient(shellSurface->mWlShellSurface,
+				mBackgroundSurface->mSurface->mWlSurface,
+				x, y, WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
+	}
+	else
+	{
+		LOG(mLog, DEBUG) << "Create toplevel surface";
+
+		shellSurface->setTopLevel();
+	}
+
+	return shellSurface;
+}
+
 void Display::sRegistryHandler(void *data, wl_registry *registry, uint32_t id,
 							   const char *interface, uint32_t version)
 {
@@ -180,21 +233,6 @@ void Display::registryRemover(wl_registry *registry, uint32_t id)
 	LOG(mLog, DEBUG) << "Registry removed event, id: " << id;
 }
 
-void Display::mainShellSurfaceConfigCbk(uint32_t edges, int32_t width,
-										int32_t height)
-{
-	LOG(mLog, DEBUG) << "Main shell surface config, w: " << width
-					 << ", h: " << height;
-
-	auto file = mSharedMemory->createSharedFile(width, height, 32);
-
-	mMainSharedBuffer =
-			mSharedMemory->createSharedBuffer(file, width, height,
-											  WL_SHM_FORMAT_XRGB8888);
-
-	mMainShellSurface->getSurface()->draw(mMainSharedBuffer);
-}
-
 void Display::init()
 {
 	mWlDisplay = wl_display_connect(nullptr);
@@ -225,24 +263,10 @@ void Display::init()
 		throw WlException("Can't get compositor");
 	}
 
-	if (!mShell)
-	{
-		throw WlException("Can't get shell");
-	}
-
 	if (!mSharedMemory)
 	{
 		throw WlException("Can't get shared memory");
 	}
-
-
-	mMainShellSurface = mShell->createShellSurface(
-			mCompositor->createSurface());
-
-	mMainShellSurface->setConfigCallback(
-			bind(&Display::mainShellSurfaceConfigCbk, this, _1, _2, _3));
-
-	mMainShellSurface->setFullScreen();
 }
 
 void Display::release()

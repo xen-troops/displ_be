@@ -42,6 +42,7 @@ public:
 private:
 
 	friend class Display;
+	friend class IviSurface;
 	friend class ShellSurface;
 	friend class Compositor;
 

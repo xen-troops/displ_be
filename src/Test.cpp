@@ -39,6 +39,9 @@ using std::fixed;
 using std::string;
 using std::thread;
 
+#define BACK_WIDTH 1920
+#define BACK_HEIGHT 1080
+
 #define WIDTH (1920/2)
 #define HEIGHT 1080
 #define BPP 32
@@ -130,6 +133,8 @@ int main(int argc, char *argv[])
 
 			display.start();
 
+			display.createBackgroundSurface(BACK_WIDTH, BACK_HEIGHT);
+
 			display.createConnector(37, 0, 0, WIDTH, HEIGHT);
 
 			auto connector = display.getConnectorById(37);
@@ -184,7 +189,6 @@ int main(int argc, char *argv[])
 			}
 
 			flipThread.join();
-
 		}
 		catch(const DisplayItfException& e)
 		{

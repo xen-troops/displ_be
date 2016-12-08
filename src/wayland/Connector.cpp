@@ -31,10 +31,12 @@ namespace Wayland {
  * Connector
  ******************************************************************************/
 
-Connector::Connector(shared_ptr<ShellSurface> shellSurface,
+Connector::Connector(shared_ptr<Surface> surface,
+					 shared_ptr<ShellSurface> shellSurface,
 					 uint32_t id, uint32_t x, uint32_t y,
 					 uint32_t width, uint32_t height) :
 	ConnectorItf(id),
+	mSurface(surface),
 	mShellSurface(shellSurface),
 	mX(x),
 	mY(y),
@@ -68,8 +70,7 @@ void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 		throw WlException("Unsupported mode");
 	}
 
-	mShellSurface->getSurface()->draw(
-			dynamic_pointer_cast<SharedBuffer>(frameBuffer));
+	mSurface->draw(dynamic_pointer_cast<SharedBuffer>(frameBuffer));
 
 	mInitialized = true;
 }
@@ -86,8 +87,7 @@ void Connector::pageFlip(shared_ptr<FrameBufferItf> frameBuffer,
 {
 	DLOG(mLog, DEBUG) << "Page flip, id: " << getId();
 
-	mShellSurface->getSurface()->draw(
-			dynamic_pointer_cast<SharedBuffer>(frameBuffer), cbk);
+	mSurface->draw(dynamic_pointer_cast<SharedBuffer>(frameBuffer), cbk);
 }
 
 }
