@@ -16,6 +16,8 @@ set(WL_SOURCES
 	src/wayland/Compositor.cpp
 	src/wayland/Connector.cpp
 	src/wayland/Display.cpp
+	src/wayland/IviApplication.cpp
+	src/wayland/IviSurface.cpp
 	src/wayland/SharedBuffer.cpp
 	src/wayland/Seat.cpp
 	src/wayland/SharedFile.cpp
@@ -63,6 +65,7 @@ target_link_libraries(${PROJECT_NAME}
 	xengnttab
 	drm
 	wayland-client
+	ilmClient
 	pthread
 )
 
@@ -78,6 +81,7 @@ target_link_libraries(displ_test
 	xengnttab
 	drm
 	wayland-client
+	ilmClient
 	pthread
 )
 

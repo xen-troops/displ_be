@@ -226,6 +226,11 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	{
 		mSharedMemory.reset(new SharedMemory(registry, id, version));
 	}
+
+	if (interface == "ivi_application")
+	{
+		mIviApplication.reset(new IviApplication(mWlDisplay));
+	}
 }
 
 void Display::registryRemover(wl_registry *registry, uint32_t id)

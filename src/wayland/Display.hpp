@@ -31,6 +31,7 @@
 
 #include "Compositor.hpp"
 #include "Connector.hpp"
+#include "IviApplication.hpp"
 #include "SharedMemory.hpp"
 #include "Shell.hpp"
 
@@ -125,6 +126,7 @@ private:
 	std::shared_ptr<Compositor> mCompositor;
 	std::shared_ptr<Shell> mShell;
 	std::shared_ptr<SharedMemory> mSharedMemory;
+	std::shared_ptr<IviApplication> mIviApplication;
 
 	std::shared_ptr<ShellSurface> mBackgroundSurface;
 
