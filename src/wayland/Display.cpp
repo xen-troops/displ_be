@@ -289,7 +289,21 @@ void Display::init()
 
 void Display::release()
 {
+	// clear connectors first as it keeps Surfaces which should be deleted
+	// prior IviApplication
+
 	mConnectors.clear();
+
+	mIviApplication.reset();
+	mShell.reset();
+
+	mSharedMemory.reset();
+
+	mCompositor.reset();
+
+	std::shared_ptr<Shell> mShell;
+	std::shared_ptr<SharedMemory> mSharedMemory;
+	std::shared_ptr<IviApplication> mIviApplication;
 
 	if (mWlRegistry)
 	{
