@@ -46,7 +46,8 @@ public:
 	 * @param height      frame buffer height
 	 * @param pixelFormat frame buffer pixel format
 	 */
-	FrameBuffer(std::shared_ptr<Dumb> dumb, uint32_t width, uint32_t height,
+	FrameBuffer(int fd, std::shared_ptr<DisplayBufferItf> displayBuffer,
+				uint32_t width, uint32_t height,
 				uint32_t pixelFormat);
 
 	~FrameBuffer();
@@ -61,12 +62,12 @@ public:
 	 */
 	std::shared_ptr<DisplayBufferItf> getDisplayBuffer() override
 	{
-		return std::dynamic_pointer_cast<DisplayBufferItf>(mDumb);
+		return mDisplayBuffer;
 	}
 
 private:
-
-	std::shared_ptr<Dumb> mDumb;
+	int mFd;
+	std::shared_ptr<DisplayBufferItf> mDisplayBuffer;
 	uint32_t mId;
 };
 

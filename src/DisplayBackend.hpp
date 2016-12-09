@@ -27,6 +27,7 @@
 #include <xen/be/Log.hpp>
 
 #include "CommandHandler.hpp"
+#include "drmmap/DrmMap.hpp"
 
 /***************************************************************************//**
  * @defgroup displ_be Display backend
@@ -84,12 +85,14 @@ public:
 	 * @param backend   backend instance
 	 * @param id        frontend instance id
 	 */
-	DisplayFrontendHandler(std::shared_ptr<DisplayItf> display, int domId,
+	DisplayFrontendHandler(std::shared_ptr<DisplayItf> display,
+						   std::shared_ptr<DrmMap> drmMap,
+						   int domId,
 						   XenBackend::BackendBase& backend, int id) :
 		FrontendHandlerBase(domId, backend, id),
 		mCurrentConId(0),
 		mDisplay(display),
-		mBuffersStorage(new BuffersStorage(domId, display)),
+		mBuffersStorage(new BuffersStorage(domId, display, drmMap)),
 		mLog("DisplayFrontend") {}
 
 protected:
@@ -139,6 +142,7 @@ protected:
 private:
 
 	std::shared_ptr<DisplayItf> mDisplay;
+	std::shared_ptr<DrmMap> mDrmMap;
 };
 
 #endif /* DISPLAYBACKEND_HPP_ */

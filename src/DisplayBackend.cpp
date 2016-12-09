@@ -35,6 +35,7 @@
 
 #include "drm/Device.hpp"
 #include "wayland/Display.hpp"
+#include "drmmap/Exception.hpp"
 
 /***************************************************************************//**
  * @mainpage displ_be
@@ -64,7 +65,7 @@ using XenBackend::RingBufferBase;
 using XenBackend::RingBufferInBase;
 using XenBackend::XenStore;
 
-DisplayMode gDisplayMode = DisplayMode::WAYLAND;
+DisplayMode gDisplayMode = DisplayMode::DRM; //WAYLAND;
 const uint32_t cWlBackgroundWidth = 1920;
 const uint32_t cWlBackgroundHeight = 1080;
 
@@ -239,6 +240,16 @@ DisplayBackend::DisplayBackend(int domId, const string& deviceName, int id) :
 		}
 
 		mDisplay.reset(drmDevice);
+
+		try
+		{
+			mDrmMap.reset(new DrmMap(drmDevice->getFd()));
+		}
+		catch(const DrmMapException& e)
+		{
+			LOG("Main", WARNING) << "DrmMap driver not found:"
+								 << "zero copy will not be used";
+		}
 	}
 	else
 	{
@@ -257,7 +268,7 @@ void DisplayBackend::onNewFrontend(int domId, int id)
 {
 
 	addFrontendHandler(shared_ptr<FrontendHandlerBase>(
-			new DisplayFrontendHandler(mDisplay, domId, *this, id)));
+			new DisplayFrontendHandler(mDisplay, mDrmMap, domId, *this, id)));
 }
 
 /*******************************************************************************

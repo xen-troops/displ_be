@@ -96,8 +96,7 @@ shared_ptr<FrameBufferItf> Device::createFrameBuffer(
 	LOG(mLog, DEBUG) << "Create frame buffer";
 
 	return shared_ptr<FrameBufferItf>(
-			new FrameBuffer(dynamic_pointer_cast<Dumb>(displayBuffer),
-							width, height, pixelFormat));
+			new FrameBuffer(mFd, displayBuffer, width, height, pixelFormat));
 }
 
 void Device::start()

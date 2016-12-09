@@ -27,6 +27,11 @@ set(WL_SOURCES
 	src/wayland/Surface.cpp
 )
 
+set(DRMMAP_SOURCES
+	src/drmmap/DrmMap.cpp
+	src/drmmap/Dumb.cpp
+)
+
 set(BE_SOURCES
 	src/BuffersStorage.cpp
 	src/CommandHandler.cpp
@@ -42,6 +47,7 @@ include_directories(
 	${XEN_INCLUDE_PATH}
 	${XENBE_INCLUDE_PATH}
 	${IF_INCLUDE_PATH}
+	${DRMMAP_INCLUDE_PATH}
 	/usr/include/libdrm
 )
 
@@ -53,11 +59,14 @@ add_library(be_drm STATIC ${DRM_SOURCES})
 
 add_library(be_wl STATIC ${WL_SOURCES})
 
+add_library(drmmap STATIC ${DRMMAP_SOURCES})
+
 add_executable(${PROJECT_NAME} ${BE_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
 	be_drm
 	be_wl
+	drmmap
 	xenbe
 	xenctrl
 	xenstore
@@ -74,6 +83,7 @@ add_executable(displ_test ${TEST_SOURCES})
 target_link_libraries(displ_test
 	be_drm
 	be_wl
+	drmmap
 	xenbe
 	xenctrl
 	xenstore

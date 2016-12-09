@@ -31,6 +31,7 @@
 
 #include <xen/io/displif.h>
 
+#include "drmmap/DrmMap.hpp"
 #include "DisplayItf.hpp"
 
 using std::memcpy;
@@ -49,7 +50,8 @@ public:
 	 * @param domId   domain id
 	 * @param display display object
 	 */
-	BuffersStorage(int domId, std::shared_ptr<DisplayItf> display);
+	BuffersStorage(int domId, std::shared_ptr<DisplayItf> display,
+				   std::shared_ptr<DrmMap> drmMap);
 
 	/**
 	 * Creates display buffer
@@ -110,6 +112,7 @@ private:
 
 	int mDomId;
 	std::shared_ptr<DisplayItf> mDisplay;
+	std::shared_ptr<DrmMap> mDrmMap;
 	XenBackend::Log mLog;
 
 	std::mutex mMutex;

@@ -167,8 +167,7 @@ shared_ptr<FrameBufferItf> Display::createFrameBuffer(
 		uint32_t width, uint32_t height, uint32_t pixelFormat)
 {
 	return mSharedMemory->createSharedBuffer(
-			dynamic_pointer_cast<SharedFile>(displayBuffer), width,
-			height, pixelFormat);
+			displayBuffer, width, height, pixelFormat);
 }
 
 /*******************************************************************************
