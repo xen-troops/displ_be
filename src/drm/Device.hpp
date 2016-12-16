@@ -127,7 +127,6 @@ private:
 	std::string mName;
 	int mFd;
 	std::atomic_bool mTerminate;
-	std::atomic_int mNumFlipPages;
 	XenBackend::Log mLog;
 
 	std::unique_ptr<ModeResource> mRes;
@@ -148,8 +147,6 @@ private:
 	friend class FrameBuffer;
 
 	bool isStopped() { return mTerminate; }
-	void pageFlipScheduled() { mNumFlipPages++; }
-	void pageFlipDone() { mNumFlipPages--; }
 };
 
 }

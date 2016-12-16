@@ -48,7 +48,6 @@ Device::Device(const string& name) try :
 	mName(name),
 	mFd(-1),
 	mTerminate(true),
-	mNumFlipPages(0),
 	mLog("Drm")
 {
 	LOG(mLog, DEBUG) << "Create Drm card: " << mName;
@@ -231,11 +230,6 @@ void Device::eventThread()
 			{
 				drmHandleEvent(mFd, &ev);
 			}
-		}
-
-		while(mNumFlipPages)
-		{
-			drmHandleEvent(mFd, &ev);
 		}
 	}
 	catch(const exception& e)
