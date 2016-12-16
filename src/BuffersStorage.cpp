@@ -216,8 +216,9 @@ void BuffersStorage::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 		xendispl_page_directory* pageDirectory =
 				static_cast<xendispl_page_directory*>(pageBuffer.get());
 
-		size_t numGrefs = min(requestedNumGrefs, XC_PAGE_SIZE -
-							  offsetof(xendispl_page_directory, gref));
+		size_t numGrefs = min(requestedNumGrefs,(XC_PAGE_SIZE -
+							  offsetof(xendispl_page_directory, gref)) /
+							  sizeof(uint32_t));
 
 		refs.insert(refs.end(), pageDirectory->gref,
 					pageDirectory->gref + numGrefs);
