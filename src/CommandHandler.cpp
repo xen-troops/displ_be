@@ -74,6 +74,7 @@ CommandHandler::CommandHandler(shared_ptr<ConnectorItf> connector,
 	mConnector(connector),
 	mBuffersStorage(buffersStorage),
 	mEventBuffer(eventBuffer),
+	mEventId(0),
 	mLog("CommandHandler")
 {
 	LOG(mLog, DEBUG) << "Create command handler, con ID: "
@@ -218,6 +219,7 @@ void CommandHandler::sendFlipEvent(uint64_t fbCookie)
 
 	event.type = XENDISPL_EVT_PG_FLIP;
 	event.op.pg_flip.fb_cookie = fbCookie;
+	event.id = mEventId++;
 
 	mEventBuffer->sendEvent(event);
 }

@@ -88,6 +88,7 @@ private:
 	std::shared_ptr<ConnectorItf> mConnector;
 	std::shared_ptr<BuffersStorage> mBuffersStorage;
 	std::shared_ptr<ConEventRingBuffer> mEventBuffer;
+	uint16_t mEventId;
 
 	XenBackend::Log mLog;
 
