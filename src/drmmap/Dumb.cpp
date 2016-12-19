@@ -11,6 +11,8 @@
 
 #include <xf86drm.h>
 
+#include <sys/mman.h>
+
 #include <xen-drm-map.h>
 
 #include <xen/be/Log.hpp>
@@ -65,6 +67,8 @@ Dumb::Dumb(int mapFd, int drmFd, int domId,
 		drm_prime_handle prime {0};
 
 		prime.handle = mMappedHandle;
+//		throw DrmMapException("Cannot create mapped dumb buffer");
+
 
 		prime.flags = DRM_CLOEXEC;
 
@@ -94,7 +98,26 @@ Dumb::Dumb(int mapFd, int drmFd, int domId,
 
 		mHandle = prime.handle;
 
-		mBuffer = nullptr;
+		drm_mode_map_dumb mreq {0};
+
+		mreq.handle = mHandle;
+
+		ret = drmIoctl(drmFd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
+
+		if (ret < 0)
+		{
+			throw DrmMapException("Cannot map dumb buffer.");
+		}
+
+		auto map = mmap(0, mSize, PROT_READ | PROT_WRITE, MAP_SHARED,
+						mFd, mreq.offset);
+
+		if (map == MAP_FAILED)
+		{
+			throw DrmMapException("Cannot mmap dumb buffer");
+		}
+
+		mBuffer = map;
 
 		DLOG("Dumb", DEBUG) << "Create dumb, handle: " << mHandle << ", size: "
 						   << mSize << ", stride: " << mStride;
@@ -117,6 +140,19 @@ Dumb::~Dumb()
 
 void Dumb::release()
 {
+	if (mBuffer)
+	{
+		munmap(mBuffer, mSize);
+	}
+
+	if (mHandle != 0)
+	{
+		drm_gem_close closeReq {};
+
+		closeReq.handle = mHandle;
+
+		drmIoctl(mFd, DRM_IOCTL_GEM_CLOSE, &closeReq);
+	}
 	if (mMappedHandle != 0)
 	{
 		drm_gem_close closeReq {};
