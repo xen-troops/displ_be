@@ -212,7 +212,8 @@ void CommandHandler::setConfig(const xendispl_req& req)
 
 void CommandHandler::sendFlipEvent(uint64_t fbCookie)
 {
-	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], fb ID: "
+	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], conn ID: "
+					  << mConnector->getId() << ", fb ID: "
 					  << hex << setfill('0') << setw(16) << fbCookie;
 
 	xendispl_evt event {};
