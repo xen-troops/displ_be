@@ -13,7 +13,7 @@
 
 #include <sys/mman.h>
 
-#include <xen-drm-map.h>
+#include <drm/xen_zcopy_drm.h>
 
 #include <xen/be/Log.hpp>
 
@@ -39,7 +39,7 @@ Dumb::Dumb(int mapFd, int drmFd, int domId,
 		DLOG("Dumb", DEBUG) << "Create dumb, mapFd: " << mapFd << ", drmFd: "
 							<< drmFd;
 
-		xendrmmap_ioctl_create_dumb mapreq {0};
+		drm_xen_zcopy_create_dumb mapreq {0};
 
 		mapreq.otherend_id = domId;
 		mapreq.grefs = const_cast<uint32_t*>(refs.data());
@@ -51,7 +51,7 @@ Dumb::Dumb(int mapFd, int drmFd, int domId,
 
 		DLOG("Dumb", DEBUG) << "DRM_IOCTL_XENDRM_CREATE_DUMB";
 
-		auto ret = drmIoctl(mapFd, DRM_IOCTL_XENDRM_CREATE_DUMB, &mapreq);
+		auto ret = drmIoctl(mapFd, DRM_IOCTL_XEN_ZCOPY_CREATE_DUMB, &mapreq);
 
 		if (ret < 0)
 		{

@@ -8,7 +8,7 @@
 #include "DrmMap.hpp"
 
 #include <xf86drm.h>
-#include <xen-drm-map.h>
+#include <drm/xen_zcopy_drm.h>
 
 #include "Exception.hpp"
 #include "Dumb.hpp"
@@ -63,7 +63,7 @@ shared_ptr<DisplayBufferItf> DrmMap::createDisplayBuffer(
 
 void DrmMap::init()
 {
-	mFd = drmOpen(XENDRMMAP_DRIVER_NAME, NULL);
+	mFd = drmOpen(XENDRM_ZCOPY_DRIVER_NAME, NULL);
 
 	if (mFd < 0)
 	{
