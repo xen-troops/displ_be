@@ -79,6 +79,8 @@ public:
 	void pageFlip(std::shared_ptr<FrameBufferItf> frameBuffer,
 				  FlipCallback cbk) override;
 
+	std::shared_ptr<Surface> getSurface() const { return mSurface; }
+
 private:
 
 	friend class Display;

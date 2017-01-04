@@ -43,6 +43,7 @@ private:
 
 	friend class Display;
 	friend class IviSurface;
+	template <typename T> friend class SeatDevice;
 	friend class ShellSurface;
 	friend class Compositor;
 

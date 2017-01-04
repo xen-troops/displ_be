@@ -12,6 +12,9 @@
 using std::shared_ptr;
 using std::string;
 
+using InputItf::PointerCallbacks;
+using InputItf::KeyboardCallbacks;
+
 namespace Wayland {
 
 /*******************************************************************************
@@ -64,11 +67,15 @@ void Seat::readCapabilities(uint32_t capabilities)
 	if (capabilities & WL_SEAT_CAPABILITY_POINTER)
 	{
 		LOG(mLog, DEBUG) << "Display has a pointer";
+
+		mSeatPointer.reset(new SeatPointer(mWlSeat));
 	}
 
 	if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD)
 	{
 		LOG(mLog, DEBUG) << "Display has a keyboard";
+
+		mSeatKeyboard.reset(new SeatKeyboard(mWlSeat));
 	}
 
 	if (capabilities & WL_SEAT_CAPABILITY_TOUCH)
@@ -84,9 +91,8 @@ void Seat::readName(const std::string& name)
 
 void Seat::init()
 {
-	mWlSeat = static_cast<wl_seat*>(
-			wl_registry_bind(getRegistry(), getId(),
-							 &wl_seat_interface, getVersion()));
+	mWlSeat = static_cast<wl_seat*>(wl_registry_bind(getRegistry(), getId(),
+									&wl_seat_interface, cVersion));
 
 	if (!mWlSeat)
 	{

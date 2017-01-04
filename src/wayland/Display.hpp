@@ -32,6 +32,7 @@
 #include "Compositor.hpp"
 #include "Connector.hpp"
 #include "IviApplication.hpp"
+#include "Seat.hpp"
 #include "SharedMemory.hpp"
 #include "Shell.hpp"
 
@@ -113,8 +114,10 @@ public:
 			std::shared_ptr<DisplayBufferItf> displayBuffer,
 			uint32_t width,uint32_t height, uint32_t pixelFormat) override;
 
+	std::shared_ptr<Seat> getSeat() const { return mSeat; }
 
 private:
+
 	const int cPoolEventTimeoutMs = 100;
 
 	wl_display* mWlDisplay;
@@ -129,6 +132,7 @@ private:
 	std::shared_ptr<Shell> mShell;
 	std::shared_ptr<SharedMemory> mSharedMemory;
 	std::shared_ptr<IviApplication> mIviApplication;
+	std::shared_ptr<Seat> mSeat;
 
 	std::shared_ptr<ShellSurface> mBackgroundSurface;
 

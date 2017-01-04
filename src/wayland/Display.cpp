@@ -104,11 +104,14 @@ shared_ptr<ConnectorItf> Display::createConnector(uint32_t id, uint32_t x,
 
 	if (mShell)
 	{
-		connector = new ConnectorType<ShellSurface>(id, createShellSurface(x, y));
+		connector = new ConnectorType<ShellSurface>(id,
+													createShellSurface(x, y));
 	}
 	else if (mIviApplication)
 	{
-		connector = new ConnectorType<IviSurface>(id, createIviSurface(x, y, width, height));
+		connector = new ConnectorType<IviSurface>(id,
+												  createIviSurface(x, y,
+												  width, height));
 	}
 	else
 	{
@@ -243,6 +246,11 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	if (interface == "ivi_application")
 	{
 		mIviApplication.reset(new IviApplication(mWlDisplay));
+	}
+
+	if (interface == "wl_seat")
+	{
+		mSeat.reset(new Seat(registry, id, version));
 	}
 }
 

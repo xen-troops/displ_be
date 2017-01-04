@@ -8,9 +8,15 @@
 #ifndef SRC_WAYLAND_SEAT_HPP_
 #define SRC_WAYLAND_SEAT_HPP_
 
+#include <memory>
+
 #include <xen/be/Log.hpp>
 
+#include "InputItf.hpp"
+
 #include "Registry.hpp"
+#include "SeatKeyboard.hpp"
+#include "SeatPointer.hpp"
 #include "ShellSurface.hpp"
 
 namespace Wayland {
@@ -25,7 +31,12 @@ public:
 
 	~Seat();
 
+	std::shared_ptr<SeatPointer> getPointer() const { return mSeatPointer; }
+	std::shared_ptr<SeatKeyboard> getKeyboard() const { return mSeatKeyboard; }
+
 private:
+
+	static const int cVersion = 5;
 
 	friend class Display;
 
@@ -35,6 +46,9 @@ private:
 	XenBackend::Log mLog;
 
 	wl_seat_listener mWlListener;
+
+	std::shared_ptr<SeatPointer> mSeatPointer;
+	std::shared_ptr<SeatKeyboard> mSeatKeyboard;
 
 	static void sReadCapabilities(void *data, wl_seat* seat,
 								  uint32_t capabilities);

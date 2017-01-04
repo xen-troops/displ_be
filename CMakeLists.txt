@@ -20,11 +20,18 @@ set(WL_SOURCES
 	src/wayland/IviSurface.cpp
 	src/wayland/SharedBuffer.cpp
 	src/wayland/Seat.cpp
+	src/wayland/SeatKeyboard.cpp
+	src/wayland/SeatPointer.cpp
 	src/wayland/SharedFile.cpp
 	src/wayland/SharedMemory.cpp
 	src/wayland/Shell.cpp
 	src/wayland/ShellSurface.cpp
 	src/wayland/Surface.cpp
+)
+
+set(WL_INPUT_SOURCES
+	src/wayland/input/Pointer.cpp
+	src/wayland/input/Keyboard.cpp
 )
 
 set(BE_SOURCES
@@ -53,11 +60,14 @@ add_library(be_drm STATIC ${DRM_SOURCES})
 
 add_library(be_wl STATIC ${WL_SOURCES})
 
+add_library(be_wl_input STATIC ${WL_INPUT_SOURCES})
+
 add_executable(${PROJECT_NAME} ${BE_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
 	be_drm
 	be_wl
+	be_wl_input
 	xenbe
 	xenctrl
 	xenstore
@@ -74,6 +84,7 @@ add_executable(displ_test ${TEST_SOURCES})
 target_link_libraries(displ_test
 	be_drm
 	be_wl
+	be_wl_input
 	xenbe
 	xenctrl
 	xenstore

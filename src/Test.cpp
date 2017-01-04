@@ -20,6 +20,8 @@
 
 #include "drm/Device.hpp"
 #include "wayland/Display.hpp"
+#include "wayland/input/Pointer.hpp"
+#include "wayland/input/Keyboard.hpp"
 
 #include <atomic>
 #include <condition_variable>
@@ -39,11 +41,11 @@ using std::fixed;
 using std::string;
 using std::thread;
 
-#define BACK_WIDTH 1920
-#define BACK_HEIGHT 1080
+#define BACK_WIDTH 640
+#define BACK_HEIGHT 480
 
-#define WIDTH (1920/2)
-#define HEIGHT 1080
+#define WIDTH (BACK_WIDTH/2)
+#define HEIGHT BACK_HEIGHT
 #define BPP 32
 #define BUFFER_SIZE (WIDTH*HEIGHT*BPP/4)
 
@@ -120,6 +122,26 @@ void flipHandler(shared_ptr<ConnectorItf> connector,
 	LOG("Test", DEBUG) << "Finished";
 }
 
+void pointerMove1(int32_t x, int32_t y)
+{
+	LOG("Move1", DEBUG) << "X: " << x << ", Y: " << y;
+}
+
+void pointerMove2(int32_t x, int32_t y)
+{
+	LOG("Move2", DEBUG) << "X: " << x << ", Y: " << y;
+}
+
+void keyboardEvent1(uint32_t key, uint32_t state)
+{
+	LOG("Key1", DEBUG) << "key: " << key << ", state: " << state;
+}
+
+void keyboardEvent2(uint32_t key, uint32_t state)
+{
+	LOG("Key2", DEBUG) << "key: " << key << ", state: " << state;
+}
+
 int main(int argc, char *argv[])
 {
 	try
@@ -135,9 +157,10 @@ int main(int argc, char *argv[])
 
 			display.createBackgroundSurface(BACK_WIDTH, BACK_HEIGHT);
 
-			display.createConnector(37, 0, 0, WIDTH, HEIGHT);
+			auto connector1 = display.createConnector(37, 0, 0, WIDTH, HEIGHT);
 
-			auto connector = display.getConnectorById(37);
+			auto connector2 = display.createConnector(38, WIDTH, 0, WIDTH, HEIGHT);
+
 
 			auto displayBuffer1 = display.createDisplayBuffer(WIDTH, HEIGHT, 32);
 
@@ -150,8 +173,11 @@ int main(int argc, char *argv[])
 			auto frameBuffer2 = display.createFrameBuffer(displayBuffer2,
 														  WIDTH, HEIGHT,
 														  DRM_FORMAT_XRGB8888);
-
+#if 0
 			Rgb* data1 = reinterpret_cast<Rgb*>(gBuffer1);
+#endif
+
+			Rgb* data1 = reinterpret_cast<Rgb*>(displayBuffer1->getBuffer());
 
 			for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
 			{
@@ -161,25 +187,46 @@ int main(int argc, char *argv[])
 				data1[i].b = 0x00;
 			}
 
+#if 0
 			Rgb* data2 = reinterpret_cast<Rgb*>(gBuffer2);
+#endif
+			Rgb* data2 = reinterpret_cast<Rgb*>(displayBuffer2->getBuffer());
 
 			for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
 			{
 				data2[i].x = 0x00;
 				data2[i].r = 0xFF;
 				data2[i].g = 0x00;
-				data2[i].b = 0x00;
+				data2[i].b = 0xFF;
 			}
 
-			connector->init(0, 0, WIDTH, HEIGHT, frameBuffer1);
+			connector1->init(0, 0, WIDTH, HEIGHT, frameBuffer1);
 
+			connector2->init(0, 0, WIDTH, HEIGHT, frameBuffer2);
+
+#if 0
 			gTerminate = false;
 
 			thread flipThread(bind(flipHandler, connector, frameBuffer1, frameBuffer2));
 
+#endif
+
+			Wayland::Pointer pointer1(display, 37);
+			Wayland::Pointer pointer2(display, 38);
+
+			Wayland::Keyboard keyboard1(display, 37);
+			Wayland::Keyboard keyboard2(display, 38);
+
+			pointer1.setCallbacks({pointerMove1});
+			pointer2.setCallbacks({pointerMove2});
+
+			keyboard1.setCallbacks({keyboardEvent1});
+			keyboard2.setCallbacks({keyboardEvent2});
+
 			string str;
 			cin >> str;
 
+#if 0
 			{
 				std::unique_lock<std::mutex> lock(gMutex);
 
@@ -189,6 +236,7 @@ int main(int argc, char *argv[])
 			}
 
 			flipThread.join();
+#endif
 		}
 		catch(const DisplayItfException& e)
 		{
