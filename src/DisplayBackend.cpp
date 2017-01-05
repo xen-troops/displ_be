@@ -344,7 +344,9 @@ int main(int argc, char *argv[])
 			gDisplayBackend.reset(
 					new DisplayBackend(0, XENDISPL_DRIVER_NAME, 0));
 
-			gDisplayBackend->run();
+			gDisplayBackend->start();
+
+			gDisplayBackend->waitForFinish();
 		}
 		else
 		{
