@@ -17,6 +17,7 @@
 #include "Registry.hpp"
 #include "SeatKeyboard.hpp"
 #include "SeatPointer.hpp"
+#include "SeatTouch.hpp"
 #include "ShellSurface.hpp"
 
 namespace Wayland {
@@ -31,8 +32,9 @@ public:
 
 	~Seat();
 
-	std::shared_ptr<SeatPointer> getPointer() const { return mSeatPointer; }
 	std::shared_ptr<SeatKeyboard> getKeyboard() const { return mSeatKeyboard; }
+	std::shared_ptr<SeatPointer> getPointer() const { return mSeatPointer; }
+	std::shared_ptr<SeatTouch> getTouch() const { return mSeatTouch; }
 
 private:
 
@@ -47,8 +49,9 @@ private:
 
 	wl_seat_listener mWlListener;
 
-	std::shared_ptr<SeatPointer> mSeatPointer;
 	std::shared_ptr<SeatKeyboard> mSeatKeyboard;
+	std::shared_ptr<SeatPointer> mSeatPointer;
+	std::shared_ptr<SeatTouch> mSeatTouch;
 
 	static void sReadCapabilities(void *data, wl_seat* seat,
 								  uint32_t capabilities);

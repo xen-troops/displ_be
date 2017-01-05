@@ -22,6 +22,7 @@ set(WL_SOURCES
 	src/wayland/Seat.cpp
 	src/wayland/SeatKeyboard.cpp
 	src/wayland/SeatPointer.cpp
+	src/wayland/SeatTouch.cpp
 	src/wayland/SharedFile.cpp
 	src/wayland/SharedMemory.cpp
 	src/wayland/Shell.cpp
@@ -30,8 +31,9 @@ set(WL_SOURCES
 )
 
 set(WL_INPUT_SOURCES
-	src/wayland/input/Pointer.cpp
 	src/wayland/input/Keyboard.cpp
+	src/wayland/input/Pointer.cpp
+	src/wayland/input/Touch.cpp
 )
 
 set(BE_SOURCES

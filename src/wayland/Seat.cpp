@@ -12,8 +12,9 @@
 using std::shared_ptr;
 using std::string;
 
-using InputItf::PointerCallbacks;
 using InputItf::KeyboardCallbacks;
+using InputItf::PointerCallbacks;
+using InputItf::TouchCallbacks;
 
 namespace Wayland {
 
@@ -81,6 +82,8 @@ void Seat::readCapabilities(uint32_t capabilities)
 	if (capabilities & WL_SEAT_CAPABILITY_TOUCH)
 	{
 		LOG(mLog, DEBUG) << "Display has a touch screen";
+
+		mSeatTouch.reset(new SeatTouch(mWlSeat));
 	}
 }
 

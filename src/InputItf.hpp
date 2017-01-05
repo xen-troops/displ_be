@@ -63,6 +63,11 @@ struct PointerCallbacks
 	std::function<void(int32_t x, int32_t y)> move;
 };
 
+struct TouchCallbacks
+{
+	std::function<void(int32_t x, int32_t y)> touch;
+};
+
 template<typename T>
 class InputDevice
 {

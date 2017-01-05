@@ -20,8 +20,9 @@
 
 #include "drm/Device.hpp"
 #include "wayland/Display.hpp"
-#include "wayland/input/Pointer.hpp"
 #include "wayland/input/Keyboard.hpp"
+#include "wayland/input/Pointer.hpp"
+#include "wayland/input/Touch.hpp"
 
 #include <atomic>
 #include <condition_variable>
@@ -217,6 +218,9 @@ int main(int argc, char *argv[])
 			Wayland::Keyboard keyboard1(display, 37);
 			Wayland::Keyboard keyboard2(display, 38);
 
+//			Wayland::Touch touch1(display, 37);
+//			Wayland::Touch touch2(display, 38);
+
 			pointer1.setCallbacks({pointerMove1});
 			pointer2.setCallbacks({pointerMove2});
 
@@ -240,13 +244,13 @@ int main(int argc, char *argv[])
 		}
 		catch(const DisplayItfException& e)
 		{
-			LOG("Test", DEBUG) << e.what();
+			LOG("Test", ERROR) << e.what();
 		}
 
 	}
 	catch(const exception& e)
 	{
-		LOG("Test", DEBUG) << e.what();
+		LOG("Test", ERROR) << e.what();
 	}
 	return 0;
 }
