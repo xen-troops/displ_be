@@ -38,7 +38,9 @@ public:
 
 private:
 
-	static const int cVersion = 5;
+//  Wayland 1.11
+//	static const int cVersion = 5;
+	static const int cVersion = 4;
 
 	friend class Display;
 

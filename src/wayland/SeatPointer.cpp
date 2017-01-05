@@ -160,8 +160,12 @@ void SeatPointer::init(wl_seat* seat)
 		throw WlException("Can't create pointer");
 	}
 
-	mListener = { sOnEnter, sOnLeave, sOnMotion, sOnButton, sOnAxis, sOnFrame,
-				  sOnAxisSource, sOnAxisStop, sOnAxisDiscrete };
+	// Wayland 1.11
+	// mListener = { sOnEnter, sOnLeave, sOnMotion, sOnButton, sOnAxis, sOnFrame,
+	//			  sOnAxisSource, sOnAxisStop, sOnAxisDiscrete };
+	//
+
+	mListener = { sOnEnter, sOnLeave, sOnMotion, sOnButton, sOnAxis };
 
 	if (wl_pointer_add_listener(mWlPointer, &mListener, this))
 	{
