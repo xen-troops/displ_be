@@ -82,29 +82,67 @@ void SeatTouch::sOnCancel(void* data, wl_touch* touch)
 void SeatTouch::onDown(uint32_t serial, uint32_t time, wl_surface* surface,
 					   int32_t id, wl_fixed_t x, wl_fixed_t y)
 {
+	lock_guard<mutex> lock(mMutex);
+
 	DLOG(mLog, DEBUG) << "onDown serial: " << serial << ", time: " << time
 					  << ", id: " << id << ", X: " << x << ", Y: " << y;
+
+	mCurrentCallback = mCallbacks.find(surface);
+
+	if (mCurrentCallback != mCallbacks.end() &&
+		mCurrentCallback->second.down)
+	{
+		mCurrentCallback->second.down(id, x, y);
+	}
 }
 
 void SeatTouch::onUp(uint32_t serial, uint32_t time, int32_t id)
 {
+	lock_guard<mutex> lock(mMutex);
+
 	DLOG(mLog, DEBUG) << "onUp serial: " << serial << ", time: " << time
 					  << ", id: " << id;
+
+	if (mCurrentCallback != mCallbacks.end() &&
+		mCurrentCallback->second.up)
+	{
+		mCurrentCallback->second.up(id);
+	}
+
+	mCurrentCallback == mCallbacks.end();
 }
 
 void SeatTouch::onMotion(uint32_t time, int32_t id, wl_fixed_t x, wl_fixed_t y)
 {
+	lock_guard<mutex> lock(mMutex);
+
 	DLOG(mLog, DEBUG) << "onMotion time: " << time << ", id: " << id
 					  << ", X: " << x << ", Y: " << y;
+
+	if (mCurrentCallback != mCallbacks.end() &&
+		mCurrentCallback->second.motion)
+	{
+		mCurrentCallback->second.motion(id, x, y);
+	}
 }
 
 void SeatTouch::onFrame()
 {
+	lock_guard<mutex> lock(mMutex);
+
 	DLOG(mLog, DEBUG) << "onFrame";
+
+	if (mCurrentCallback != mCallbacks.end() &&
+		mCurrentCallback->second.frame)
+	{
+		mCurrentCallback->second.frame();
+	}
 }
 
 void SeatTouch::onCancel()
 {
+	lock_guard<mutex> lock(mMutex);
+
 	DLOG(mLog, DEBUG) << "onCancel";
 }
 

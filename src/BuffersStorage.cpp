@@ -38,7 +38,7 @@ using XenBackend::XenGnttabBuffer;
  * BuffersStorage
  ******************************************************************************/
 
-BuffersStorage::BuffersStorage(int domId, std::shared_ptr<DisplayItf> display) :
+BuffersStorage::BuffersStorage(domid_t domId, std::shared_ptr<DisplayItf> display) :
 	mDomId(domId),
 	mDisplay(display),
 	mLog("BuffersStorage")

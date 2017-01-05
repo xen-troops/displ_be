@@ -18,8 +18,8 @@
  * Copyright (C) 2016 EPAM Systems Inc.
  */
 
-#ifndef SRC_COMMANDHANDLER_HPP_
-#define SRC_COMMANDHANDLER_HPP_
+#ifndef SRC_DISPLAYCOMMANDHANDLER_HPP_
+#define SRC_DISPLAYCOMMANDHANDLER_HPP_
 
 #include <cstdint>
 #include <memory>
@@ -48,8 +48,8 @@ public:
 	 * @param offset    start of the ring buffer inside the page
 	 * @param size      size of the ring buffer
 	 */
-	ConEventRingBuffer(int id, int domId, int port,
-					   int ref, int offset, size_t size);
+	ConEventRingBuffer(int id, domid_t domId, evtchn_port_t port,
+					   grant_ref_t ref, int offset, size_t size);
 
 private:
 	int mId;
@@ -60,7 +60,7 @@ private:
  * Handles commands received from the frontend.
  * @ingroup displ_be
  */
-class CommandHandler
+class DisplayCommandHandler
 {
 public:
 	/**
@@ -68,10 +68,10 @@ public:
 	 * @param buffersStorage buffers storage
 	 * @param eventBuffer    event ring buffer
 	 */
-	CommandHandler(std::shared_ptr<ConnectorItf> connector,
+	DisplayCommandHandler(std::shared_ptr<ConnectorItf> connector,
 				   std::shared_ptr<BuffersStorage> buffersStorage,
 				   std::shared_ptr<ConEventRingBuffer> eventBuffer);
-	~CommandHandler();
+	~DisplayCommandHandler();
 
 	/**
 	 * Processes commands received from the frontend.
@@ -81,7 +81,7 @@ public:
 	uint8_t processCommand(const xendispl_req& req);
 
 private:
-	typedef void(CommandHandler::*CommandFn)(const xendispl_req& req);
+	typedef void(DisplayCommandHandler::*CommandFn)(const xendispl_req& req);
 
 	static std::unordered_map<int, CommandFn> sCmdTable;
 
@@ -102,4 +102,4 @@ private:
 	void sendFlipEvent(uint64_t fbCookie);
 };
 
-#endif /* SRC_COMMANDHANDLER_HPP_ */
+#endif /* SRC_DISPLAYCOMMANDHANDLER_HPP_ */

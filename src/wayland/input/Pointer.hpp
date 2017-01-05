@@ -26,7 +26,6 @@ private:
 
 	std::shared_ptr<Surface> mSurface;
 	std::shared_ptr<SeatPointer> mSeatPointer;
-
 };
 
 }

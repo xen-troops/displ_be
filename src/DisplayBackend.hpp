@@ -26,7 +26,7 @@
 #include <xen/be/RingBufferBase.hpp>
 #include <xen/be/Log.hpp>
 
-#include "CommandHandler.hpp"
+#include "DisplayCommandHandler.hpp"
 
 /***************************************************************************//**
  * @defgroup displ_be Display backend
@@ -61,10 +61,11 @@ public:
 	ConCtrlRingBuffer(std::shared_ptr<ConnectorItf> connector,
 					  std::shared_ptr<BuffersStorage> buffersStorage,
 					  std::shared_ptr<ConEventRingBuffer> eventBuffer,
-					  int domId, int port, int ref);
+					  domid_t domId, evtchn_port_t port, grant_ref_t ref);
 
 private:
-	CommandHandler mCommandHandler;
+
+	DisplayCommandHandler mCommandHandler;
 	XenBackend::Log mLog;
 
 	void processRequest(const xendispl_req& req);
@@ -84,12 +85,14 @@ public:
 	 * @param backend   backend instance
 	 * @param id        frontend instance id
 	 */
-	DisplayFrontendHandler(std::shared_ptr<DisplayItf> display, int domId,
+	DisplayFrontendHandler(DisplayMode mode,
+						   std::shared_ptr<DisplayItf> display, domid_t domId,
 						   XenBackend::BackendBase& backend, int id) :
 		FrontendHandlerBase(domId, backend, id),
 		mCurrentConId(0),
 		mDisplay(display),
 		mBuffersStorage(new BuffersStorage(domId, display)),
+		mDisplayMode(mode),
 		mLog("DisplayFrontend") {}
 
 protected:
@@ -104,6 +107,7 @@ private:
 	uint32_t mCurrentConId;
 	std::shared_ptr<DisplayItf> mDisplay;
 	std::shared_ptr<BuffersStorage> mBuffersStorage;
+	DisplayMode mDisplayMode;
 	XenBackend::Log mLog;
 
 	void createConnector(const std::string& streamPath, int conId);
@@ -125,7 +129,10 @@ public:
 	 * @param deviceName    device name
 	 * @param id            instance id
 	 */
-	DisplayBackend(int domId, const std::string& deviceName, int id);
+	DisplayBackend(DisplayMode mode, domid_t domId,
+				   const std::string& deviceName, int id);
+
+	std::shared_ptr<DisplayItf> getDisplay() const { return mDisplay; }
 
 protected:
 
@@ -134,11 +141,13 @@ protected:
 	 * @param domId domain id
 	 * @param id    instance id
 	 */
-	void onNewFrontend(int domId, int id);
+	void onNewFrontend(domid_t domId, int id);
 
 private:
 
 	std::shared_ptr<DisplayItf> mDisplay;
+
+	DisplayMode mDisplayMode;
 };
 
 #endif /* DISPLAYBACKEND_HPP_ */

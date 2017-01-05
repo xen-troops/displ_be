@@ -60,12 +60,18 @@ struct KeyboardCallbacks
 
 struct PointerCallbacks
 {
-	std::function<void(int32_t x, int32_t y)> move;
+	std::function<void(int32_t x, int32_t y)> moveRelative;
+	std::function<void(int32_t x, int32_t y)> moveAbsolute;
+	std::function<void(uint32_t button, uint32_t state)> button;
+	std::function<void(uint32_t axis, int32_t value)> axis;
 };
 
 struct TouchCallbacks
 {
-	std::function<void(int32_t x, int32_t y)> touch;
+	std::function<void(int32_t id, int32_t x, int32_t y)> down;
+	std::function<void(int32_t id)> up;
+	std::function<void(int32_t id, int32_t x, int32_t y)> motion;
+	std::function<void()> frame;
 };
 
 template<typename T>
@@ -76,6 +82,13 @@ public:
 
 	virtual ~InputDevice() {}
 };
+
+template <typename T>
+using InputDevicePtr = std::shared_ptr<InputDevice<T>>;
+
+typedef InputDevicePtr<KeyboardCallbacks> KeyboardPtr;
+typedef InputDevicePtr<PointerCallbacks> PointerPtr;
+typedef InputDevicePtr<TouchCallbacks> TouchPtr;
 
 }
 

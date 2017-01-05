@@ -20,6 +20,11 @@ class SeatDevice
 {
 public:
 
+	SeatDevice()
+	{
+		mCurrentCallback = mCallbacks.end();
+	}
+
 	void setCallbacks(std::shared_ptr<Surface> surface, const T& callbacks)
 	{
 		std::lock_guard<std::mutex> lock(mMutex);

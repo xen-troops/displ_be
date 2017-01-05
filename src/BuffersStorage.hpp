@@ -49,7 +49,7 @@ public:
 	 * @param domId   domain id
 	 * @param display display object
 	 */
-	BuffersStorage(int domId, std::shared_ptr<DisplayItf> display);
+	BuffersStorage(domid_t domId, std::shared_ptr<DisplayItf> display);
 
 	/**
 	 * Creates display buffer
@@ -108,7 +108,7 @@ public:
 
 private:
 
-	int mDomId;
+	domid_t mDomId;
 	std::shared_ptr<DisplayItf> mDisplay;
 	XenBackend::Log mLog;
 

@@ -18,8 +18,6 @@
  * Copyright (C) 2016 EPAM Systems Inc.
  */
 
-#include "CommandHandler.hpp"
-
 #include <iomanip>
 
 #include <cstddef>
@@ -28,6 +26,7 @@
 
 #include <wayland-client.h>
 #include <drm_fourcc.h>
+#include "DisplayCommandHandler.hpp"
 
 using std::hex;
 using std::out_of_range;
@@ -39,22 +38,24 @@ using std::unordered_map;
 using XenBackend::XenException;
 using XenBackend::XenGnttabBuffer;
 
-unordered_map<int, CommandHandler::CommandFn> CommandHandler::sCmdTable =
+unordered_map<int, DisplayCommandHandler::CommandFn>
+	DisplayCommandHandler::sCmdTable =
 {
-	{XENDISPL_OP_PG_FLIP,		&CommandHandler::pageFlip},
-	{XENDISPL_OP_FB_ATTACH,		&CommandHandler::attachFrameBuffer},
-	{XENDISPL_OP_FB_DETACH,		&CommandHandler::detachFrameBuffer},
-	{XENDISPL_OP_DBUF_CREATE,	&CommandHandler::createDisplayBuffer},
-	{XENDISPL_OP_DBUF_DESTROY,	&CommandHandler::destroyDisplayBuffer},
-	{XENDISPL_OP_SET_CONFIG,	&CommandHandler::setConfig}
+	{XENDISPL_OP_PG_FLIP,		&DisplayCommandHandler::pageFlip},
+	{XENDISPL_OP_FB_ATTACH,		&DisplayCommandHandler::attachFrameBuffer},
+	{XENDISPL_OP_FB_DETACH,		&DisplayCommandHandler::detachFrameBuffer},
+	{XENDISPL_OP_DBUF_CREATE,	&DisplayCommandHandler::createDisplayBuffer},
+	{XENDISPL_OP_DBUF_DESTROY,	&DisplayCommandHandler::destroyDisplayBuffer},
+	{XENDISPL_OP_SET_CONFIG,	&DisplayCommandHandler::setConfig}
 };
 
 /*******************************************************************************
  * ConEventRingBuffer
  ******************************************************************************/
 
-ConEventRingBuffer::ConEventRingBuffer(int id, int domId, int port,
-									   int ref, int offset, size_t size) :
+ConEventRingBuffer::ConEventRingBuffer(int id, domid_t domId,
+									   evtchn_port_t port, grant_ref_t ref,
+									   int offset, size_t size) :
 	RingBufferOutBase<xendispl_event_page, xendispl_evt>(domId, port, ref,
 														 offset, size),
 	mId(id),
@@ -67,7 +68,7 @@ ConEventRingBuffer::ConEventRingBuffer(int id, int domId, int port,
  * CommandHandler
  ******************************************************************************/
 
-CommandHandler::CommandHandler(shared_ptr<ConnectorItf> connector,
+DisplayCommandHandler::DisplayCommandHandler(shared_ptr<ConnectorItf> connector,
 							   shared_ptr<BuffersStorage> buffersStorage,
 							   shared_ptr<ConEventRingBuffer> eventBuffer) :
 	mConnector(connector),
@@ -80,7 +81,7 @@ CommandHandler::CommandHandler(shared_ptr<ConnectorItf> connector,
 					 << mConnector->getId();
 }
 
-CommandHandler::~CommandHandler()
+DisplayCommandHandler::~DisplayCommandHandler()
 {
 	LOG(mLog, DEBUG) << "Delete command handler, con ID: "
 					 << mConnector->getId();
@@ -90,7 +91,7 @@ CommandHandler::~CommandHandler()
  * Public
  ******************************************************************************/
 
-uint8_t CommandHandler::processCommand(const xendispl_req& req)
+uint8_t DisplayCommandHandler::processCommand(const xendispl_req& req)
 {
 	uint8_t status = XENDISPL_RSP_OKAY;
 
@@ -120,7 +121,7 @@ uint8_t CommandHandler::processCommand(const xendispl_req& req)
  * Private
  ******************************************************************************/
 
-void CommandHandler::pageFlip(const xendispl_req& req)
+void DisplayCommandHandler::pageFlip(const xendispl_req& req)
 {
 	xendispl_page_flip_req flipReq = req.op.pg_flip;
 
@@ -136,7 +137,7 @@ void CommandHandler::pageFlip(const xendispl_req& req)
 						 [cookie, this] () { sendFlipEvent(cookie); });
 }
 
-void CommandHandler::createDisplayBuffer(const xendispl_req& req)
+void DisplayCommandHandler::createDisplayBuffer(const xendispl_req& req)
 {
 	const xendispl_dbuf_create_req* dbufReq = &req.op.dbuf_create;
 
@@ -151,7 +152,7 @@ void CommandHandler::createDisplayBuffer(const xendispl_req& req)
 										 dbufReq->bpp);
 }
 
-void CommandHandler::destroyDisplayBuffer(const xendispl_req& req)
+void DisplayCommandHandler::destroyDisplayBuffer(const xendispl_req& req)
 {
 	const xendispl_dbuf_destroy_req* dbufReq = &req.op.dbuf_destroy;
 
@@ -162,7 +163,7 @@ void CommandHandler::destroyDisplayBuffer(const xendispl_req& req)
 	mBuffersStorage->destroyDisplayBuffer(dbufReq->dbuf_cookie);
 }
 
-void CommandHandler::attachFrameBuffer(const xendispl_req& req)
+void DisplayCommandHandler::attachFrameBuffer(const xendispl_req& req)
 {
 	const xendispl_fb_attach_req* fbReq = &req.op.fb_attach;
 
@@ -177,7 +178,7 @@ void CommandHandler::attachFrameBuffer(const xendispl_req& req)
 
 }
 
-void CommandHandler::detachFrameBuffer(const xendispl_req& req)
+void DisplayCommandHandler::detachFrameBuffer(const xendispl_req& req)
 {
 	const xendispl_fb_detach_req* fbReq = &req.op.fb_detach;
 
@@ -188,7 +189,7 @@ void CommandHandler::detachFrameBuffer(const xendispl_req& req)
 	mBuffersStorage->destroyFrameBuffer(fbReq->fb_cookie);
 }
 
-void CommandHandler::setConfig(const xendispl_req& req)
+void DisplayCommandHandler::setConfig(const xendispl_req& req)
 {
 	const xendispl_set_config_req* configReq = &req.op.set_config;
 
@@ -208,7 +209,7 @@ void CommandHandler::setConfig(const xendispl_req& req)
 	}
 }
 
-void CommandHandler::sendFlipEvent(uint64_t fbCookie)
+void DisplayCommandHandler::sendFlipEvent(uint64_t fbCookie)
 {
 	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], conn ID: "
 					  << mConnector->getId() << ", fb ID: "

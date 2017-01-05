@@ -20,14 +20,8 @@
 
 #include "DisplayBackend.hpp"
 
-#include <algorithm>
-#include <iostream>
 #include <memory>
 #include <vector>
-
-#include <csignal>
-#include <execinfo.h>
-#include <getopt.h>
 
 #include <drm_fourcc.h>
 
@@ -44,31 +38,16 @@
  *
  ******************************************************************************/
 
-using std::cout;
 using std::dynamic_pointer_cast;
-using std::endl;
-using std::exception;
 using std::shared_ptr;
-using std::signal;
-using std::stoi;
 using std::string;
-using std::to_string;
-using std::toupper;
-using std::transform;
-using std::unique_ptr;
 using std::vector;
 
 using XenBackend::FrontendHandlerBase;
-using XenBackend::Log;
 using XenBackend::RingBufferBase;
-using XenBackend::RingBufferInBase;
-using XenBackend::XenStore;
 
-DisplayMode gDisplayMode = DisplayMode::WAYLAND;
 const uint32_t cWlBackgroundWidth = 1920;
 const uint32_t cWlBackgroundHeight = 1080;
-
-unique_ptr <DisplayBackend> gDisplayBackend;
 
 /*******************************************************************************
  * ConCtrlRingBuffer
@@ -77,7 +56,8 @@ unique_ptr <DisplayBackend> gDisplayBackend;
 ConCtrlRingBuffer::ConCtrlRingBuffer(shared_ptr<ConnectorItf> connector,
 									 shared_ptr<BuffersStorage> buffersStorage,
 									 shared_ptr<ConEventRingBuffer> eventBuffer,
-									 int domId, int port, int ref) :
+									 domid_t domId,
+									 evtchn_port_t port, grant_ref_t ref) :
 	RingBufferInBase<xen_displif_back_ring, xen_displif_sring,
 					 xendispl_req, xendispl_resp>(domId, port, ref),
 	mCommandHandler(connector, buffersStorage, eventBuffer),
@@ -128,8 +108,8 @@ void DisplayFrontendHandler::onBind()
 
 void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 {
-	auto port = getXenStore().readInt(conPath + "/" +
-									  XENDISPL_FIELD_EVT_CHANNEL);
+	evtchn_port_t port = getXenStore().readInt(conPath + "/" +
+											   XENDISPL_FIELD_EVT_CHANNEL);
 
 	uint32_t ref = getXenStore().readInt(conPath + "/" +
 										 XENDISPL_FIELD_EVT_RING_REF);
@@ -148,7 +128,7 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 	ref = getXenStore().readInt(conPath + "/" +
 								XENDISPL_FIELD_CTRL_RING_REF);
 
-	if (gDisplayMode == DisplayMode::DRM)
+	if (mDisplayMode == DisplayMode::DRM)
 	{
 		conId = getDrmConnectorId();
 	}
@@ -220,11 +200,13 @@ uint32_t DisplayFrontendHandler::getDrmConnectorId()
  * DisplayBackend
  ******************************************************************************/
 
-DisplayBackend::DisplayBackend(int domId, const string& deviceName, int id) :
-	BackendBase(domId, deviceName, id)
+DisplayBackend::DisplayBackend(DisplayMode mode, domid_t domId,
+							   const string& deviceName, int id) :
+	BackendBase(domId, deviceName, id),
+	mDisplayMode(mode)
 {
 
-	if (gDisplayMode == DisplayMode::DRM)
+	if (mDisplayMode == DisplayMode::DRM)
 	{
 		auto drmDevice = new Drm::Device("/dev/dri/card0");
 
@@ -253,118 +235,10 @@ DisplayBackend::DisplayBackend(int domId, const string& deviceName, int id) :
 	mDisplay->start();
 }
 
-void DisplayBackend::onNewFrontend(int domId, int id)
+void DisplayBackend::onNewFrontend(domid_t domId, int id)
 {
 
 	addFrontendHandler(shared_ptr<FrontendHandlerBase>(
-			new DisplayFrontendHandler(mDisplay, domId, *this, id)));
-}
-
-/*******************************************************************************
- *
- ******************************************************************************/
-
-void terminateHandler(int signal)
-{
-	gDisplayBackend->stop();
-}
-
-void segmentationHandler(int sig)
-{
-	void *array[20];
-	size_t size;
-
-	LOG("Main", ERROR) << "Segmentation fault!";
-
-	size = backtrace(array, 20);
-
-	backtrace_symbols_fd(array, size, STDERR_FILENO);
-
-	exit(1);
-}
-
-void registerSignals()
-{
-	signal(SIGINT, terminateHandler);
-	signal(SIGTERM, terminateHandler);
-	signal(SIGSEGV, segmentationHandler);
-}
-
-bool commandLineOptions(int argc, char *argv[])
-{
-
-	int opt = -1;
-
-	while((opt = getopt(argc, argv, "m:v:fh?")) != -1)
-	{
-		switch(opt)
-		{
-		case 'v':
-			if (!Log::setLogLevel(string(optarg)))
-			{
-				return false;
-			}
-
-			break;
-
-		case 'm':
-		{
-			string strMode(optarg);
-
-			transform(strMode.begin(), strMode.end(), strMode.begin(),
-					  (int (*)(int))toupper);
-
-			if (strMode == "DRM")
-			{
-				gDisplayMode = DisplayMode::DRM;
-			}
-
-			break;
-		}
-		case 'f':
-			Log::setShowFileAndLine(true);
-			break;
-
-		default:
-			return false;
-		}
-	}
-
-	return true;
-}
-
-int main(int argc, char *argv[])
-{
-	try
-	{
-		registerSignals();
-
-		if (commandLineOptions(argc, argv))
-		{
-			gDisplayBackend.reset(
-					new DisplayBackend(0, XENDISPL_DRIVER_NAME, 0));
-
-			gDisplayBackend->start();
-
-			gDisplayBackend->waitForFinish();
-		}
-		else
-		{
-			cout << "Usage: " << argv[0] << " [-m <mode>] [-v <level>]" << endl;
-			cout << "\t-v -- verbose level "
-				 << "(disable, error, warning, info, debug)" << endl;
-			cout << "\t-m -- mode "
-				 << "(drm, wayland)" << endl;
-		}
-	}
-	catch(const exception& e)
-	{
-		LOG("Main", ERROR) << e.what();
-	}
-	catch(...)
-	{
-		LOG("Main", ERROR) << "Unknown error";
-	}
-
-	return 0;
+			new DisplayFrontendHandler(mDisplayMode, mDisplay,
+									   domId, *this, id)));
 }

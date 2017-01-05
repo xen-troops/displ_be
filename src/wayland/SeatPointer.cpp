@@ -77,7 +77,7 @@ void SeatPointer::sOnButton(void* data, wl_pointer* pointer, uint32_t serial,
 void SeatPointer::sOnAxis(void* data, wl_pointer* pointer, uint32_t time,
 						  uint32_t axis, wl_fixed_t value)
 {
-
+	static_cast<SeatPointer*>(data)->onAxis(time, axis, value);
 }
 
 void SeatPointer::sOnFrame(void* data, struct wl_pointer* pointer)
@@ -133,9 +133,17 @@ void SeatPointer::onMotion(uint32_t time, wl_fixed_t x, wl_fixed_t y)
 	DLOG(mLog, DEBUG) << "onMotion time: " << time
 					  << ", X: " << x << ", Y: " << y;
 
-	if (mCurrentCallback != mCallbacks.end() && mCurrentCallback->second.move)
+	if (mCurrentCallback != mCallbacks.end())
 	{
-		mCurrentCallback->second.move(x - mLastX, y - mLastY);
+		if (mCurrentCallback->second.moveRelative)
+		{
+			mCurrentCallback->second.moveRelative(x - mLastX, y - mLastY);
+		}
+
+		if (mCurrentCallback->second.moveAbsolute)
+		{
+			mCurrentCallback->second.moveAbsolute(x, y);
+		}
 	}
 
 	mLastX = x;
@@ -149,6 +157,26 @@ void SeatPointer::onButton(uint32_t serial, uint32_t time,
 
 	DLOG(mLog, DEBUG) << "onButton serial: " << serial << ", time: " << time
 					  << ", button: " << button << ", state: " << state;
+
+	if (mCurrentCallback != mCallbacks.end() &&
+		mCurrentCallback->second.button)
+	{
+		mCurrentCallback->second.button(button, state);
+	}
+}
+
+void SeatPointer::onAxis(uint32_t time, uint32_t axis, wl_fixed_t value)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	DLOG(mLog, DEBUG) << "onAxis time: " << time << ", axis: " << axis
+					  << ", value: " << value;
+
+	if (mCurrentCallback != mCallbacks.end() &&
+		mCurrentCallback->second.axis)
+	{
+		mCurrentCallback->second.axis(axis, value);
+	}
 }
 
 void SeatPointer::init(wl_seat* seat)

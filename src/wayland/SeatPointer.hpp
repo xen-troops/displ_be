@@ -61,6 +61,7 @@ private:
 	void onMotion(uint32_t time, wl_fixed_t x, wl_fixed_t y);
 	void onButton(uint32_t serial, uint32_t time,
 				  uint32_t button, uint32_t state);
+	void onAxis(uint32_t time, uint32_t axis, wl_fixed_t value);
 
 	void init(wl_seat* seat);
 	void release();

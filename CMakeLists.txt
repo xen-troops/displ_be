@@ -37,9 +37,12 @@ set(WL_INPUT_SOURCES
 )
 
 set(BE_SOURCES
+	src/Backend.cpp
 	src/BuffersStorage.cpp
-	src/CommandHandler.cpp
 	src/DisplayBackend.cpp
+	src/DisplayCommandHandler.cpp
+	src/InputBackend.cpp
+	src/InputHandlers.cpp
 )
 
 set(TEST_SOURCES
