@@ -24,6 +24,8 @@ public:
 
 private:
 
+	XenBackend::Log mLog;
+
 	std::shared_ptr<Surface> mSurface;
 	std::shared_ptr<SeatKeyboard> mSeatKeyboard;
 };

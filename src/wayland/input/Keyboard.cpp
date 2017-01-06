@@ -17,7 +17,8 @@ namespace Wayland {
  * Pointer
  ******************************************************************************/
 
-Keyboard::Keyboard(Display& display, uint32_t connectorId)
+Keyboard::Keyboard(Display& display, uint32_t connectorId) :
+	mLog("Keyboard")
 {
 	mSeatKeyboard = display.getSeat()->getKeyboard();
 
@@ -28,11 +29,15 @@ Keyboard::Keyboard(Display& display, uint32_t connectorId)
 
 	mSurface = dynamic_pointer_cast<Connector>(
 		display.getConnectorById(connectorId))->getSurface();
+
+	LOG(mLog, DEBUG) << "Create";
 }
 
 Keyboard::~Keyboard()
 {
 	mSeatKeyboard->clearCallbacks(mSurface);
+
+	LOG(mLog, DEBUG) << "Delete";
 }
 
 /*******************************************************************************
@@ -41,6 +46,8 @@ Keyboard::~Keyboard()
 
 void Keyboard::setCallbacks(const KeyboardCallbacks& callbacks)
 {
+	LOG(mLog, DEBUG) << "setCallbacks";
+
 	mSeatKeyboard->setCallbacks(mSurface, callbacks);
 }
 

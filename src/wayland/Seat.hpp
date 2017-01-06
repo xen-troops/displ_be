@@ -9,6 +9,7 @@
 #define SRC_WAYLAND_SEAT_HPP_
 
 #include <memory>
+#include <mutex>
 
 #include <xen/be/Log.hpp>
 
@@ -32,9 +33,9 @@ public:
 
 	~Seat();
 
-	std::shared_ptr<SeatKeyboard> getKeyboard() const { return mSeatKeyboard; }
-	std::shared_ptr<SeatPointer> getPointer() const { return mSeatPointer; }
-	std::shared_ptr<SeatTouch> getTouch() const { return mSeatTouch; }
+	std::shared_ptr<SeatKeyboard> getKeyboard();
+	std::shared_ptr<SeatPointer> getPointer();
+	std::shared_ptr<SeatTouch> getTouch();
 
 private:
 
@@ -54,6 +55,8 @@ private:
 	std::shared_ptr<SeatKeyboard> mSeatKeyboard;
 	std::shared_ptr<SeatPointer> mSeatPointer;
 	std::shared_ptr<SeatTouch> mSeatTouch;
+
+	std::mutex mMutex;
 
 	static void sReadCapabilities(void *data, wl_seat* seat,
 								  uint32_t capabilities);

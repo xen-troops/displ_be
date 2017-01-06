@@ -17,7 +17,8 @@ namespace Wayland {
  * Touch
  ******************************************************************************/
 
-Touch::Touch(Display& display, uint32_t connectorId)
+Touch::Touch(Display& display, uint32_t connectorId) :
+	mLog("Touch")
 {
 	mSeatTouch = display.getSeat()->getTouch();
 
@@ -28,11 +29,15 @@ Touch::Touch(Display& display, uint32_t connectorId)
 
 	mSurface = dynamic_pointer_cast<Connector>(
 		display.getConnectorById(connectorId))->getSurface();
+
+	LOG(mLog, DEBUG) << "Create";
 }
 
 Touch::~Touch()
 {
 	mSeatTouch->clearCallbacks(mSurface);
+
+	LOG(mLog, DEBUG) << "Delete";
 }
 
 /*******************************************************************************
@@ -41,6 +46,8 @@ Touch::~Touch()
 
 void Touch::setCallbacks(const TouchCallbacks& callbacks)
 {
+	LOG(mLog, DEBUG) << "setCallbacks";
+
 	mSeatTouch->setCallbacks(mSurface, callbacks);
 }
 

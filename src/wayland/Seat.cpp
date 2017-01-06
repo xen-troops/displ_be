@@ -9,6 +9,8 @@
 
 #include "Exception.hpp"
 
+using std::lock_guard;
+using std::mutex;
 using std::shared_ptr;
 using std::string;
 
@@ -48,6 +50,27 @@ Seat::~Seat()
  * Public
  ******************************************************************************/
 
+std::shared_ptr<SeatKeyboard> Seat::getKeyboard()
+{
+	lock_guard<mutex> lock(mMutex);
+
+	return mSeatKeyboard;
+}
+
+std::shared_ptr<SeatPointer> Seat::getPointer()
+{
+	lock_guard<mutex> lock(mMutex);
+
+	return mSeatPointer;
+}
+
+std::shared_ptr<SeatTouch> Seat::getTouch()
+{
+	lock_guard<mutex> lock(mMutex);
+
+	return mSeatTouch;
+}
+
 /*******************************************************************************
  * Private
  ******************************************************************************/
@@ -65,25 +88,36 @@ void Seat::sReadName(void *data, wl_seat* seat, const char *name)
 
 void Seat::readCapabilities(uint32_t capabilities)
 {
-	if (capabilities & WL_SEAT_CAPABILITY_POINTER)
-	{
-		LOG(mLog, DEBUG) << "Display has a pointer";
-
-		mSeatPointer.reset(new SeatPointer(mWlSeat));
-	}
+	lock_guard<mutex> lock(mMutex);
 
 	if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD)
 	{
 		LOG(mLog, DEBUG) << "Display has a keyboard";
 
-		mSeatKeyboard.reset(new SeatKeyboard(mWlSeat));
+		if (!mSeatKeyboard)
+		{
+			mSeatKeyboard.reset(new SeatKeyboard(mWlSeat));
+		}
+	}
+
+	if (capabilities & WL_SEAT_CAPABILITY_POINTER)
+	{
+		LOG(mLog, DEBUG) << "Display has a pointer";
+
+		if (!mSeatPointer)
+		{
+			mSeatPointer.reset(new SeatPointer(mWlSeat));
+		}
 	}
 
 	if (capabilities & WL_SEAT_CAPABILITY_TOUCH)
 	{
 		LOG(mLog, DEBUG) << "Display has a touch screen";
 
-		mSeatTouch.reset(new SeatTouch(mWlSeat));
+		if (!mSeatTouch)
+		{
+			mSeatTouch.reset(new SeatTouch(mWlSeat));
+		}
 	}
 }
 

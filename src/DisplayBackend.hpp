@@ -88,7 +88,7 @@ public:
 	DisplayFrontendHandler(DisplayMode mode,
 						   std::shared_ptr<DisplayItf> display, domid_t domId,
 						   XenBackend::BackendBase& backend, int id) :
-		FrontendHandlerBase(domId, backend, id),
+		FrontendHandlerBase("DisplFrontend", backend, true, domId, id),
 		mCurrentConId(0),
 		mDisplay(display),
 		mBuffersStorage(new BuffersStorage(domId, display)),
@@ -129,8 +129,8 @@ public:
 	 * @param deviceName    device name
 	 * @param id            instance id
 	 */
-	DisplayBackend(DisplayMode mode, domid_t domId,
-				   const std::string& deviceName, int id);
+	DisplayBackend(DisplayMode mode, const std::string& deviceName,
+				   domid_t domId, int id);
 
 	std::shared_ptr<DisplayItf> getDisplay() const { return mDisplay; }
 

@@ -52,11 +52,6 @@ void InputFrontendHandler::onBind()
 {
 	LOG(mLog, DEBUG) << "On frontend bind : " << getDomId();
 
-	if (getXenStore().readInt(getXsFrontendPath() + "/request-abs-pointer"))
-	{
-		LOG(mLog, INFO) << "Mouse supported";
-	}
-
 	evtchn_port_t port = getXenStore().readUint(getXsFrontendPath() +
 											   "/event-channel");
 	grant_ref_t ref = getXenStore().readUint(getXsFrontendPath() +
@@ -68,38 +63,73 @@ void InputFrontendHandler::onBind()
 
 	addRingBuffer(eventRingBuffer);
 
-	KeyboardPtr keyboardDevice(new Keyboard(*mDisplay.get(), 0));
+	createKeyboardHandler(eventRingBuffer);
+	createPointerHandler(eventRingBuffer);
 
-	mKeyboardHandler.reset(new KeyboardHandler(keyboardDevice,
-											   eventRingBuffer));
+	createTouchHandlers();
+}
 
-	PointerPtr pointerDevice(new Pointer(*mDisplay.get(), 0));
-
-	mPointerHandler.reset(new PointerHandler(pointerDevice,
-											  eventRingBuffer));
-
-	int mtIndex = 0;
-
-	string path = getXsFrontendPath() + "/mt-0";
-
-	while(getXenStore().checkIfExist(path))
+void InputFrontendHandler::createKeyboardHandler(EventRingBufferPtr ringBuffer)
+{
+	try
 	{
-		evtchn_port_t port = getXenStore().readUint(path + "/event-channel");
-		grant_ref_t ref = getXenStore().readUint(path + "/page-gref");
+		KeyboardPtr keyboardDevice(new Keyboard(*mDisplay.get(), 0));
 
-		EventRingBufferPtr mtRingBuffer(
-				new EventRingBuffer(getDomId(), port, ref,
-									XENKBD_IN_RING_OFFS, XENKBD_IN_RING_SIZE));
+		mKeyboardHandler.reset(new KeyboardHandler(keyboardDevice, ringBuffer));
+	}
+	catch(const InputItf::Exception& e)
+	{
+		LOG(mLog, WARNING) << e.what();
+	}
+}
 
-		addRingBuffer(eventRingBuffer);
+void InputFrontendHandler::createPointerHandler(EventRingBufferPtr ringBuffer)
+{
+	try
+	{
+		PointerPtr pointerDevice(new Pointer(*mDisplay.get(), 0));
 
-		TouchPtr touchDevice(new Touch(*mDisplay.get(), 0));
+		mPointerHandler.reset(new PointerHandler(pointerDevice, ringBuffer));
+	}
+	catch(const InputItf::Exception& e)
+	{
+		LOG(mLog, WARNING) << e.what();
+	}
+}
 
-		mTouchHandlers.emplace_back(new TouchHandler(touchDevice,
-													 mtRingBuffer));
+void InputFrontendHandler::createTouchHandlers()
+{
+	try
+	{
+		int mtIndex = 0;
 
-		mtIndex++;
-		path = getXsFrontendPath() + "/mt-" + to_string(mtIndex);
+		string path = getXsFrontendPath() + "/mt-0";
+
+		while(getXenStore().checkIfExist(path))
+		{
+			evtchn_port_t port = getXenStore().readUint(path +
+														"/event-channel");
+			grant_ref_t ref = getXenStore().readUint(path + "/page-gref");
+
+			EventRingBufferPtr ringBuffer(
+					new EventRingBuffer(getDomId(), port, ref,
+										XENKBD_IN_RING_OFFS,
+										XENKBD_IN_RING_SIZE));
+
+			addRingBuffer(ringBuffer);
+
+			TouchPtr touchDevice(new Touch(*mDisplay.get(), 0));
+
+			mTouchHandlers.emplace_back(new TouchHandler(touchDevice,
+														 ringBuffer));
+
+			mtIndex++;
+			path = getXsFrontendPath() + "/mt-" + to_string(mtIndex);
+		}
+	}
+	catch(const InputItf::Exception& e)
+	{
+		LOG(mLog, WARNING) << e.what();
 	}
 }
 
@@ -111,5 +141,5 @@ void InputBackend::onNewFrontend(domid_t domId, int id)
 {
 
 	addFrontendHandler(FrontendHandlerPtr(
-			new InputFrontendHandler(mDisplay, domId, *this, id)));
+			new InputFrontendHandler(mDisplay, *this, domId, id)));
 }

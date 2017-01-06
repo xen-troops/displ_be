@@ -200,9 +200,9 @@ uint32_t DisplayFrontendHandler::getDrmConnectorId()
  * DisplayBackend
  ******************************************************************************/
 
-DisplayBackend::DisplayBackend(DisplayMode mode, domid_t domId,
-							   const string& deviceName, int id) :
-	BackendBase(domId, deviceName, id),
+DisplayBackend::DisplayBackend(DisplayMode mode, const string& deviceName,
+							   domid_t domId, int id) :
+	BackendBase("DisplBackend", deviceName, domId, id),
 	mDisplayMode(mode)
 {
 

@@ -17,7 +17,8 @@ namespace Wayland {
  * Pointer
  ******************************************************************************/
 
-Pointer::Pointer(Display& display, uint32_t connectorId)
+Pointer::Pointer(Display& display, uint32_t connectorId) :
+	mLog("Pointer")
 {
 	mSeatPointer = display.getSeat()->getPointer();
 
@@ -28,11 +29,15 @@ Pointer::Pointer(Display& display, uint32_t connectorId)
 
 	mSurface = dynamic_pointer_cast<Connector>(
 		display.getConnectorById(connectorId))->getSurface();
+
+	LOG(mLog, DEBUG) << "Create";
 }
 
 Pointer::~Pointer()
 {
 	mSeatPointer->clearCallbacks(mSurface);
+
+	LOG(mLog, DEBUG) << "Delete";
 }
 
 /*******************************************************************************
@@ -41,6 +46,8 @@ Pointer::~Pointer()
 
 void Pointer::setCallbacks(const PointerCallbacks& callbacks)
 {
+	LOG(mLog, DEBUG) << "setCallbacks";
+
 	mSeatPointer->setCallbacks(mSurface, callbacks);
 }
 

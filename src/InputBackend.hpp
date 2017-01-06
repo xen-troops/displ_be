@@ -48,9 +48,10 @@ public:
 	 * @param id        frontend instance id
 	 */
 	InputFrontendHandler(std::shared_ptr<Wayland::Display> display,
-						 domid_t domId, XenBackend::BackendBase& backend,
-						 int id) :
-		FrontendHandlerBase(domId, backend, id),
+						 XenBackend::BackendBase& backend,
+						 domid_t domId, int id) :
+		FrontendHandlerBase("VkbdFrontend", backend, false, domId, id),
+		mDisplay(display),
 		mLog("InputFrontend") {}
 
 protected:
@@ -68,6 +69,10 @@ private:
 	std::unique_ptr<KeyboardHandler> mKeyboardHandler;
 	std::unique_ptr<PointerHandler> mPointerHandler;
 	std::vector<std::unique_ptr<TouchHandler>> mTouchHandlers;
+
+	void createKeyboardHandler(EventRingBufferPtr ringBuffer);
+	void createPointerHandler(EventRingBufferPtr ringBuffer);
+	void createTouchHandlers();
 };
 
 /***************************************************************************//**
@@ -82,9 +87,9 @@ public:
 	 * @param deviceName    device name
 	 * @param id            instance id
 	 */
-	InputBackend(std::shared_ptr<Wayland::Display> display, domid_t domId,
-				 const std::string& deviceName, int id) :
-		BackendBase(domId, deviceName, id),
+	InputBackend(std::shared_ptr<Wayland::Display> display,
+				 const std::string& deviceName, domid_t domId, int id) :
+		BackendBase("VkbdBackend", deviceName, domId, id),
 		mDisplay(display)
 		{}
 

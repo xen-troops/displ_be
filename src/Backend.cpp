@@ -31,12 +31,14 @@
 #include "DisplayBackend.hpp"
 #include "InputBackend.hpp"
 
+using std::chrono::milliseconds;
 using std::atomic_bool;
 using std::cout;
 using std::dynamic_pointer_cast;
 using std::endl;
 using std::exception;
 using std::string;
+using std::this_thread::sleep_for;
 using std::toupper;
 using std::transform;
 
@@ -126,12 +128,12 @@ int main(int argc, char *argv[])
 
 		if (commandLineOptions(argc, argv))
 		{
-			DisplayBackend displayBackend(gDisplayMode, 0,
-										  XENDISPL_DRIVER_NAME, 0);
+			DisplayBackend displayBackend(gDisplayMode, XENDISPL_DRIVER_NAME,
+														0, 0);
 
 			InputBackend inputBackend(
 				dynamic_pointer_cast<Wayland::Display>
-						(displayBackend.getDisplay()), 0, "vkbd", 0);
+						(displayBackend.getDisplay()), "vkbd", 0, 0);
 
 			displayBackend.start();
 			inputBackend.start();

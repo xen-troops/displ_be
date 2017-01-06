@@ -23,7 +23,7 @@ namespace Wayland {
 
 SeatTouch::SeatTouch(wl_seat* seat) :
 	mWlTouch(nullptr),
-	mLog("SeatPointer")
+	mLog("SeatTouch")
 {
 	try
 	{

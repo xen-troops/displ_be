@@ -18,24 +18,30 @@
  * Copyright (C) 2016 EPAM Systems Inc.
  */
 
-#include "drm/Device.hpp"
-#include "wayland/Display.hpp"
-#include "wayland/input/Keyboard.hpp"
-#include "wayland/input/Pointer.hpp"
-#include "wayland/input/Touch.hpp"
-
 #include <atomic>
 #include <condition_variable>
 #include <iomanip>
 #include <iostream>
 
 #include <sys/time.h>
+#include <csignal>
+#include <execinfo.h>
+#include <getopt.h>
+#include <unistd.h>
 
 #include <drm_fourcc.h>
 
+#include "drm/Device.hpp"
+#include "wayland/Display.hpp"
+#include "wayland/input/Keyboard.hpp"
+#include "wayland/input/Pointer.hpp"
+#include "wayland/input/Touch.hpp"
+
 using std::bind;
 using std::cin;
+using std::dynamic_pointer_cast;
 using std::exception;
+using std::make_shared;
 using std::shared_ptr;
 using std::setprecision;
 using std::fixed;
@@ -143,109 +149,124 @@ void keyboardEvent2(uint32_t key, uint32_t state)
 	LOG("Key2", DEBUG) << "key: " << key << ", state: " << state;
 }
 
+void segmentationHandler(int sig)
+{
+	void *array[20];
+	size_t size;
+
+	LOG("Main", ERROR) << "Segmentation fault!";
+
+	size = backtrace(array, 20);
+
+	backtrace_symbols_fd(array, size, STDERR_FILENO);
+
+	exit(1);
+}
+
+void registerSignals()
+{
+//	signal(SIGINT, terminateHandler);
+//	signal(SIGTERM, terminateHandler);
+	signal(SIGSEGV, segmentationHandler);
+}
+
 int main(int argc, char *argv[])
 {
 	try
 	{
 		XenBackend::Log::setLogLevel("DEBUG");
 
-		try
+		registerSignals();
+
+		// Drm::Device display("/dev/dri/card0");
+
+		Wayland::Display display;
+
+		display.start();
+
+		display.createBackgroundSurface(BACK_WIDTH, BACK_HEIGHT);
+
+		auto connector1 = display.createConnector(37, 0, 0, WIDTH, HEIGHT);
+		auto connector2 = display.createConnector(38, WIDTH, 0, WIDTH, HEIGHT);
+
+
+		auto displayBuffer1 = display.createDisplayBuffer(WIDTH, HEIGHT, 32);
+		auto frameBuffer1 = display.createFrameBuffer(displayBuffer1,
+													  WIDTH, HEIGHT,
+													  DRM_FORMAT_XRGB8888);
+
+		auto displayBuffer2 = display.createDisplayBuffer(WIDTH, HEIGHT, 32);
+		auto frameBuffer2 = display.createFrameBuffer(displayBuffer2,
+													  WIDTH, HEIGHT,
+													  DRM_FORMAT_XRGB8888);
+#if 0
+		Rgb* data1 = reinterpret_cast<Rgb*>(gBuffer1);
+#endif
+
+		Rgb* data1 = reinterpret_cast<Rgb*>(displayBuffer1->getBuffer());
+
+		for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
 		{
-//			Drm::Device display("/dev/dri/card0");
-			Wayland::Display display;
-
-			display.start();
-
-			display.createBackgroundSurface(BACK_WIDTH, BACK_HEIGHT);
-
-			auto connector1 = display.createConnector(37, 0, 0, WIDTH, HEIGHT);
-
-			auto connector2 = display.createConnector(38, WIDTH, 0, WIDTH, HEIGHT);
-
-
-			auto displayBuffer1 = display.createDisplayBuffer(WIDTH, HEIGHT, 32);
-
-			auto frameBuffer1 = display.createFrameBuffer(displayBuffer1,
-														  WIDTH, HEIGHT,
-														  DRM_FORMAT_XRGB8888);
-
-			auto displayBuffer2 = display.createDisplayBuffer(WIDTH, HEIGHT, 32);
-
-			auto frameBuffer2 = display.createFrameBuffer(displayBuffer2,
-														  WIDTH, HEIGHT,
-														  DRM_FORMAT_XRGB8888);
-#if 0
-			Rgb* data1 = reinterpret_cast<Rgb*>(gBuffer1);
-#endif
-
-			Rgb* data1 = reinterpret_cast<Rgb*>(displayBuffer1->getBuffer());
-
-			for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
-			{
-				data1[i].x = 0x00;
-				data1[i].r = 0x00;
-				data1[i].g = 0xFF;
-				data1[i].b = 0x00;
-			}
-
-#if 0
-			Rgb* data2 = reinterpret_cast<Rgb*>(gBuffer2);
-#endif
-			Rgb* data2 = reinterpret_cast<Rgb*>(displayBuffer2->getBuffer());
-
-			for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
-			{
-				data2[i].x = 0x00;
-				data2[i].r = 0xFF;
-				data2[i].g = 0x00;
-				data2[i].b = 0xFF;
-			}
-
-			connector1->init(0, 0, WIDTH, HEIGHT, frameBuffer1);
-
-			connector2->init(0, 0, WIDTH, HEIGHT, frameBuffer2);
-
-#if 0
-			gTerminate = false;
-
-			thread flipThread(bind(flipHandler, connector, frameBuffer1, frameBuffer2));
-
-#endif
-
-			Wayland::Pointer pointer1(display, 37);
-			Wayland::Pointer pointer2(display, 38);
-
-			Wayland::Keyboard keyboard1(display, 37);
-			Wayland::Keyboard keyboard2(display, 38);
-
-//			Wayland::Touch touch1(display, 37);
-//			Wayland::Touch touch2(display, 38);
-
-			pointer1.setCallbacks({pointerMove1});
-			pointer2.setCallbacks({pointerMove2});
-
-			keyboard1.setCallbacks({keyboardEvent1});
-			keyboard2.setCallbacks({keyboardEvent2});
-
-			string str;
-			cin >> str;
-
-#if 0
-			{
-				std::unique_lock<std::mutex> lock(gMutex);
-
-				gTerminate = true;
-
-				gCondVar.notify_one();
-			}
-
-			flipThread.join();
-#endif
+			data1[i].x = 0x00;
+			data1[i].r = 0x00;
+			data1[i].g = 0xFF;
+			data1[i].b = 0x00;
 		}
-		catch(const DisplayItfException& e)
+
+#if 0
+		Rgb* data2 = reinterpret_cast<Rgb*>(gBuffer2);
+#endif
+
+		Rgb* data2 = reinterpret_cast<Rgb*>(displayBuffer2->getBuffer());
+
+		for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
 		{
-			LOG("Test", ERROR) << e.what();
+			data2[i].x = 0x00;
+			data2[i].r = 0xFF;
+			data2[i].g = 0x00;
+			data2[i].b = 0xFF;
 		}
+
+		connector1->init(0, 0, WIDTH, HEIGHT, frameBuffer1);
+
+		connector2->init(0, 0, WIDTH, HEIGHT, frameBuffer2);
+
+#if 0
+		gTerminate = false;
+
+		thread flipThread(bind(flipHandler, connector, frameBuffer1, frameBuffer2));
+
+#endif
+
+		Wayland::Keyboard keyboard1(display, 37);
+		Wayland::Keyboard keyboard2(display, 38);
+
+		Wayland::Pointer pointer1(display, 37);
+		Wayland::Pointer pointer2(display, 38);
+
+		Wayland::Touch touch1(display, 37);
+		Wayland::Touch touch2(display, 38);
+
+		pointer1.setCallbacks({pointerMove1});
+		pointer2.setCallbacks({pointerMove2});
+
+		keyboard1.setCallbacks({keyboardEvent1});
+		keyboard2.setCallbacks({keyboardEvent2});
+
+		string str;
+		cin >> str;
+
+#if 0
+		{
+			std::unique_lock<std::mutex> lock(gMutex);
+
+			gTerminate = true;
+
+			gCondVar.notify_one();
+		}
+
+		flipThread.join();
+#endif
 
 	}
 	catch(const exception& e)
