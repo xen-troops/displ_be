@@ -92,7 +92,8 @@ void SeatKeyboard::onEnter(uint32_t serial, wl_surface* surface, wl_array* keys)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	DLOG(mLog, DEBUG) << "onEnter serial: " << serial;
+	DLOG(mLog, DEBUG) << "onEnter surface: " << surface
+					  << ", serial: " << serial;
 
 	mCurrentCallback = mCallbacks.find(surface);
 }
@@ -101,7 +102,8 @@ void SeatKeyboard::onLeave(uint32_t serial, wl_surface* surface)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	DLOG(mLog, DEBUG) << "onLeave serial: " << serial;
+	DLOG(mLog, DEBUG) << "onLeave surface: " << surface
+					  << ", serial: " << serial;
 
 	mCurrentCallback = mCallbacks.end();
 }

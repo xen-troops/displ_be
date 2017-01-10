@@ -108,20 +108,25 @@ void SeatPointer::onEnter(uint32_t serial, wl_surface* surface,
 {
 	lock_guard<mutex> lock(mMutex);
 
-	DLOG(mLog, DEBUG) << "onEnter serial: " << serial
-					  << ", X: " << x << ", Y: " << y;
+	int32_t resX = wl_fixed_to_int(x);
+	int32_t resY = wl_fixed_to_int(y);
+
+	DLOG(mLog, DEBUG) << "onEnter surface: " << surface
+					  << ", serial: " << serial
+					  << ", X: " << resX << ", Y: " << resY;
 
 	mCurrentCallback = mCallbacks.find(surface);
 
-	mLastX = x;
-	mLastY = y;
+	mLastX = resX;
+	mLastY = resY;
 }
 
 void SeatPointer::onLeave(uint32_t serial, wl_surface* surface)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	DLOG(mLog, DEBUG) << "onLeave serial: " << serial;
+	DLOG(mLog, DEBUG) << "onLeave surface: " << surface
+					  << ", serial: " << serial;
 
 	mCurrentCallback = mCallbacks.end();
 }
@@ -130,8 +135,11 @@ void SeatPointer::onMotion(uint32_t time, wl_fixed_t x, wl_fixed_t y)
 {
 	lock_guard<mutex> lock(mMutex);
 
+	int32_t resX = wl_fixed_to_int(x);
+	int32_t resY = wl_fixed_to_int(y);
+
 	DLOG(mLog, DEBUG) << "onMotion time: " << time
-					  << ", X: " << x << ", Y: " << y;
+					  << ", X: " << resX << ", Y: " << resY;
 
 	if (mCurrentCallback != mCallbacks.end())
 	{
@@ -146,8 +154,8 @@ void SeatPointer::onMotion(uint32_t time, wl_fixed_t x, wl_fixed_t y)
 		}
 	}
 
-	mLastX = x;
-	mLastY = y;
+	mLastX = resX;
+	mLastY = resY;
 }
 
 void SeatPointer::onButton(uint32_t serial, uint32_t time,
@@ -169,13 +177,15 @@ void SeatPointer::onAxis(uint32_t time, uint32_t axis, wl_fixed_t value)
 {
 	lock_guard<mutex> lock(mMutex);
 
+	int32_t resValue = wl_fixed_to_int(value);
+
 	DLOG(mLog, DEBUG) << "onAxis time: " << time << ", axis: " << axis
-					  << ", value: " << value;
+					  << ", value: " << resValue;
 
 	if (mCurrentCallback != mCallbacks.end() &&
 		mCurrentCallback->second.axis)
 	{
-		mCurrentCallback->second.axis(axis, value);
+		mCurrentCallback->second.axis(axis, resValue);
 	}
 }
 
