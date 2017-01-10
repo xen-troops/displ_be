@@ -156,6 +156,8 @@ void TouchHandler::onUp(int32_t id)
 	event.mtouch.contact_id = id;
 
 	mRingBuffer->sendEvent(event);
+
+	onFrame();
 }
 
 void TouchHandler::onMotion(int32_t id, int32_t x, int32_t y)
