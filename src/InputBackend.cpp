@@ -99,6 +99,8 @@ void InputFrontendHandler::createPointerHandler(EventRingBufferPtr ringBuffer)
 
 void InputFrontendHandler::createTouchHandlers()
 {
+	static int sConnectorId = 0;
+
 	try
 	{
 		const vector<string> touchPathes = getXenStore().readDirectory(
@@ -121,7 +123,7 @@ void InputFrontendHandler::createTouchHandlers()
 
 			addRingBuffer(ringBuffer);
 
-			TouchPtr touchDevice(new Touch(*mDisplay.get(), 0));
+			TouchPtr touchDevice(new Touch(*mDisplay.get(), sConnectorId++));
 
 			mTouchHandlers.emplace_back(new TouchHandler(touchDevice,
 														 ringBuffer));
