@@ -129,11 +129,12 @@ int main(int argc, char *argv[])
 		if (commandLineOptions(argc, argv))
 		{
 			DisplayBackend displayBackend(gDisplayMode, XENDISPL_DRIVER_NAME,
-														0, 0);
+										  0, 0);
 
 			InputBackend inputBackend(
 				dynamic_pointer_cast<Wayland::Display>
-						(displayBackend.getDisplay()), "vkbd", 0, 0);
+						(displayBackend.getDisplay()), XENKBD_DRIVER_NAME,
+						 0, 0);
 
 			displayBackend.start();
 			inputBackend.start();

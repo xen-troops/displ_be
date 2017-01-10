@@ -52,10 +52,10 @@ void InputFrontendHandler::onBind()
 {
 	LOG(mLog, DEBUG) << "On frontend bind : " << getDomId();
 
-	evtchn_port_t port = getXenStore().readUint(getXsFrontendPath() +
-											   "/event-channel");
-	grant_ref_t ref = getXenStore().readUint(getXsFrontendPath() +
-											 "/page-gref");
+	evtchn_port_t port = getXenStore().readUint(
+			getXsFrontendPath() + "/" XENKBD_FIELD_EVT_CHANNEL);
+	grant_ref_t ref = getXenStore().readUint(
+			getXsFrontendPath() + "/" XENKBD_FIELD_RING_GREF);
 
 	EventRingBufferPtr eventRingBuffer(
 			new EventRingBuffer(getDomId(), port, ref,
@@ -101,15 +101,18 @@ void InputFrontendHandler::createTouchHandlers()
 {
 	try
 	{
-		int mtIndex = 0;
+		const vector<string> touchPathes = getXenStore().readDirectory(
+				getXsFrontendPath() + "/" XENKBD_PATH_MTOUCH);
 
-		string path = getXsFrontendPath() + "/mt-0";
-
-		while(getXenStore().checkIfExist(path))
+		for(auto touchPath : touchPathes)
 		{
-			evtchn_port_t port = getXenStore().readUint(path +
-														"/event-channel");
-			grant_ref_t ref = getXenStore().readUint(path + "/page-gref");
+			string path = getXsFrontendPath() + "/" XENKBD_PATH_MTOUCH "/" +
+						  touchPath;
+
+			evtchn_port_t port = getXenStore().readUint(
+					path + "/" XENKBD_FIELD_EVT_CHANNEL);
+			grant_ref_t ref = getXenStore().readUint(
+					path + "/" XENKBD_FIELD_RING_GREF);
 
 			EventRingBufferPtr ringBuffer(
 					new EventRingBuffer(getDomId(), port, ref,
@@ -122,9 +125,6 @@ void InputFrontendHandler::createTouchHandlers()
 
 			mTouchHandlers.emplace_back(new TouchHandler(touchDevice,
 														 ringBuffer));
-
-			mtIndex++;
-			path = getXsFrontendPath() + "/mt-" + to_string(mtIndex);
 		}
 	}
 	catch(const InputItf::Exception& e)
