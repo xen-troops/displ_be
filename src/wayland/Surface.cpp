@@ -123,7 +123,7 @@ void Surface::init(wl_compositor* compositor)
 
 	mWlFrameListener = { sFrameHandler };
 
-	LOG(mLog, DEBUG) << "Create";
+	LOG(mLog, DEBUG) << "Create: " << mWlSurface;
 }
 
 void Surface::release()
@@ -137,7 +137,7 @@ void Surface::release()
 	{
 		wl_surface_destroy(mWlSurface);
 
-		LOG(mLog, DEBUG) << "Delete";
+		LOG(mLog, DEBUG) << "Delete: " << mWlSurface;
 	}
 }
 
