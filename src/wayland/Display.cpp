@@ -304,14 +304,9 @@ void Display::release()
 
 	mIviApplication.reset();
 	mShell.reset();
-
 	mSharedMemory.reset();
-
 	mCompositor.reset();
-
-	std::shared_ptr<Shell> mShell;
-	std::shared_ptr<SharedMemory> mSharedMemory;
-	std::shared_ptr<IviApplication> mIviApplication;
+	mSeat.reset();
 
 	if (mWlRegistry)
 	{

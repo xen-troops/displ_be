@@ -46,9 +46,6 @@ using std::vector;
 using XenBackend::FrontendHandlerBase;
 using XenBackend::RingBufferBase;
 
-const uint32_t cWlBackgroundWidth = 1920;
-const uint32_t cWlBackgroundHeight = 1080;
-
 /*******************************************************************************
  * ConCtrlRingBuffer
  ******************************************************************************/
@@ -128,21 +125,6 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 	ref = getXenStore().readInt(conPath + "/" +
 								XENDISPL_FIELD_CTRL_RING_REF);
 
-	if (mDisplayMode == DisplayMode::DRM)
-	{
-		conId = getDrmConnectorId();
-	}
-	else
-	{
-		uint32_t width, height;
-		string res = getXenStore().readString(conPath + "/" +
-											  XENDISPL_FIELD_RESOLUTION);
-
-		convertResolution(res, width, height);
-
-		conId = createWaylandConnector(width, height);
-	}
-
 	shared_ptr<RingBufferBase> ctrlRingBuffer(
 			new ConCtrlRingBuffer(mDisplay->getConnectorById(conId),
 								  mBuffersStorage,
@@ -152,86 +134,16 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 	addRingBuffer(ctrlRingBuffer);
 }
 
-void DisplayFrontendHandler::convertResolution(const std::string& res,
-											   uint32_t& width,
-											   uint32_t& height)
-{
-	auto find = res.find_first_of(XENDISPL_RESOLUTION_SEPARATOR);
-
-	if (find == string::npos)
-	{
-		throw DisplayItfException("Wrong format of resolution");
-	}
-
-	width = stoul(res.substr(0, find));
-	height = stoul(res.substr(find + 1, string::npos));
-}
-
-uint32_t DisplayFrontendHandler::createWaylandConnector(uint32_t width,
-														uint32_t height)
-{
-	auto wlDisplay = dynamic_pointer_cast<Wayland::Display>(mDisplay);
-
-	wlDisplay->createConnector(mCurrentConId,
-							   mCurrentConId * width, 0,
-							   width, height);
-
-	return mCurrentConId++;
-}
-
-uint32_t DisplayFrontendHandler::getDrmConnectorId()
-{
-	auto drmDevice = dynamic_pointer_cast<Drm::Device>(mDisplay);
-
-	for (size_t i = 0; i < drmDevice->getConnectorsCount(); i++)
-	{
-		auto connector = drmDevice->getConnectorByIndex(i);
-
-		if (connector->isConnected() && !connector->isInitialized())
-		{
-			return connector->getId();
-		}
-	}
-
-	throw DisplayItfException("No available connectors found");
-}
-
 /*******************************************************************************
  * DisplayBackend
  ******************************************************************************/
 
-DisplayBackend::DisplayBackend(DisplayMode mode, const string& deviceName,
+DisplayBackend::DisplayBackend(shared_ptr<DisplayItf> display,
+							   const string& deviceName,
 							   domid_t domId, int id) :
 	BackendBase("DisplBackend", deviceName, domId, id),
-	mDisplayMode(mode)
+	mDisplay(display)
 {
-
-	if (mDisplayMode == DisplayMode::DRM)
-	{
-		auto drmDevice = new Drm::Device("/dev/dri/card0");
-
-		for (size_t i = 0; i < drmDevice->getConnectorsCount(); i++)
-		{
-			auto connector = drmDevice->getConnectorByIndex(i);
-
-			LOG("Main", DEBUG) << "Connector: "
-							   << connector->getId()
-							   << ", connected: "
-							   << connector->isConnected();
-		}
-
-		mDisplay.reset(drmDevice);
-	}
-	else
-	{
-		auto wlDisplay = new Wayland::Display();
-
-		wlDisplay->createBackgroundSurface(cWlBackgroundWidth,
-										   cWlBackgroundHeight);
-
-		mDisplay.reset(wlDisplay);
-	}
-
 	mDisplay->start();
 }
 
@@ -239,6 +151,5 @@ void DisplayBackend::onNewFrontend(domid_t domId, int id)
 {
 
 	addFrontendHandler(shared_ptr<FrontendHandlerBase>(
-			new DisplayFrontendHandler(mDisplayMode, mDisplay,
-									   domId, *this, id)));
+			new DisplayFrontendHandler(mDisplay, domId, *this, id)));
 }

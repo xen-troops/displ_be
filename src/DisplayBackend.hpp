@@ -85,14 +85,12 @@ public:
 	 * @param backend   backend instance
 	 * @param id        frontend instance id
 	 */
-	DisplayFrontendHandler(DisplayMode mode,
-						   std::shared_ptr<DisplayItf> display, domid_t domId,
+	DisplayFrontendHandler(std::shared_ptr<DisplayItf> display, domid_t domId,
 						   XenBackend::BackendBase& backend, int id) :
 		FrontendHandlerBase("DisplFrontend", backend, true, domId, id),
 		mCurrentConId(0),
 		mDisplay(display),
 		mBuffersStorage(new BuffersStorage(domId, display)),
-		mDisplayMode(mode),
 		mLog("DisplayFrontend") {}
 
 protected:
@@ -107,14 +105,9 @@ private:
 	uint32_t mCurrentConId;
 	std::shared_ptr<DisplayItf> mDisplay;
 	std::shared_ptr<BuffersStorage> mBuffersStorage;
-	DisplayMode mDisplayMode;
 	XenBackend::Log mLog;
 
 	void createConnector(const std::string& streamPath, int conId);
-	uint32_t getDrmConnectorId();
-	uint32_t createWaylandConnector(uint32_t width, uint32_t height);
-	void convertResolution(const std::string& res, uint32_t& width,
-						   uint32_t& height);
 };
 
 /***************************************************************************//**
@@ -129,10 +122,9 @@ public:
 	 * @param deviceName    device name
 	 * @param id            instance id
 	 */
-	DisplayBackend(DisplayMode mode, const std::string& deviceName,
+	DisplayBackend(std::shared_ptr<DisplayItf> display,
+				   const std::string& deviceName,
 				   domid_t domId, int id);
-
-	std::shared_ptr<DisplayItf> getDisplay() const { return mDisplay; }
 
 protected:
 
@@ -146,8 +138,6 @@ protected:
 private:
 
 	std::shared_ptr<DisplayItf> mDisplay;
-
-	DisplayMode mDisplayMode;
 };
 
 #endif /* DISPLAYBACKEND_HPP_ */
