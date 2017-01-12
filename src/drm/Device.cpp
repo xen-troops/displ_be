@@ -160,6 +160,24 @@ size_t Device::getConnectorsCount()
 	return mConnectors.size();
 }
 
+shared_ptr<ConnectorItf> Device::createConnector(uint32_t id, uint32_t drmId)
+{
+	for (int i = 0; i < (*mRes)->count_connectors; i++)
+	{
+		if (drmId == (*mRes)->connectors[i])
+		{
+			shared_ptr<Connector> connector(
+					new Connector(*this, (*mRes)->connectors[i]));
+
+			mConnectors.emplace(id, connector);
+
+			return connector;
+		}
+	}
+
+	throw DrmException("No DRM connector id found: " + to_string(drmId));
+}
+
 /*******************************************************************************
  * Private
  ******************************************************************************/
@@ -184,10 +202,11 @@ void Device::init()
 
 	for (int i = 0; i < (*mRes)->count_connectors; i++)
 	{
-		Connector* connector = new Connector(*this, (*mRes)->connectors[i]);
+		ModeConnector connector(mFd, (*mRes)->connectors[i]);
 
-		mConnectors.emplace((*mRes)->connectors[i],
-							shared_ptr<Connector>(connector));
+		LOG(mLog, DEBUG) << "Available connector: " << connector->connector_id
+						 << ", connected: "
+						 << (connector->connection == DRM_MODE_CONNECTED);
 	}
 }
 

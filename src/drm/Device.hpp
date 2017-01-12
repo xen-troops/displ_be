@@ -82,6 +82,14 @@ public:
 	size_t getConnectorsCount();
 
 	/**
+	 * Creates virtual connector
+	 * @param id       connector id
+	 * @param drmId    DRM connector id
+	 * @return created connector
+	 */
+	std::shared_ptr<ConnectorItf> createConnector(uint32_t id, uint32_t drmId);
+
+	/**
 	 * Starts events handling
 	 */
 	void start() override;

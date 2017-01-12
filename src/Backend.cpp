@@ -130,6 +130,9 @@ shared_ptr<Drm::Device> getDrmDisplay()
 {
 	auto device = new Drm::Device("/dev/dri/card0");
 
+	device->createConnector(0, 37);
+	device->createConnector(1, 42);
+
 	return shared_ptr<Drm::Device>(device);
 }
 
