@@ -302,6 +302,8 @@ void Display::release()
 
 	mConnectors.clear();
 
+	mBackgroundSurface.reset();
+
 	mIviApplication.reset();
 	mShell.reset();
 	mSharedMemory.reset();
