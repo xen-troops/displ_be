@@ -87,7 +87,7 @@ public:
 	 */
 	DisplayFrontendHandler(std::shared_ptr<DisplayItf> display, domid_t domId,
 						   XenBackend::BackendBase& backend, int id) :
-		FrontendHandlerBase("DisplFrontend", backend, true, domId, id),
+		FrontendHandlerBase("DisplFrontend", backend, domId, id),
 		mCurrentConId(0),
 		mDisplay(display),
 		mBuffersStorage(new BuffersStorage(domId, display)),
