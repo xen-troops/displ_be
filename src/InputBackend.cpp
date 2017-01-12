@@ -27,6 +27,7 @@
 #include "wayland/input/Pointer.hpp"
 #include "wayland/input/Touch.hpp"
 
+using std::shared_ptr;
 using std::string;
 using std::to_string;
 using std::vector;
@@ -36,6 +37,7 @@ using XenBackend::FrontendHandlerPtr;
 using XenBackend::Log;
 using XenBackend::RingBufferPtr;
 
+using Wayland::Display;
 using Wayland::Keyboard;
 using Wayland::Pointer;
 using Wayland::Touch;
@@ -47,6 +49,16 @@ using InputItf::TouchPtr;
 /*******************************************************************************
  * InputFrontendHandler
  ******************************************************************************/
+
+InputFrontendHandler::InputFrontendHandler(shared_ptr<Display> display,
+										   BackendBase& backend,
+										   domid_t domId, int id) :
+	FrontendHandlerBase("VkbdFrontend", backend, domId, id),
+	mDisplay(display),
+	mLog("InputFrontend")
+{
+	setBackendState(XenbusStateInitWait);
+}
 
 void InputFrontendHandler::onBind()
 {
@@ -141,7 +153,6 @@ void InputFrontendHandler::createTouchHandlers()
 
 void InputBackend::onNewFrontend(domid_t domId, int id)
 {
-
 	addFrontendHandler(FrontendHandlerPtr(
 			new InputFrontendHandler(mDisplay, *this, domId, id)));
 }

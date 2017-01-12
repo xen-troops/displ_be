@@ -49,10 +49,7 @@ public:
 	 */
 	InputFrontendHandler(std::shared_ptr<Wayland::Display> display,
 						 XenBackend::BackendBase& backend,
-						 domid_t domId, int id) :
-		FrontendHandlerBase("VkbdFrontend", backend, domId, id),
-		mDisplay(display),
-		mLog("InputFrontend") {}
+						 domid_t domId, int id);
 
 protected:
 
