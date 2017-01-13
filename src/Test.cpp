@@ -34,6 +34,7 @@
 #include "drm/Device.hpp"
 #include "input/WlInput.hpp"
 #include "wayland/Display.hpp"
+#include "input/InputManager.hpp"
 
 using std::bind;
 using std::cin;
@@ -168,6 +169,19 @@ void registerSignals()
 	signal(SIGSEGV, segmentationHandler);
 }
 
+void waitSignals()
+{
+	sigset_t set;
+	int signal;
+
+	sigemptyset(&set);
+	sigaddset(&set, SIGINT);
+	sigaddset(&set, SIGTERM);
+	sigprocmask(SIG_BLOCK, &set, nullptr);
+
+	sigwait(&set,&signal);
+}
+
 int main(int argc, char *argv[])
 {
 	try
@@ -177,7 +191,7 @@ int main(int argc, char *argv[])
 		registerSignals();
 
 		// Drm::Device display("/dev/dri/card0");
-
+#if 0
 		Wayland::Display display;
 
 		display.start();
@@ -197,9 +211,7 @@ int main(int argc, char *argv[])
 		auto frameBuffer2 = display.createFrameBuffer(displayBuffer2,
 													  WIDTH, HEIGHT,
 													  DRM_FORMAT_XRGB8888);
-#if 0
 		Rgb* data1 = reinterpret_cast<Rgb*>(gBuffer1);
-#endif
 
 		Rgb* data1 = reinterpret_cast<Rgb*>(displayBuffer1->getBuffer());
 
@@ -211,9 +223,7 @@ int main(int argc, char *argv[])
 			data1[i].b = 0x00;
 		}
 
-#if 0
 		Rgb* data2 = reinterpret_cast<Rgb*>(gBuffer2);
-#endif
 
 		Rgb* data2 = reinterpret_cast<Rgb*>(displayBuffer2->getBuffer());
 
@@ -229,14 +239,11 @@ int main(int argc, char *argv[])
 
 		connector2->init(0, 0, WIDTH, HEIGHT, frameBuffer2);
 
-#if 0
 		gTerminate = false;
 
 		thread flipThread(bind(flipHandler, connector, frameBuffer1, frameBuffer2));
 
-#endif
 
-#if 0
 		Input::WlKeyboard keyboard1(display, 37);
 		Input::WlKeyboard keyboard2(display, 38);
 
@@ -252,8 +259,13 @@ int main(int argc, char *argv[])
 		keyboard1.setCallbacks({keyboardEvent1});
 		keyboard2.setCallbacks({keyboardEvent2});
 #endif
-		string str;
-		cin >> str;
+
+
+		Input::InputManager inputManager;
+
+		inputManager.createInputKeyboard(0, "/dev/input/event7");
+
+		waitSignals();
 
 #if 0
 		{

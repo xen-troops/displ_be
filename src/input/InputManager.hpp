@@ -28,6 +28,10 @@ public:
 	InputItf::PointerPtr createWlPointer(int id, uint32_t connectorId);
 	InputItf::TouchPtr createWlTouch(int id, uint32_t connectorId);
 
+	InputItf::KeyboardPtr createInputKeyboard(int id, const std::string& name);
+	InputItf::PointerPtr createInputPointer(int id, const std::string& name);
+	InputItf::TouchPtr createInputTouch(int id, const std::string& name);
+
 	InputItf::KeyboardPtr getKeyboard(int id) override;
 	InputItf::PointerPtr getPointer(int id) override;
 	InputItf::TouchPtr getTouch(int id) override;

@@ -8,10 +8,12 @@
 #include "InputManager.hpp"
 
 #include "Exception.hpp"
+#include "LibInput.hpp"
 #include "WlInput.hpp"
 
 using std::dynamic_pointer_cast;
 using std::shared_ptr;
+using std::string;
 using std::to_string;
 
 using Wayland::Display;
@@ -41,11 +43,11 @@ InputManager::InputManager() :
 
 InputManager::~InputManager()
 {
-	LOG(mLog, DEBUG) << "Delete";
-
 	mKeyboards.clear();
 	mPointers.clear();
 	mTouches.clear();
+
+	LOG(mLog, DEBUG) << "Delete";
 }
 
 /*******************************************************************************
@@ -94,6 +96,42 @@ TouchPtr InputManager::createWlTouch(int id, uint32_t connectorId)
 
 	TouchPtr touch(
 			new WlTouch(mWlDisplay->getSeat()->getTouch(), surface));
+
+	mTouches.emplace(id, touch);
+
+	return touch;
+}
+
+KeyboardPtr InputManager::createInputKeyboard(int id, const string& name)
+{
+	LOG(mLog, DEBUG) << "Create Input keyboard id: " << id
+					 << ", name: " << name;
+
+	KeyboardPtr keyboard(new InputKeyboard(name));
+
+	mKeyboards.emplace(id, keyboard);
+
+	return keyboard;
+}
+
+PointerPtr InputManager::createInputPointer(int id, const string& name)
+{
+	LOG(mLog, DEBUG) << "Create Input pointer id: " << id
+					 << ", name: " << name;
+
+	PointerPtr pointer(new InputPointer(name));
+
+	mPointers.emplace(id, pointer);
+
+	return pointer;
+}
+
+TouchPtr InputManager::createInputTouch(int id, const string& name)
+{
+	LOG(mLog, DEBUG) << "Create Input touch id: " << id
+					 << ", name: " << name;
+
+	TouchPtr touch(new InputTouch(name));
 
 	mTouches.emplace(id, touch);
 

@@ -31,6 +31,7 @@ set(WL_SOURCES
 )
 
 set(WL_INPUT_SOURCES
+	src/input/LibInput.cpp
 	src/input/InputManager.cpp
 )
 
@@ -68,9 +69,9 @@ add_library(be_wl_input STATIC ${WL_INPUT_SOURCES})
 add_executable(${PROJECT_NAME} ${BE_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
+	be_wl_input
 	be_drm
 	be_wl
-	be_wl_input
 	xenbe
 	xenctrl
 	xenstore
@@ -85,9 +86,9 @@ target_link_libraries(${PROJECT_NAME}
 add_executable(displ_test ${TEST_SOURCES})
 
 target_link_libraries(displ_test
+	be_wl_input
 	be_drm
 	be_wl
-	be_wl_input
 	xenbe
 	xenctrl
 	xenstore
