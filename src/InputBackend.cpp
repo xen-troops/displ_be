@@ -23,9 +23,6 @@
 #include <vector>
 
 #include "InputHandlers.hpp"
-#include "wayland/input/Keyboard.hpp"
-#include "wayland/input/Pointer.hpp"
-#include "wayland/input/Touch.hpp"
 
 using std::shared_ptr;
 using std::string;
@@ -38,23 +35,18 @@ using XenBackend::Log;
 using XenBackend::RingBufferPtr;
 
 using Wayland::Display;
-using Wayland::Keyboard;
-using Wayland::Pointer;
-using Wayland::Touch;
 
-using InputItf::KeyboardPtr;
-using InputItf::PointerPtr;
-using InputItf::TouchPtr;
+using InputItf::InputManager;
 
 /*******************************************************************************
  * InputFrontendHandler
  ******************************************************************************/
 
-InputFrontendHandler::InputFrontendHandler(shared_ptr<Display> display,
-										   BackendBase& backend,
-										   domid_t domId, int id) :
+InputFrontendHandler::InputFrontendHandler(
+		shared_ptr<InputManager> inputManager, BackendBase& backend,
+		domid_t domId, int id) :
 	FrontendHandlerBase("VkbdFrontend", backend, domId, id),
-	mDisplay(display),
+	mInputManager(inputManager),
 	mLog("InputFrontend")
 {
 	setBackendState(XenbusStateInitWait);
@@ -85,9 +77,8 @@ void InputFrontendHandler::createKeyboardHandler(EventRingBufferPtr ringBuffer)
 {
 	try
 	{
-		KeyboardPtr keyboardDevice(new Keyboard(*mDisplay.get(), 0));
-
-		mKeyboardHandler.reset(new KeyboardHandler(keyboardDevice, ringBuffer));
+		mKeyboardHandler.reset(
+			new KeyboardHandler(mInputManager->getKeyboard(0), ringBuffer));
 	}
 	catch(const InputItf::Exception& e)
 	{
@@ -99,9 +90,8 @@ void InputFrontendHandler::createPointerHandler(EventRingBufferPtr ringBuffer)
 {
 	try
 	{
-		PointerPtr pointerDevice(new Pointer(*mDisplay.get(), 0));
-
-		mPointerHandler.reset(new PointerHandler(pointerDevice, ringBuffer));
+		mPointerHandler.reset(
+			new PointerHandler(mInputManager->getPointer(0), ringBuffer));
 	}
 	catch(const InputItf::Exception& e)
 	{
@@ -111,17 +101,17 @@ void InputFrontendHandler::createPointerHandler(EventRingBufferPtr ringBuffer)
 
 void InputFrontendHandler::createTouchHandlers()
 {
-	static int sConnectorId = 0;
-
 	try
 	{
-		const vector<string> touchPathes = getXenStore().readDirectory(
+		const vector<string> touches = getXenStore().readDirectory(
 				getXsFrontendPath() + "/" XENKBD_PATH_MTOUCH);
 
-		for(auto touchPath : touchPathes)
+		for(auto touch : touches)
 		{
 			string path = getXsFrontendPath() + "/" XENKBD_PATH_MTOUCH "/" +
-						  touchPath;
+						  touch;
+
+			int id = stoi(touch);
 
 			evtchn_port_t port = getXenStore().readUint(
 					path + "/" XENKBD_FIELD_EVT_CHANNEL);
@@ -135,10 +125,8 @@ void InputFrontendHandler::createTouchHandlers()
 
 			addRingBuffer(ringBuffer);
 
-			TouchPtr touchDevice(new Touch(*mDisplay.get(), sConnectorId++));
-
-			mTouchHandlers.emplace_back(new TouchHandler(touchDevice,
-														 ringBuffer));
+			mTouchHandlers.emplace_back(
+				new TouchHandler(mInputManager->getTouch(id), ringBuffer));
 		}
 	}
 	catch(const InputItf::Exception& e)
@@ -154,5 +142,5 @@ void InputFrontendHandler::createTouchHandlers()
 void InputBackend::onNewFrontend(domid_t domId, int id)
 {
 	addFrontendHandler(FrontendHandlerPtr(
-			new InputFrontendHandler(mDisplay, *this, domId, id)));
+			new InputFrontendHandler(mInputManager, *this, domId, id)));
 }

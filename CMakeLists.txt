@@ -31,9 +31,7 @@ set(WL_SOURCES
 )
 
 set(WL_INPUT_SOURCES
-	src/wayland/input/Keyboard.cpp
-	src/wayland/input/Pointer.cpp
-	src/wayland/input/Touch.cpp
+	src/input/InputManager.cpp
 )
 
 set(BE_SOURCES

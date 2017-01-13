@@ -31,6 +31,7 @@
 #include "DisplayBackend.hpp"
 #include "InputBackend.hpp"
 #include "drm/Device.hpp"
+#include "input/InputManager.hpp"
 
 using std::chrono::milliseconds;
 using std::atomic_bool;
@@ -132,17 +133,17 @@ bool commandLineOptions(int argc, char *argv[])
 
 shared_ptr<Drm::Device> getDrmDisplay()
 {
-	auto device = new Drm::Device("/dev/dri/card0");
+	shared_ptr<Drm::Device> device(new Drm::Device("/dev/dri/card0"));
 
 	device->createConnector(0, 37);
 	device->createConnector(1, 42);
 
-	return shared_ptr<Drm::Device>(device);
+	return device;
 }
 
 shared_ptr<Wayland::Display> getWaylandDisplay()
 {
-	auto display = new Wayland::Display();
+	shared_ptr<Wayland::Display> display(new Wayland::Display());
 
 	display->createBackgroundSurface(cWlBackgroundWidth,
 									 cWlBackgroundHeight);
@@ -151,7 +152,26 @@ shared_ptr<Wayland::Display> getWaylandDisplay()
 	display->createConnector(1, cWlBackgroundWidth/2, 0,
 							 cWlBackgroundWidth/2, cWlBackgroundHeight);
 
-	return shared_ptr<Wayland::Display>(display);
+	return display;
+}
+
+Input::InputManagerPtr getWlInputManager(shared_ptr<Wayland::Display> display)
+{
+	Input::InputManagerPtr inputManager(new Input::InputManager(display));
+
+	inputManager->createWlKeyboard(0, 0);
+	inputManager->createWlPointer(0, 0);
+//	inputManager->createWlTouch(0, 0);
+//	inputManager->createWlTouch(0, 1);
+
+	return inputManager;
+}
+
+Input::InputManagerPtr getInputManager()
+{
+	auto inputManager = new Input::InputManager();
+
+	return Input::InputManagerPtr(inputManager);
 }
 
 int main(int argc, char *argv[])
@@ -165,19 +185,25 @@ int main(int argc, char *argv[])
 
 			shared_ptr<DisplayItf> display;
 			shared_ptr<Wayland::Display> wlDisplay;
+			InputItf::InputManagerPtr inputManager;
 
 			if (gDisplayMode == DisplayMode::DRM)
 			{
 				display = getDrmDisplay();
+
+				inputManager = getInputManager();
 			}
 			else
 			{
 				wlDisplay = getWaylandDisplay();
+
+				inputManager = getWlInputManager(wlDisplay);
+
 				display = wlDisplay;
 			}
 
 			DisplayBackend displayBackend(display, XENDISPL_DRIVER_NAME, 0, 0);
-			InputBackend inputBackend(wlDisplay, XENKBD_DRIVER_NAME, 0, 0);
+			InputBackend inputBackend(inputManager, XENKBD_DRIVER_NAME, 0, 0);
 
 			displayBackend.start();
 			inputBackend.start();

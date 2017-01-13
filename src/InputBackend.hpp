@@ -47,7 +47,7 @@ public:
 	 * @param backend   backend instance
 	 * @param id        frontend instance id
 	 */
-	InputFrontendHandler(std::shared_ptr<Wayland::Display> display,
+	InputFrontendHandler(std::shared_ptr<InputItf::InputManager> inputManager,
 						 XenBackend::BackendBase& backend,
 						 domid_t domId, int id);
 
@@ -60,7 +60,7 @@ protected:
 
 private:
 
-	std::shared_ptr<Wayland::Display> mDisplay;
+	std::shared_ptr<InputItf::InputManager> mInputManager;
 	XenBackend::Log mLog;
 
 	std::unique_ptr<KeyboardHandler> mKeyboardHandler;
@@ -84,10 +84,10 @@ public:
 	 * @param deviceName    device name
 	 * @param id            instance id
 	 */
-	InputBackend(std::shared_ptr<Wayland::Display> display,
+	InputBackend(std::shared_ptr<InputItf::InputManager> inputManager,
 				 const std::string& deviceName, domid_t domId, int id) :
 		BackendBase("VkbdBackend", deviceName, domId, id),
-		mDisplay(display)
+		mInputManager(inputManager)
 		{}
 
 protected:
@@ -101,7 +101,7 @@ protected:
 
 private:
 
-	std::shared_ptr<Wayland::Display> mDisplay;
+	std::shared_ptr<InputItf::InputManager> mInputManager;
 };
 
 #endif /* INPUTBACKEND_HPP_ */

@@ -22,8 +22,6 @@
 #ifndef SRC_DRM_EXCEPTION_HPP_
 #define SRC_DRM_EXCEPTION_HPP_
 
-#include <string>
-
 #include "DisplayItf.hpp"
 
 namespace Drm {

@@ -32,10 +32,8 @@
 #include <drm_fourcc.h>
 
 #include "drm/Device.hpp"
+#include "input/WlInput.hpp"
 #include "wayland/Display.hpp"
-#include "wayland/input/Keyboard.hpp"
-#include "wayland/input/Pointer.hpp"
-#include "wayland/input/Touch.hpp"
 
 using std::bind;
 using std::cin;
@@ -238,21 +236,22 @@ int main(int argc, char *argv[])
 
 #endif
 
-		Wayland::Keyboard keyboard1(display, 37);
-		Wayland::Keyboard keyboard2(display, 38);
+#if 0
+		Input::WlKeyboard keyboard1(display, 37);
+		Input::WlKeyboard keyboard2(display, 38);
 
-		Wayland::Pointer pointer1(display, 37);
-		Wayland::Pointer pointer2(display, 38);
+		Input::WlPointer pointer1(display, 37);
+		Input::WlPointer pointer2(display, 38);
 
-		Wayland::Touch touch1(display, 37);
-		Wayland::Touch touch2(display, 38);
+		Input::WlTouch touch1(display, 37);
+		Input::WlTouch touch2(display, 38);
 
 		pointer1.setCallbacks({pointerMove1});
 		pointer2.setCallbacks({pointerMove2});
 
 		keyboard1.setCallbacks({keyboardEvent1});
 		keyboard2.setCallbacks({keyboardEvent2});
-
+#endif
 		string str;
 		cin >> str;
 

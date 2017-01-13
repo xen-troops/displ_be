@@ -83,12 +83,26 @@ public:
 	virtual ~InputDevice() {}
 };
 
-template <typename T>
-using InputDevicePtr = std::shared_ptr<InputDevice<T>>;
+typedef InputDevice<KeyboardCallbacks> Keyboard;
+typedef InputDevice<PointerCallbacks> Pointer;
+typedef InputDevice<TouchCallbacks> Touch;
 
-typedef InputDevicePtr<KeyboardCallbacks> KeyboardPtr;
-typedef InputDevicePtr<PointerCallbacks> PointerPtr;
-typedef InputDevicePtr<TouchCallbacks> TouchPtr;
+typedef std::shared_ptr<Keyboard> KeyboardPtr;
+typedef std::shared_ptr<Pointer> PointerPtr;
+typedef std::shared_ptr<Touch> TouchPtr;
+
+class InputManager
+{
+public:
+
+	virtual ~InputManager() {}
+
+	virtual KeyboardPtr getKeyboard(int id) = 0;
+	virtual PointerPtr getPointer(int id) = 0;
+	virtual TouchPtr getTouch(int id) = 0;
+};
+
+typedef std::shared_ptr<InputManager> InputManagerPtr;
 
 }
 
