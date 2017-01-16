@@ -35,6 +35,11 @@ set(WL_INPUT_SOURCES
 	src/input/InputManager.cpp
 )
 
+set(DRMMAP_SOURCES
+	src/drmmap/DrmMap.cpp
+	src/drmmap/Dumb.cpp
+)
+
 set(BE_SOURCES
 	src/Backend.cpp
 	src/BuffersStorage.cpp
@@ -53,6 +58,7 @@ include_directories(
 	${XEN_INCLUDE_PATH}
 	${XENBE_INCLUDE_PATH}
 	${IF_INCLUDE_PATH}
+	${DRMMAP_INCLUDE_PATH}
 	/usr/include/libdrm
 )
 
@@ -66,12 +72,15 @@ add_library(be_wl STATIC ${WL_SOURCES})
 
 add_library(be_wl_input STATIC ${WL_INPUT_SOURCES})
 
+add_library(drmmap STATIC ${DRMMAP_SOURCES})
+
 add_executable(${PROJECT_NAME} ${BE_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
 	be_wl_input
 	be_drm
 	be_wl
+	drmmap
 	xenbe
 	xenctrl
 	xenstore
@@ -89,6 +98,7 @@ target_link_libraries(displ_test
 	be_wl_input
 	be_drm
 	be_wl
+	drmmap
 	xenbe
 	xenctrl
 	xenstore

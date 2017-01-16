@@ -29,9 +29,11 @@
 #include <xen/be/Log.hpp>
 
 #include "DisplayBackend.hpp"
-#include "InputBackend.hpp"
 #include "drm/Device.hpp"
+#include "drmmap/Exception.hpp"
+#include "drmmap/DrmMap.hpp"
 #include "input/InputManager.hpp"
+#include "InputBackend.hpp"
 
 using std::chrono::milliseconds;
 using std::atomic_bool;
@@ -186,10 +188,22 @@ int main(int argc, char *argv[])
 			shared_ptr<DisplayItf> display;
 			shared_ptr<Wayland::Display> wlDisplay;
 			InputItf::InputManagerPtr inputManager;
+			shared_ptr<DrmMap> drmMap;
+
 
 			if (gDisplayMode == DisplayMode::DRM)
 			{
-				display = getDrmDisplay();
+				auto drmDisplay = getDrmDisplay();
+
+				try
+				{
+					drmMap.reset(new DrmMap(drmDisplay->getFd()));
+				}
+				catch(const DrmMapException& e)
+				{
+					LOG("Main", WARNING) << "DrmMap driver not found:"
+										 << "zero copy will not be used";
+				}
 
 				inputManager = getInputManager();
 			}
@@ -202,7 +216,8 @@ int main(int argc, char *argv[])
 				display = wlDisplay;
 			}
 
-			DisplayBackend displayBackend(display, XENDISPL_DRIVER_NAME, 0, 0);
+			DisplayBackend displayBackend(display, drmMap,
+										  XENDISPL_DRIVER_NAME, 0, 0);
 			InputBackend inputBackend(inputManager, XENKBD_DRIVER_NAME, 0, 0);
 
 			displayBackend.start();

@@ -37,18 +37,19 @@ extern const uint32_t cInvalidId;
  * FrameBuffer
  ******************************************************************************/
 
-FrameBuffer::FrameBuffer(shared_ptr<Dumb> dumb,
+FrameBuffer::FrameBuffer(int fd, shared_ptr<DisplayBufferItf> displayBuffer,
 						 uint32_t width, uint32_t height,
 						 uint32_t pixelFormat) :
-	mDumb(dumb),
+	mFd(fd),
+	mDisplayBuffer(displayBuffer),
 	mId(cInvalidId)
 {
 	uint32_t handles[4], pitches[4], offsets[4] = {0};
 
-	handles[0] = mDumb->mHandle;
-	pitches[0] = mDumb->mStride;
+	handles[0] = mDisplayBuffer->getHandle();
+	pitches[0] = mDisplayBuffer->getStride();
 
-	auto ret = drmModeAddFB2(mDumb->mFd, width, height, pixelFormat,
+	auto ret = drmModeAddFB2(mFd, width, height, pixelFormat,
 							 handles, pitches, offsets, &mId, 0);
 
 	if (ret)
@@ -67,7 +68,7 @@ FrameBuffer::~FrameBuffer()
 	{
 		DLOG("FrameBuffer", DEBUG) << "Delete frame buffer, id: " << mId;
 
-		drmModeRmFB(mDumb->mFd, mId);
+		drmModeRmFB(mFd, mId);
 	}
 }
 

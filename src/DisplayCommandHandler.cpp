@@ -29,6 +29,7 @@
 #include "DisplayCommandHandler.hpp"
 
 using std::hex;
+using std::exception;
 using std::out_of_range;
 using std::setfill;
 using std::setw;
@@ -105,14 +106,15 @@ uint8_t DisplayCommandHandler::processCommand(const xendispl_req& req)
 
 		status = XENDISPL_RSP_NOTSUPP;
 	}
-	catch(const DisplayItfException& e)
+	catch(const exception& e)
 	{
 		LOG(mLog, ERROR) << e.what();
 
 		status = XENDISPL_RSP_ERROR;
 	}
 
-	DLOG(mLog, DEBUG) << "Return status: [" << static_cast<int>(status) << "]";
+	DLOG(mLog, DEBUG) << "Return status: ["
+					  << static_cast<signed int>(status) << "]";
 
 	return status;
 }

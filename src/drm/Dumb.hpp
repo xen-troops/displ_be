@@ -51,12 +51,22 @@ public:
 	/**
 	 * Returns dumb size
 	 */
-	size_t getSize() const { return mSize; }
+	size_t getSize() const override { return mSize; }
 
 	/**
 	 * Returns pointer to the dumb buffer
 	 */
-	void* getBuffer() const { return mBuffer; }
+	void* getBuffer() const override { return mBuffer; }
+
+	/**
+	 * Get stride
+	 */
+	uint32_t getStride() const override { return mStride; }
+
+	/**
+	 * Get handle
+	 */
+	int getHandle() const override { return mHandle; }
 
 private:
 

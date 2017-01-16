@@ -35,7 +35,7 @@ public:
 	 */
 	std::shared_ptr<DisplayBufferItf> getDisplayBuffer() override
 	{
-		return std::dynamic_pointer_cast<DisplayBufferItf>(mSharedFile);
+		return mDisplayBuffer;
 	}
 
 private:
@@ -44,11 +44,11 @@ private:
 	friend class Surface;
 
 	SharedBuffer(wl_shm* sharedMemory,
-				 std::shared_ptr<SharedFile> sharedFile,
+				 std::shared_ptr<DisplayBufferItf> displayBuffer,
 				 uint32_t width, uint32_t height,
 				 uint32_t pixelFormat);
 
-	std::shared_ptr<SharedFile> mSharedFile;
+	std::shared_ptr<DisplayBufferItf> mDisplayBuffer;
 	wl_buffer* mWlBuffer;
 	wl_shm_pool* mWlPool;
 	uint32_t mWidth;

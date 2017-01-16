@@ -53,14 +53,14 @@ shared_ptr<SharedFile> SharedMemory::createSharedFile(uint32_t width,
 }
 
 shared_ptr<SharedBuffer> SharedMemory::createSharedBuffer(
-							shared_ptr<SharedFile> sharedFile,
+							shared_ptr<DisplayBufferItf> displayBuffer,
 							uint32_t width, uint32_t height,
 							uint32_t pixelFormat)
 {
 	LOG(mLog, DEBUG) << "Create shared buffer";
 
 	return shared_ptr<SharedBuffer>(new SharedBuffer(mWlSharedMemory,
-													 sharedFile,
+													 displayBuffer,
 													 width, height,
 													 pixelFormat));
 }

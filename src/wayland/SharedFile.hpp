@@ -48,6 +48,16 @@ public:
 	 */
 	size_t getSize() const override { return mSize; }
 
+	/**
+	 * Get stride
+	 */
+	virtual uint32_t getStride() const override { return mStride; }
+
+	/**
+	 * Get handle
+	 */
+	virtual int getHandle() const override { return mFd; }
+
 private:
 
 	friend class SharedMemory;

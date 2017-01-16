@@ -70,6 +70,16 @@ public:
 	 * Returns pointer to the data buffer
 	 */
 	virtual void* getBuffer() const = 0;
+
+	/**
+	 * Get stride
+	 */
+	virtual uint32_t getStride() const = 0;
+
+	/**
+	 * Get handle
+	 */
+	virtual int getHandle() const = 0;
 };
 
 /***************************************************************************//**

@@ -48,7 +48,7 @@ public:
 	 * @return
 	 */
 	std::shared_ptr<SharedBuffer> createSharedBuffer(
-			std::shared_ptr<SharedFile> sharedFile,
+			std::shared_ptr<DisplayBufferItf> displayBuffer,
 			uint32_t width, uint32_t height, uint32_t pixelFormat);
 
 private:

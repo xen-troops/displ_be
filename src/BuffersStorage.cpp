@@ -38,9 +38,12 @@ using XenBackend::XenGnttabBuffer;
  * BuffersStorage
  ******************************************************************************/
 
-BuffersStorage::BuffersStorage(domid_t domId, std::shared_ptr<DisplayItf> display) :
+BuffersStorage::BuffersStorage(domid_t domId,
+							   shared_ptr<DisplayItf> display,
+							   shared_ptr<DrmMap> drmMap) :
 	mDomId(domId),
 	mDisplay(display),
+	mDrmMap(drmMap),
 	mLog("BuffersStorage")
 {
 
@@ -65,17 +68,27 @@ void BuffersStorage::createDisplayBuffer(uint64_t dbCookie,
 					  << hex << setfill('0') << setw(16)
 					  << dbCookie;
 
-	LocalDisplayBuffer displayBuffer {
-		mDisplay->createDisplayBuffer(width, height, bpp) };
-
 	vector<grant_ref_t> refs;
 
 	getBufferRefs(startDirectory, size, refs);
 
-	displayBuffer.buffer.reset(new XenGnttabBuffer(mDomId, refs.data(),
-												   refs.size()));
+	LocalDisplayBuffer localDisplayBuffer {};
 
-	mDisplayBuffers.emplace(dbCookie, move(displayBuffer));
+	if (mDrmMap)
+	{
+		localDisplayBuffer.displayBuffer =
+				mDrmMap->createDisplayBuffer(mDomId, refs, width, height, bpp);
+	}
+	else
+	{
+		localDisplayBuffer.displayBuffer =
+				mDisplay->createDisplayBuffer(width, height, bpp);
+
+		localDisplayBuffer.buffer.reset(new XenGnttabBuffer(mDomId, refs.data(),
+															refs.size()));
+	}
+
+	mDisplayBuffers.emplace(dbCookie, move(localDisplayBuffer));
 }
 
 
@@ -92,9 +105,8 @@ void BuffersStorage::createFrameBuffer(uint64_t dbCookie, uint64_t fbCookie,
 					  << ", DB cookie: " << setw(16) << dbCookie
 					  << ", FB cookie: " << setw(16) << fbCookie;
 
-	auto frameBuffer =
-			mDisplay->createFrameBuffer(getDisplayBufferUnlocked(dbCookie),
-									    width, height, pixelFormat);
+	auto frameBuffer = mDisplay->createFrameBuffer(
+			getDisplayBufferUnlocked(dbCookie), width, height, pixelFormat);
 
 	mFrameBuffers.emplace(fbCookie, frameBuffer);
 }
@@ -142,6 +154,11 @@ void BuffersStorage::destroyFrameBuffer(uint64_t fbCookie)
 void BuffersStorage::copyBuffer(uint64_t fbCookie)
 {
 	lock_guard<mutex> lock(mMutex);
+
+	if (mDrmMap)
+	{
+		return;
+	}
 
 	auto displayBuffer = getFrameBufferUnlocked(fbCookie)->getDisplayBuffer();
 
@@ -216,9 +233,10 @@ void BuffersStorage::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 		xendispl_page_directory* pageDirectory =
 				static_cast<xendispl_page_directory*>(pageBuffer.get());
 
-		size_t numGrefs = min(requestedNumGrefs,(XC_PAGE_SIZE -
-							  offsetof(xendispl_page_directory, gref)) /
-							  sizeof(uint32_t));
+		size_t numGrefs = min(requestedNumGrefs, (XC_PAGE_SIZE -
+							  offsetof(xendispl_page_directory, gref)) / sizeof(uint32_t));
+
+		DLOG(mLog, ERROR) << "Gref address: " << pageDirectory->gref;
 
 		refs.insert(refs.end(), pageDirectory->gref,
 					pageDirectory->gref + numGrefs);

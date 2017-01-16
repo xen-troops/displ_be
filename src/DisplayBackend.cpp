@@ -28,6 +28,7 @@
 #include <xen/be/XenStore.hpp>
 
 #include "drm/Device.hpp"
+#include "drmmap/Exception.hpp"
 #include "wayland/Display.hpp"
 
 /***************************************************************************//**
@@ -139,10 +140,12 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
  ******************************************************************************/
 
 DisplayBackend::DisplayBackend(shared_ptr<DisplayItf> display,
+							   shared_ptr<DrmMap> drmMap,
 							   const string& deviceName,
 							   domid_t domId, int id) :
 	BackendBase("DisplBackend", deviceName, domId, id),
-	mDisplay(display)
+	mDisplay(display),
+	mDrmMap(drmMap)
 {
 	mDisplay->start();
 }
@@ -151,5 +154,5 @@ void DisplayBackend::onNewFrontend(domid_t domId, int id)
 {
 
 	addFrontendHandler(shared_ptr<FrontendHandlerBase>(
-			new DisplayFrontendHandler(mDisplay, domId, *this, id)));
+			new DisplayFrontendHandler(mDisplay, mDrmMap, *this, domId, id)));
 }

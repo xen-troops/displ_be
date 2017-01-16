@@ -19,10 +19,10 @@ namespace Wayland {
  * SharedBuffer
  ******************************************************************************/
 SharedBuffer::SharedBuffer(wl_shm* sharedMemory,
-						   shared_ptr<SharedFile> sharedFile,
+						   shared_ptr<DisplayBufferItf> displayBuffer,
 						   uint32_t width, uint32_t height,
 						   uint32_t pixelFormat) :
-	mSharedFile(sharedFile),
+	mDisplayBuffer(displayBuffer),
 	mWlBuffer(nullptr),
 	mWlPool(nullptr),
 	mWidth(width),
@@ -71,8 +71,8 @@ uint32_t SharedBuffer::convertPixelFormat(uint32_t format)
 
 void SharedBuffer::init(wl_shm* sharedMemory, uint32_t pixelFormat)
 {
-	mWlPool = wl_shm_create_pool(sharedMemory, mSharedFile->mFd,
-							   mHeight * mSharedFile->mStride);
+	mWlPool = wl_shm_create_pool(sharedMemory, mDisplayBuffer->getHandle(),
+							   mHeight * mDisplayBuffer->getStride());
 
 	if (!mWlPool)
 	{
@@ -80,8 +80,8 @@ void SharedBuffer::init(wl_shm* sharedMemory, uint32_t pixelFormat)
 	}
 
 	mWlBuffer = wl_shm_pool_create_buffer(mWlPool, 0, mWidth, mHeight,
-										mSharedFile->mStride,
-										convertPixelFormat(pixelFormat));
+										  mDisplayBuffer->getStride(),
+										  convertPixelFormat(pixelFormat));
 
 	if (!mWlBuffer)
 	{
@@ -93,8 +93,8 @@ void SharedBuffer::init(wl_shm* sharedMemory, uint32_t pixelFormat)
 	mWlPool = nullptr;
 
 	LOG(mLog, DEBUG) << "Create, w: " << mWidth << ", h: " << mHeight
-					 << ", stride: " << mSharedFile->mStride
-					 << ", fd: " << mSharedFile->mFd
+					 << ", stride: " << mDisplayBuffer->getStride()
+					 << ", fd: " << mDisplayBuffer->getHandle()
 					 << ", format: " << pixelFormat;
 }
 
