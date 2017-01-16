@@ -17,6 +17,8 @@
 
 #include "InputItf.hpp"
 
+// TODO: should be reimplemented to use libinput
+
 namespace Input {
 
 class InputBase
