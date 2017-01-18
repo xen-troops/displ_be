@@ -47,7 +47,7 @@ public:
 	 * @param backend   backend instance
 	 * @param id        frontend instance id
 	 */
-	InputFrontendHandler(std::shared_ptr<InputItf::InputManager> inputManager,
+	InputFrontendHandler(InputItf::InputManagerPtr inputManager,
 						 XenBackend::BackendBase& backend,
 						 domid_t domId, int id);
 
@@ -60,7 +60,7 @@ protected:
 
 private:
 
-	std::shared_ptr<InputItf::InputManager> mInputManager;
+	InputItf::InputManagerPtr mInputManager;
 	XenBackend::Log mLog;
 
 	std::unique_ptr<KeyboardHandler> mKeyboardHandler;
@@ -84,7 +84,7 @@ public:
 	 * @param deviceName    device name
 	 * @param id            instance id
 	 */
-	InputBackend(std::shared_ptr<InputItf::InputManager> inputManager,
+	InputBackend(InputItf::InputManagerPtr inputManager,
 				 const std::string& deviceName, domid_t domId, int id) :
 		BackendBase("VkbdBackend", deviceName, domId, id),
 		mInputManager(inputManager)
@@ -101,7 +101,7 @@ protected:
 
 private:
 
-	std::shared_ptr<InputItf::InputManager> mInputManager;
+	InputItf::InputManagerPtr mInputManager;
 };
 
 #endif /* INPUTBACKEND_HPP_ */

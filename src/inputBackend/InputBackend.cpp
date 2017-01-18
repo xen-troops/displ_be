@@ -24,7 +24,6 @@
 
 #include "InputHandlers.hpp"
 
-using std::shared_ptr;
 using std::string;
 using std::to_string;
 using std::vector;
@@ -36,14 +35,14 @@ using XenBackend::RingBufferPtr;
 
 using Wayland::Display;
 
-using InputItf::InputManager;
+using InputItf::InputManagerPtr;
 
 /*******************************************************************************
  * InputFrontendHandler
  ******************************************************************************/
 
 InputFrontendHandler::InputFrontendHandler(
-		shared_ptr<InputManager> inputManager, BackendBase& backend,
+		InputManagerPtr inputManager, BackendBase& backend,
 		domid_t domId, int id) :
 	FrontendHandlerBase("VkbdFrontend", backend, domId, id),
 	mInputManager(inputManager),

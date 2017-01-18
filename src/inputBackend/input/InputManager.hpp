@@ -8,7 +8,6 @@
 #ifndef SRC_INPUT_INPUTMANAGER_HPP_
 #define SRC_INPUT_INPUTMANAGER_HPP_
 
-#include <memory>
 #include <unordered_map>
 
 #include "wayland/Display.hpp"
