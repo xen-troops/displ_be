@@ -48,7 +48,7 @@ public:
 	/**
 	 * Returns pointer to the display buffer
 	 */
-	std::shared_ptr<DisplayBufferItf> getDisplayBuffer() override
+	DisplayBufferPtr getDisplayBuffer() override
 	{
 		return mDisplayBuffer;
 	}
@@ -57,12 +57,10 @@ private:
 
 	friend class WaylandDrm;
 
-	DrmBuffer(wl_drm* wlDrm,
-			  std::shared_ptr<DisplayBufferItf> displayBuffer,
-			  uint32_t width, uint32_t height,
-			  uint32_t pixelFormat);
+	DrmBuffer(wl_drm* wlDrm, DisplayBufferPtr displayBuffer,
+			  uint32_t width, uint32_t height, uint32_t pixelFormat);
 
-	std::shared_ptr<DisplayBufferItf> mDisplayBuffer;
+	DisplayBufferPtr mDisplayBuffer;
 	wl_buffer* mWlBuffer;
 	uint32_t mWidth;
 	uint32_t mHeight;

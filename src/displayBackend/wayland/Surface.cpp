@@ -42,7 +42,7 @@ Surface::~Surface()
  * Public
  ******************************************************************************/
 
-void Surface::draw(std::shared_ptr<FrameBufferItf> frameBuffer,
+void Surface::draw(FrameBufferPtr frameBuffer,
 				   FrameCallback callback)
 {
 	DLOG(mLog, DEBUG) << "Draw";

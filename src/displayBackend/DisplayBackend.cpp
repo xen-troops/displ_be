@@ -48,7 +48,7 @@ using XenBackend::FrontendHandlerPtr;
  * ConCtrlRingBuffer
  ******************************************************************************/
 
-CtrlRingBuffer::CtrlRingBuffer(shared_ptr<ConnectorItf> connector,
+CtrlRingBuffer::CtrlRingBuffer(ConnectorPtr connector,
 							   BuffersStoragePtr buffersStorage,
 							   EventRingBufferPtr eventBuffer,
 							   domid_t domId,
@@ -134,7 +134,7 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
  * DisplayBackend
  ******************************************************************************/
 
-DisplayBackend::DisplayBackend(shared_ptr<DisplayItf> display,
+DisplayBackend::DisplayBackend(DisplayPtr display,
 							   const string& deviceName,
 							   domid_t domId, int id) :
 	BackendBase("DisplBackend", deviceName, domId, id),

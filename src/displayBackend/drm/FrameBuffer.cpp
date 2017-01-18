@@ -35,7 +35,7 @@ namespace Drm {
  * FrameBuffer
  ******************************************************************************/
 
-FrameBuffer::FrameBuffer(int fd, shared_ptr<DisplayBufferItf> displayBuffer,
+FrameBuffer::FrameBuffer(int fd, DisplayBufferPtr displayBuffer,
 						 uint32_t width, uint32_t height,
 						 uint32_t pixelFormat) :
 	mFd(fd),

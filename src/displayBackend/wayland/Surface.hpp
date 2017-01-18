@@ -36,8 +36,7 @@ public:
 	 * @param frameBuffer  shared buffer
 	 * @param callback     called when frame with the content is displayed
 	 */
-	void draw(std::shared_ptr<FrameBufferItf> frameBuffer,
-			  FrameCallback callback = nullptr);
+	void draw(FrameBufferPtr frameBuffer, FrameCallback callback = nullptr);
 
 private:
 

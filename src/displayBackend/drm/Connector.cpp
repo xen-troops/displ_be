@@ -69,7 +69,7 @@ Connector::~Connector()
  ******************************************************************************/
 
 void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
-					 shared_ptr<FrameBufferItf> frameBuffer)
+					 FrameBufferPtr frameBuffer)
 {
 
 	if (mConnector->connection != DRM_MODE_CONNECTED)
@@ -127,8 +127,7 @@ void Connector::release()
 	}
 }
 
-void Connector::pageFlip(shared_ptr<FrameBufferItf> frameBuffer,
-						 FlipCallback cbk)
+void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 {
 	if (!isInitialized())
 	{

@@ -68,7 +68,7 @@ public:
 	 * @param frameBuffer frame buffer
 	 */
 	void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
-			  std::shared_ptr<FrameBufferItf> frameBuffer) override;
+			  FrameBufferPtr frameBuffer) override;
 
 	/**
 	 * Releases initialized connector
@@ -80,8 +80,7 @@ public:
 	 * @param frameBuffer frame buffer to flip
 	 * @param cbk         callback
 	 */
-	void pageFlip(std::shared_ptr<FrameBufferItf> frameBuffer,
-				  FlipCallback cbk) override;
+	void pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk) override;
 
 private:
 

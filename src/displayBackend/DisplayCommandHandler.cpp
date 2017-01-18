@@ -71,7 +71,7 @@ EventRingBuffer::EventRingBuffer(int id, domid_t domId,
  ******************************************************************************/
 
 DisplayCommandHandler::DisplayCommandHandler(
-		shared_ptr<ConnectorItf> connector,
+		ConnectorPtr connector,
 		BuffersStoragePtr buffersStorage,
 		EventRingBufferPtr eventBuffer) :
 	mConnector(connector),

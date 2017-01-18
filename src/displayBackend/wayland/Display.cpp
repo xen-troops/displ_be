@@ -95,7 +95,7 @@ void Display::createBackgroundSurface(uint32_t width, uint32_t height)
 	}
 }
 
-shared_ptr<ConnectorItf> Display::createConnector(uint32_t id, uint32_t x,
+ConnectorPtr Display::createConnector(uint32_t id, uint32_t x,
 												  uint32_t y, uint32_t width,
 												  uint32_t height)
 {
@@ -156,7 +156,7 @@ bool Display::isZeroCopySupported() const
 	return false;
 }
 
-shared_ptr<ConnectorItf> Display::getConnectorById(uint32_t id)
+ConnectorPtr Display::getConnectorById(uint32_t id)
 {
 	auto iter = mConnectors.find(id);
 
@@ -168,7 +168,7 @@ shared_ptr<ConnectorItf> Display::getConnectorById(uint32_t id)
 	return dynamic_pointer_cast<ConnectorItf>(iter->second);
 }
 
-shared_ptr<DisplayBufferItf> Display::createDisplayBuffer(
+DisplayBufferPtr Display::createDisplayBuffer(
 		uint32_t width, uint32_t height, uint32_t bpp)
 {
 	if (mSharedMemory)
@@ -179,7 +179,7 @@ shared_ptr<DisplayBufferItf> Display::createDisplayBuffer(
 	throw WlException("Can't create display buffer");
 }
 
-shared_ptr<DisplayBufferItf> Display::createDisplayBuffer(
+DisplayBufferPtr Display::createDisplayBuffer(
 		domid_t domId, const std::vector<grant_ref_t>& refs,
 		uint32_t width, uint32_t height, uint32_t bpp)
 {
@@ -195,9 +195,9 @@ shared_ptr<DisplayBufferItf> Display::createDisplayBuffer(
 	throw WlException("Can't create display buffer");
 }
 
-shared_ptr<FrameBufferItf> Display::createFrameBuffer(
-		shared_ptr<DisplayBufferItf> displayBuffer,
-		uint32_t width, uint32_t height, uint32_t pixelFormat)
+FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
+										  uint32_t width, uint32_t height,
+										  uint32_t pixelFormat)
 {
 	if (isZeroCopySupported())
 	{

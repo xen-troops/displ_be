@@ -78,7 +78,7 @@ bool WaylandDrm::isZeroCopySupported()
 	return false;
 }
 
-shared_ptr<DisplayBufferItf>
+DisplayBufferPtr
 WaylandDrm::createDumb(domid_t domId, const vector<grant_ref_t>& refs,
 					   uint32_t width, uint32_t height, uint32_t bpp)
 {
@@ -92,8 +92,8 @@ WaylandDrm::createDumb(domid_t domId, const vector<grant_ref_t>& refs,
 	throw WlException("Can't create dumb");
 }
 
-shared_ptr<FrameBufferItf>
-WaylandDrm::createDrmBuffer(shared_ptr<DisplayBufferItf> displayBuffer,
+FrameBufferPtr
+WaylandDrm::createDrmBuffer(DisplayBufferPtr displayBuffer,
 							uint32_t width,uint32_t height,
 							uint32_t pixelFormat)
 {

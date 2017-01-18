@@ -19,7 +19,7 @@ namespace Wayland {
  * SharedBuffer
  ******************************************************************************/
 SharedBuffer::SharedBuffer(wl_shm* wlSharedMemory,
-						   shared_ptr<DisplayBufferItf> displayBuffer,
+						   DisplayBufferPtr displayBuffer,
 						   uint32_t width, uint32_t height,
 						   uint32_t pixelFormat) :
 	mDisplayBuffer(displayBuffer),

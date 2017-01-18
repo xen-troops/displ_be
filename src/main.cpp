@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 		if (commandLineOptions(argc, argv))
 		{
 
-			shared_ptr<DisplayItf> display;
+			DisplayPtr display;
 			shared_ptr<Wayland::Display> wlDisplay;
 			InputItf::InputManagerPtr inputManager;
 

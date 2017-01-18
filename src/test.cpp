@@ -81,9 +81,9 @@ void flipDone()
 	gCondVar.notify_one();
 }
 
-void flipHandler(shared_ptr<ConnectorItf> connector,
-			 shared_ptr<FrameBufferItf> frameBuffer1,
-			 shared_ptr<FrameBufferItf> frameBuffer2)
+void flipHandler(ConnectorPtr connector,
+				 FrameBufferPtr frameBuffer1,
+				 FrameBufferPtr frameBuffer2)
 {
 	static int count = 0;
 
@@ -93,11 +93,13 @@ void flipHandler(shared_ptr<ConnectorItf> connector,
 
 		if (count % 2)
 		{
-			memcpy(frameBuffer1->getDisplayBuffer()->getBuffer(), gBuffer2, frameBuffer1->getDisplayBuffer()->getSize());
+			memcpy(frameBuffer1->getDisplayBuffer()->getBuffer(), gBuffer2,
+				   frameBuffer1->getDisplayBuffer()->getSize());
 		}
 		else
 		{
-			memcpy(frameBuffer1->getDisplayBuffer()->getBuffer(), gBuffer1, frameBuffer1->getDisplayBuffer()->getSize());
+			memcpy(frameBuffer1->getDisplayBuffer()->getBuffer(), gBuffer1,
+				   frameBuffer1->getDisplayBuffer()->getSize());
 		}
 
 		connector->pageFlip(frameBuffer1, flipDone);
@@ -110,12 +112,17 @@ void flipHandler(shared_ptr<ConnectorItf> connector,
 			timeval end;
 
 			gettimeofday(&end, NULL);
-			double t = end.tv_sec + end.tv_usec * 1e-6 - (start.tv_sec + start.tv_usec * 1e-6);
+			double t = end.tv_sec + end.tv_usec * 1e-6 -
+					   (start.tv_sec + start.tv_usec * 1e-6);
 
-			LOG("Test", INFO) << "Freq: " << fixed << setprecision(2) << ((double)count / t);
+			LOG("Test", INFO) << "Freq: " << fixed << setprecision(2)
+							  << ((double)count / t);
 
-			LOG("Test", INFO) << "Size: " << frameBuffer1->getDisplayBuffer()->getSize()
-								<<  ", Q: " << (frameBuffer1->getDisplayBuffer()->getSize() % 4096);
+			LOG("Test", INFO) << "Size: "
+							  << frameBuffer1->getDisplayBuffer()->getSize()
+							  <<  ", Q: "
+							  << (frameBuffer1->getDisplayBuffer()->getSize() %
+								  4096);
 
 			count = 0;
 			start = end;
@@ -242,7 +249,8 @@ int main(int argc, char *argv[])
 
 		gTerminate = false;
 
-	//	thread flipThread(bind(flipHandler, connector, frameBuffer1, frameBuffer2));
+	//	thread flipThread(bind(flipHandler, connector,
+	//						   frameBuffer1, frameBuffer2));
 
 #if 0
 		Input::WlKeyboard keyboard1(display, 37);

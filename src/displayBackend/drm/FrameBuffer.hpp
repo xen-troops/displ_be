@@ -48,7 +48,7 @@ public:
 	 * @param height      frame buffer height
 	 * @param pixelFormat frame buffer pixel format
 	 */
-	FrameBuffer(int fd, std::shared_ptr<DisplayBufferItf> displayBuffer,
+	FrameBuffer(int fd, DisplayBufferPtr displayBuffer,
 				uint32_t width, uint32_t height,
 				uint32_t pixelFormat);
 
@@ -72,14 +72,14 @@ public:
 	/**
 	 * Returns pointer to the display buffer
 	 */
-	std::shared_ptr<DisplayBufferItf> getDisplayBuffer() override
+	DisplayBufferPtr getDisplayBuffer() override
 	{
 		return mDisplayBuffer;
 	}
 
 private:
 	int mFd;
-	std::shared_ptr<DisplayBufferItf> mDisplayBuffer;
+	DisplayBufferPtr mDisplayBuffer;
 	uint32_t mWidth;
 	uint32_t mHeight;
 	uint32_t mId;

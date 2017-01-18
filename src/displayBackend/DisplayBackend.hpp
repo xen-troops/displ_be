@@ -55,7 +55,7 @@ public:
 	 * @param port           event channel port number
 	 * @param ref            grant table reference
 	 */
-	CtrlRingBuffer(std::shared_ptr<ConnectorItf> connector,
+	CtrlRingBuffer(ConnectorPtr connector,
 				   BuffersStoragePtr buffersStorage,
 				   EventRingBufferPtr eventBuffer,
 				   domid_t domId, evtchn_port_t port, grant_ref_t ref);
@@ -84,7 +84,7 @@ public:
 	 * @param backend   backend instance
 	 * @param id        frontend instance id
 	 */
-	DisplayFrontendHandler(std::shared_ptr<DisplayItf> display,
+	DisplayFrontendHandler(DisplayPtr display,
 						   XenBackend::BackendBase& backend,
 						    domid_t domId, int id) :
 		FrontendHandlerBase("DisplFrontend", backend, domId, id),
@@ -103,7 +103,7 @@ protected:
 private:
 
 	uint32_t mCurrentConId;
-	std::shared_ptr<DisplayItf> mDisplay;
+	DisplayPtr mDisplay;
 	BuffersStoragePtr mBuffersStorage;
 	XenBackend::Log mLog;
 
@@ -122,8 +122,7 @@ public:
 	 * @param deviceName    device name
 	 * @param id            instance id
 	 */
-	DisplayBackend(std::shared_ptr<DisplayItf> display,
-				   const std::string& deviceName,
+	DisplayBackend(DisplayPtr display, const std::string& deviceName,
 				   domid_t domId, int id);
 
 protected:
@@ -137,7 +136,7 @@ protected:
 
 private:
 
-	std::shared_ptr<DisplayItf> mDisplay;
+	DisplayPtr mDisplay;
 };
 
 #endif /* DISPLAYBACKEND_HPP_ */

@@ -96,6 +96,8 @@ public:
 
 };
 
+typedef std::shared_ptr<DisplayBufferItf> DisplayBufferPtr;
+
 /***************************************************************************//**
  * Provides frame buffer functionality.
  * @ingroup display_itf
@@ -124,8 +126,11 @@ public:
 	/**
 	 * Returns pointer to the display buffer
 	 */
-	virtual std::shared_ptr<DisplayBufferItf> getDisplayBuffer() = 0;
+	virtual DisplayBufferPtr getDisplayBuffer() = 0;
 };
+
+
+typedef std::shared_ptr<FrameBufferItf> FrameBufferPtr;
 
 /***************************************************************************//**
  * Provides connector functionality.
@@ -172,7 +177,7 @@ public:
 	 * @param frameBuffer frame buffer
 	 */
 	virtual void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
-					  std::shared_ptr<FrameBufferItf> frameBuffer) = 0;
+					  FrameBufferPtr frameBuffer) = 0;
 
 	/**
 	 * Releases initialized connector
@@ -184,13 +189,14 @@ public:
 	 * @param frameBuffer frame buffer to flip
 	 * @param cbk         callback
 	 */
-	virtual void pageFlip(std::shared_ptr<FrameBufferItf> frameBuffer,
-						  FlipCallback cbk) = 0;
+	virtual void pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk) = 0;
 
 private:
 
 	uint32_t mConId;
 };
+
+typedef std::shared_ptr<ConnectorItf> ConnectorPtr;
 
 /***************************************************************************//**
  * Display interface class.
@@ -221,7 +227,7 @@ public:
 	 * Returns connector by id
 	 * @param id connector id
 	 */
-	virtual std::shared_ptr<ConnectorItf> getConnectorById(uint32_t id) = 0;
+	virtual ConnectorPtr getConnectorById(uint32_t id) = 0;
 
 	/**
 	 * Creates display buffer
@@ -230,7 +236,7 @@ public:
 	 * @param bpp    bits per pixel
 	 * @return shared pointer to the display buffer
 	 */
-	virtual std::shared_ptr<DisplayBufferItf> createDisplayBuffer(
+	virtual DisplayBufferPtr createDisplayBuffer(
 			uint32_t width, uint32_t height, uint32_t bpp) = 0;
 
 	/**
@@ -242,7 +248,7 @@ public:
 	 * @param bpp    bits per pixel
 	 * @return shared pointer to the display buffer
 	 */
-	virtual std::shared_ptr<DisplayBufferItf> createDisplayBuffer(
+	virtual DisplayBufferPtr createDisplayBuffer(
 			domid_t domId, const std::vector<grant_ref_t>& refs,
 			uint32_t width, uint32_t height, uint32_t bpp) = 0;
 
@@ -254,9 +260,11 @@ public:
 	 * @param pixelFormat   pixel format
 	 * @return shared pointer to the frame buffer
 	 */
-	virtual std::shared_ptr<FrameBufferItf> createFrameBuffer(
-			std::shared_ptr<DisplayBufferItf> displayBuffer,
-			uint32_t width,uint32_t height, uint32_t pixelFormat) = 0;
+	virtual FrameBufferPtr createFrameBuffer(DisplayBufferPtr displayBuffer,
+											 uint32_t width,uint32_t height,
+											 uint32_t pixelFormat) = 0;
 };
+
+typedef std::shared_ptr<DisplayItf> DisplayPtr;
 
 #endif /* SRC_DISPLAYITF_HPP_ */

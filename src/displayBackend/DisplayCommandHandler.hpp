@@ -70,9 +70,9 @@ public:
 	 * @param buffersStorage buffers storage
 	 * @param eventBuffer    event ring buffer
 	 */
-	DisplayCommandHandler(std::shared_ptr<ConnectorItf> connector,
-				   BuffersStoragePtr buffersStorage,
-				   EventRingBufferPtr eventBuffer);
+	DisplayCommandHandler(ConnectorPtr connector,
+						  BuffersStoragePtr buffersStorage,
+						  EventRingBufferPtr eventBuffer);
 	~DisplayCommandHandler();
 
 	/**
@@ -87,7 +87,7 @@ private:
 
 	static std::unordered_map<int, CommandFn> sCmdTable;
 
-	std::shared_ptr<ConnectorItf> mConnector;
+	ConnectorPtr mConnector;
 	BuffersStoragePtr mBuffersStorage;
 	EventRingBufferPtr mEventBuffer;
 	uint16_t mEventId;

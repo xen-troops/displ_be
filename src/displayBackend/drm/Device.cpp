@@ -99,45 +99,44 @@ drm_magic_t Device::getMagic()
 	return magic;
 }
 
-shared_ptr<DisplayBufferItf> Device::createDisplayBuffer(
-		uint32_t width, uint32_t height, uint32_t bpp)
+DisplayBufferPtr Device::createDisplayBuffer(uint32_t width, uint32_t height,
+											 uint32_t bpp)
 {
 	lock_guard<mutex> lock(mMutex);
 
 	LOG(mLog, DEBUG) << "Create display buffer";
 
-	return shared_ptr<DisplayBufferItf>(new Dumb(mFd, width, height, bpp));
+	return DisplayBufferPtr(new Dumb(mFd, width, height, bpp));
 }
 
-shared_ptr<DisplayBufferItf> Device::createDisplayBuffer(
-		domid_t domId, const std::vector<grant_ref_t>& refs,
+DisplayBufferPtr Device::createDisplayBuffer(
+		domid_t domId, const vector<grant_ref_t>& refs,
 		uint32_t width, uint32_t height, uint32_t bpp)
 {
 	lock_guard<mutex> lock(mMutex);
 
 	if (isZeroCopySupported())
 	{
-		return shared_ptr<DisplayBufferItf>(
-				new Dumb(mFd, width, height, bpp, domId, refs));
+		return DisplayBufferPtr(new Dumb(mFd, width, height, bpp, domId, refs));
 	}
 	else
 	{
-		return shared_ptr<DisplayBufferItf>(
-				new DumbZeroCopy(mFd, mZeroCopyFd, width, height, bpp,
-								 domId, refs));
+		return DisplayBufferPtr(new DumbZeroCopy(mFd, mZeroCopyFd,
+												 width, height, bpp,
+												 domId, refs));
 	}
 }
 
-shared_ptr<FrameBufferItf> Device::createFrameBuffer(
-		shared_ptr<DisplayBufferItf> displayBuffer,uint32_t width,
-		uint32_t height, uint32_t pixelFormat)
+FrameBufferPtr Device::createFrameBuffer(DisplayBufferPtr displayBuffer,
+										 uint32_t width, uint32_t height,
+										 uint32_t pixelFormat)
 {
 	lock_guard<mutex> lock(mMutex);
 
 	LOG(mLog, DEBUG) << "Create frame buffer";
 
-	return shared_ptr<FrameBufferItf>(
-			new FrameBuffer(mFd, displayBuffer, width, height, pixelFormat));
+	return FrameBufferPtr(new FrameBuffer(mFd, displayBuffer, width,
+										  height, pixelFormat));
 }
 
 void Device::start()
@@ -170,7 +169,7 @@ void Device::stop()
 	}
 }
 
-shared_ptr<ConnectorItf> Device::getConnectorById(uint32_t id)
+ConnectorPtr Device::getConnectorById(uint32_t id)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -207,7 +206,7 @@ size_t Device::getConnectorsCount()
 	return mConnectors.size();
 }
 
-shared_ptr<ConnectorItf> Device::createConnector(uint32_t id, uint32_t drmId)
+ConnectorPtr Device::createConnector(uint32_t id, uint32_t drmId)
 {
 	lock_guard<mutex> lock(mMutex);
 

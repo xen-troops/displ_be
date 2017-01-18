@@ -38,7 +38,7 @@ using XenBackend::XenGnttabBuffer;
  * BuffersStorage
  ******************************************************************************/
 
-BuffersStorage::BuffersStorage(domid_t domId, shared_ptr<DisplayItf> display) :
+BuffersStorage::BuffersStorage(domid_t domId, DisplayPtr display) :
 	mDomId(domId),
 	mDisplay(display),
 	mLog("BuffersStorage")
@@ -93,7 +93,7 @@ void BuffersStorage::createFrameBuffer(uint64_t dbCookie, uint64_t fbCookie,
 	mFrameBuffers.emplace(fbCookie, frameBuffer);
 }
 
-shared_ptr<DisplayBufferItf> BuffersStorage::getDisplayBuffer(uint64_t dbCookie)
+DisplayBufferPtr BuffersStorage::getDisplayBuffer(uint64_t dbCookie)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -103,8 +103,7 @@ shared_ptr<DisplayBufferItf> BuffersStorage::getDisplayBuffer(uint64_t dbCookie)
 	return getDisplayBufferUnlocked(dbCookie);
 }
 
-shared_ptr<FrameBufferItf>
-BuffersStorage::getFrameBufferAndCopy(uint64_t fbCookie)
+FrameBufferPtr BuffersStorage::getFrameBufferAndCopy(uint64_t fbCookie)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -145,8 +144,7 @@ void BuffersStorage::destroyFrameBuffer(uint64_t fbCookie)
  * Private
  ******************************************************************************/
 
-shared_ptr<DisplayBufferItf>
-BuffersStorage::getDisplayBufferUnlocked(uint64_t dbCookie)
+DisplayBufferPtr BuffersStorage::getDisplayBufferUnlocked(uint64_t dbCookie)
 {
 	auto iter = mDisplayBuffers.find(dbCookie);
 
@@ -158,8 +156,7 @@ BuffersStorage::getDisplayBufferUnlocked(uint64_t dbCookie)
 	return iter->second;
 }
 
-shared_ptr<FrameBufferItf>
-BuffersStorage::getFrameBufferUnlocked(uint64_t fbCookie)
+FrameBufferPtr BuffersStorage::getFrameBufferUnlocked(uint64_t fbCookie)
 {
 	auto iter = mFrameBuffers.find(fbCookie);
 

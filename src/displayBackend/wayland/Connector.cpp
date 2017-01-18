@@ -50,7 +50,7 @@ Connector::~Connector()
  ******************************************************************************/
 
 void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
-					 shared_ptr<FrameBufferItf> frameBuffer)
+					 FrameBufferPtr frameBuffer)
 {
 	LOG(mLog, DEBUG) << "Init, id: " << getId() << ", x: " << x << ", y: " << y
 					 << ", w: " << width << ", height: " << height;
@@ -67,8 +67,7 @@ void Connector::release()
 	mInitialized = false;
 }
 
-void Connector::pageFlip(shared_ptr<FrameBufferItf> frameBuffer,
-						 FlipCallback cbk)
+void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 {
 	DLOG(mLog, DEBUG) << "Page flip, id: " << getId();
 

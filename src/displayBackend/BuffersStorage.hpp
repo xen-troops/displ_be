@@ -49,7 +49,7 @@ public:
 	 * @param domId   domain id
 	 * @param display display object
 	 */
-	BuffersStorage(domid_t domId, std::shared_ptr<DisplayItf> display);
+	BuffersStorage(domid_t domId, DisplayPtr display);
 
 	/**
 	 * Creates display buffer
@@ -80,13 +80,13 @@ public:
 	 * Returns display buffer object
 	 * @param dbCookie display buffer cookie
 	 */
-	std::shared_ptr<DisplayBufferItf> getDisplayBuffer(uint64_t dbCookie);
+	DisplayBufferPtr getDisplayBuffer(uint64_t dbCookie);
 
 	/**
 	 * Returns frame buffer object
 	 * @param fbCookie frame buffer cookie
 	 */
-	std::shared_ptr<FrameBufferItf> getFrameBufferAndCopy(uint64_t fbCookie);
+	FrameBufferPtr getFrameBufferAndCopy(uint64_t fbCookie);
 
 	/**
 	 * Destroys display buffer
@@ -103,20 +103,16 @@ public:
 private:
 
 	domid_t mDomId;
-	std::shared_ptr<DisplayItf> mDisplay;
+	DisplayPtr mDisplay;
 	XenBackend::Log mLog;
 
 	std::mutex mMutex;
 
-	std::unordered_map<uint64_t,
-					   std::shared_ptr<FrameBufferItf>> mFrameBuffers;
-	std::unordered_map<uint64_t,
-					   std::shared_ptr<DisplayBufferItf>> mDisplayBuffers;
+	std::unordered_map<uint64_t, FrameBufferPtr> mFrameBuffers;
+	std::unordered_map<uint64_t, DisplayBufferPtr> mDisplayBuffers;
 
-	std::shared_ptr<DisplayBufferItf>
-			getDisplayBufferUnlocked(uint64_t dbCookie);
-	std::shared_ptr<FrameBufferItf>
-			getFrameBufferUnlocked(uint64_t fbCookie);
+	DisplayBufferPtr getDisplayBufferUnlocked(uint64_t dbCookie);
+	FrameBufferPtr getFrameBufferUnlocked(uint64_t fbCookie);
 
 	void getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 					   std::vector<grant_ref_t>& refs);

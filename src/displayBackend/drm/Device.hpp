@@ -90,7 +90,7 @@ public:
 	 * @param drmId    DRM connector id
 	 * @return created connector
 	 */
-	std::shared_ptr<ConnectorItf> createConnector(uint32_t id, uint32_t drmId);
+	ConnectorPtr createConnector(uint32_t id, uint32_t drmId);
 
 	/**
 	 * Starts events handling
@@ -111,7 +111,7 @@ public:
 	 * Returns connector by id
 	 * @param id connector id
 	 */
-	std::shared_ptr<ConnectorItf> getConnectorById(uint32_t id) override;
+	ConnectorPtr getConnectorById(uint32_t id) override;
 
 	/**
 	 * Creates display buffer
@@ -120,8 +120,8 @@ public:
 	 * @param bpp    bits per pixel
 	 * @return shared pointer to the display buffer
 	 */
-	std::shared_ptr<DisplayBufferItf> createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp) override;
+	DisplayBufferPtr createDisplayBuffer(uint32_t width, uint32_t height,
+										 uint32_t bpp) override;
 
 	/**
 	 * Creates display buffer with associated grand table buffer
@@ -130,7 +130,7 @@ public:
 	 * @param bpp    bits per pixel
 	 * @return shared pointer to the display buffer
 	 */
-	std::shared_ptr<DisplayBufferItf> createDisplayBuffer(
+	DisplayBufferPtr createDisplayBuffer(
 			domid_t domId, const std::vector<grant_ref_t>& refs,
 			uint32_t width, uint32_t height, uint32_t bpp) override;
 
@@ -142,9 +142,9 @@ public:
 	 * @param pixelFormat   pixel format
 	 * @return shared pointer to the frame buffer
 	 */
-	std::shared_ptr<FrameBufferItf> createFrameBuffer(
-			std::shared_ptr<DisplayBufferItf> displayBuffer,
-			uint32_t width,uint32_t height, uint32_t pixelFormat) override;
+	FrameBufferPtr createFrameBuffer(DisplayBufferPtr displayBuffer,
+									 uint32_t width,uint32_t height,
+									 uint32_t pixelFormat) override;
 
 private:
 
