@@ -19,7 +19,7 @@
  *
  */
 
-#include "Device.hpp"
+#include "Display.hpp"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -51,7 +51,7 @@ const uint32_t cInvalidId = 0;
  * Device
  ******************************************************************************/
 
-Device::Device(const string& name) :
+Display::Display(const string& name) :
 	mName(name),
 	mFd(-1),
 	mZeroCopyFd(-1),
@@ -70,7 +70,7 @@ Device::Device(const string& name) :
 	}
 }
 
-Device::~Device()
+Display::~Display()
 {
 	stop();
 
@@ -83,7 +83,7 @@ Device::~Device()
  * Public
  ******************************************************************************/
 
-drm_magic_t Device::getMagic()
+drm_magic_t Display::getMagic()
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -99,7 +99,7 @@ drm_magic_t Device::getMagic()
 	return magic;
 }
 
-DisplayBufferPtr Device::createDisplayBuffer(uint32_t width, uint32_t height,
+DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
 											 uint32_t bpp)
 {
 	lock_guard<mutex> lock(mMutex);
@@ -109,7 +109,7 @@ DisplayBufferPtr Device::createDisplayBuffer(uint32_t width, uint32_t height,
 	return DisplayBufferPtr(new Dumb(mFd, width, height, bpp));
 }
 
-DisplayBufferPtr Device::createDisplayBuffer(
+DisplayBufferPtr Display::createDisplayBuffer(
 		domid_t domId, const vector<grant_ref_t>& refs,
 		uint32_t width, uint32_t height, uint32_t bpp)
 {
@@ -127,7 +127,7 @@ DisplayBufferPtr Device::createDisplayBuffer(
 	}
 }
 
-FrameBufferPtr Device::createFrameBuffer(DisplayBufferPtr displayBuffer,
+FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 										 uint32_t width, uint32_t height,
 										 uint32_t pixelFormat)
 {
@@ -139,7 +139,7 @@ FrameBufferPtr Device::createFrameBuffer(DisplayBufferPtr displayBuffer,
 										  height, pixelFormat));
 }
 
-void Device::start()
+void Display::start()
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -152,10 +152,10 @@ void Device::start()
 
 	mTerminate = false;
 
-	mThread = thread(&Device::eventThread, this);
+	mThread = thread(&Display::eventThread, this);
 }
 
-void Device::stop()
+void Display::stop()
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -169,7 +169,7 @@ void Device::stop()
 	}
 }
 
-ConnectorPtr Device::getConnectorById(uint32_t id)
+ConnectorPtr Display::getConnectorById(uint32_t id)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -183,7 +183,7 @@ ConnectorPtr Device::getConnectorById(uint32_t id)
 	return dynamic_pointer_cast<ConnectorItf>(iter->second);
 }
 
-shared_ptr<Connector> Device::getConnectorByIndex(uint32_t index)
+shared_ptr<Connector> Display::getConnectorByIndex(uint32_t index)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -199,14 +199,14 @@ shared_ptr<Connector> Device::getConnectorByIndex(uint32_t index)
 	return iter->second;
 }
 
-size_t Device::getConnectorsCount()
+size_t Display::getConnectorsCount()
 {
 	lock_guard<mutex> lock(mMutex);
 
 	return mConnectors.size();
 }
 
-ConnectorPtr Device::createConnector(uint32_t id, uint32_t drmId)
+ConnectorPtr Display::createConnector(uint32_t id, uint32_t drmId)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -230,7 +230,7 @@ ConnectorPtr Device::createConnector(uint32_t id, uint32_t drmId)
  * Private
  ******************************************************************************/
 
-void Device::init()
+void Display::init()
 {
 	mFd = open(mName.c_str(), O_RDWR | O_CLOEXEC);
 
@@ -268,7 +268,7 @@ void Device::init()
 	LOG(mLog, DEBUG) << "Create Drm card: " << mName;
 }
 
-void Device::release()
+void Display::release()
 {
 	mRes.reset();
 
@@ -285,7 +285,7 @@ void Device::release()
 	}
 }
 
-void Device::eventThread()
+void Display::eventThread()
 {
 	try
 	{
@@ -320,7 +320,7 @@ void Device::eventThread()
 	}
 }
 
-void Device::handleFlipEvent(int fd, unsigned int sequence,
+void Display::handleFlipEvent(int fd, unsigned int sequence,
 								unsigned int tv_sec, unsigned int tv_usec,
 								void *user_data)
 {

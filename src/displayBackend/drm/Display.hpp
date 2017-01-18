@@ -38,19 +38,19 @@ namespace Drm {
  ******************************************************************************/
 
 /***************************************************************************//**
- * DRM Device class.
+ * DRM Display class.
  * @ingroup drm
  ******************************************************************************/
-class Device : public DisplayItf
+class Display : public DisplayItf
 {
 public:
 
 	/**
 	 * @param name device name
 	 */
-	explicit Device(const std::string& name);
+	explicit Display(const std::string& name);
 
-	~Device();
+	~Display();
 
 	/**
 	 * Returns opened DRM file descriptor

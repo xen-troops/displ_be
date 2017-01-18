@@ -28,7 +28,7 @@
 
 #include <xen/be/Log.hpp>
 
-#include "drm/Device.hpp"
+#include "drm/Display.hpp"
 #include "DisplayBackend.hpp"
 #include "input/InputManager.hpp"
 #include "InputBackend.hpp"
@@ -130,9 +130,9 @@ bool commandLineOptions(int argc, char *argv[])
 	return true;
 }
 
-shared_ptr<Drm::Device> getDrmDisplay()
+shared_ptr<Drm::Display> getDrmDisplay()
 {
-	shared_ptr<Drm::Device> device(new Drm::Device("/dev/dri/card0"));
+	shared_ptr<Drm::Display> device(new Drm::Display("/dev/dri/card0"));
 
 	device->createConnector(0, 37);
 	device->createConnector(1, 42);

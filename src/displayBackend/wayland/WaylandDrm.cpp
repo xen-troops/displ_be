@@ -30,8 +30,6 @@ using std::shared_ptr;
 using std::string;
 using std::vector;
 
-using Drm::Device;
-
 namespace Wayland {
 
 /*******************************************************************************
@@ -133,7 +131,7 @@ void WaylandDrm::onDevice(const string& name)
 
 	LOG(mLog, DEBUG) << "onDevice name: " << name;
 
-	mDrmDevice.reset(new Device(name));
+	mDrmDevice.reset(new Drm::Display(name));
 
 	wl_drm_authenticate(mWlDrm, mDrmDevice->getMagic());
 }

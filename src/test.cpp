@@ -31,7 +31,7 @@
 
 #include <drm_fourcc.h>
 
-#include "drm/Device.hpp"
+#include "drm/Display.hpp"
 #include "wayland/Display.hpp"
 #include "input/InputManager.hpp"
 #include "input/WlInput.hpp"
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
 
 		registerSignals();
 
-		Drm::Device display("/dev/dri/card0");
+		Drm::Display display("/dev/dri/card0");
 #if 0
 		Wayland::Display display;
 #endif

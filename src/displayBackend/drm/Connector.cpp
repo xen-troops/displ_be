@@ -21,7 +21,7 @@
 
 #include "Connector.hpp"
 
-#include "Device.hpp"
+#include "Display.hpp"
 
 using std::chrono::milliseconds;
 using std::shared_ptr;
@@ -34,7 +34,7 @@ namespace Drm {
  * Connector
  ******************************************************************************/
 
-Connector::Connector(Device& device, int conId) : ConnectorItf(conId),
+Connector::Connector(Display& device, int conId) : ConnectorItf(conId),
 	mDev(device),
 	mFd(device.getFd()),
 	mCrtcId(cInvalidId),

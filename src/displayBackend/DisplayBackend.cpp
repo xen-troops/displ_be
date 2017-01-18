@@ -27,7 +27,7 @@
 
 #include <xen/be/XenStore.hpp>
 
-#include "drm/Device.hpp"
+#include "drm/Display.hpp"
 #include "wayland/Display.hpp"
 
 /***************************************************************************//**

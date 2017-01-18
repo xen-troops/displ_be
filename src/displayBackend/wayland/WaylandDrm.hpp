@@ -28,7 +28,7 @@
 
 #include <xen/be/Log.hpp>
 
-#include "drm/Device.hpp"
+#include "drm/Display.hpp"
 #include "Registry.hpp"
 #include "wayland-drm/wayland-drm-client-protocol.h"
 
@@ -63,7 +63,7 @@ private:
 	bool mIsAuthenticated;
 	XenBackend::Log mLog;
 
-	std::unique_ptr<Drm::Device> mDrmDevice;
+	std::unique_ptr<Drm::Display> mDrmDevice;
 	wl_drm_listener mWlListener;
 
 	std::mutex mMutex;

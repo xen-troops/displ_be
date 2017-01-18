@@ -6,7 +6,7 @@ project(${PROJECT_NAME})
 
 set(DRM_SOURCES
 	src/displayBackend/drm/Connector.cpp
-	src/displayBackend/drm/Device.cpp
+	src/displayBackend/drm/Display.cpp
 	src/displayBackend/drm/Dumb.cpp
 	src/displayBackend/drm/DumbZeroCopy.cpp
 	src/displayBackend/drm/FrameBuffer.cpp

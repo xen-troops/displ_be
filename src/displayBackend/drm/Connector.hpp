@@ -32,7 +32,7 @@ namespace Drm {
 
 extern const uint32_t cInvalidId;
 
-class Device;
+class Display;
 
 /***************************************************************************//**
  * Provides DRM connector functionality.
@@ -46,7 +46,7 @@ public:
 	 * @param device DRM device
 	 * @param conId  connector id
 	 */
-	Connector(Device& device, int conId);
+	Connector(Display& device, int conId);
 
 	~Connector();
 
@@ -94,7 +94,7 @@ public:
 
 private:
 
-	Device& mDev;
+	Display& mDev;
 	int mFd;
 	uint32_t mCrtcId;
 	ModeConnector mConnector;
@@ -110,7 +110,7 @@ private:
 	drmModeModeInfoPtr findMode(uint32_t width, uint32_t height);
 
 
-	friend class Device;
+	friend class Display;
 
 	void flipFinished();
 };

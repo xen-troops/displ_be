@@ -21,10 +21,11 @@
 
 #include "FrameBuffer.hpp"
 
+#include <xf86drmMode.h>
+
 #include <xen/be/Log.hpp>
 
-#include "Dumb.hpp"
-#include "Device.hpp"
+#include "Exception.hpp"
 
 using std::shared_ptr;
 using std::string;

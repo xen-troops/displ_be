@@ -31,8 +31,6 @@ namespace Drm {
 
 extern const uint32_t cInvalidId;
 
-class Device;
-
 /***************************************************************************//**
  * Provides DRM dumb functionality.
  * @ingroup drm
