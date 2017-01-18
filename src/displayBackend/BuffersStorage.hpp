@@ -122,4 +122,6 @@ private:
 					   std::vector<grant_ref_t>& refs);
 };
 
+typedef std::shared_ptr<BuffersStorage> BuffersStoragePtr;
+
 #endif /* SRC_BUFFERSSTORAGE_HPP_ */

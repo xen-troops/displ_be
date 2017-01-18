@@ -34,8 +34,8 @@
  * Ring buffer used to send events to the frontend.
  * @ingroup input_be
  ******************************************************************************/
-class EventRingBuffer : public XenBackend::RingBufferOutBase<xenkbd_page,
-															 xenkbd_in_event>
+class InputRingBuffer : public XenBackend::RingBufferOutBase<xenkbd_page,
+		xenkbd_in_event>
 {
 public:
 	/**
@@ -45,25 +45,25 @@ public:
 	 * @param offset    start of the ring buffer inside the page
 	 * @param size      size of the ring buffer
 	 */
-	EventRingBuffer(domid_t domId, evtchn_port_t port, int ref,
+	InputRingBuffer(domid_t domId, evtchn_port_t port, int ref,
 					int offset, size_t size) :
 		RingBufferOutBase<xenkbd_page, xenkbd_in_event>(domId, port, ref,
 														offset, size) {}
 };
 
-typedef std::shared_ptr<EventRingBuffer> EventRingBufferPtr;
+typedef std::shared_ptr<InputRingBuffer> InputRingBufferPtr;
 
 class KeyboardHandler
 {
 public:
 
 	KeyboardHandler(InputItf::KeyboardPtr keyboard,
-					EventRingBufferPtr ringBuffer);
+					InputRingBufferPtr ringBuffer);
 
 private:
 
 	InputItf::KeyboardPtr mKeyboard;
-	EventRingBufferPtr mRingBuffer;
+	InputRingBufferPtr mRingBuffer;
 	XenBackend::Log mLog;
 
 	void onKey(uint32_t key, uint32_t state);
@@ -74,12 +74,12 @@ class PointerHandler
 public:
 
 	PointerHandler(InputItf::PointerPtr pointer,
-				   EventRingBufferPtr ringBuffer);
+				   InputRingBufferPtr ringBuffer);
 
 private:
 
 	InputItf::PointerPtr mPointer;
-	EventRingBufferPtr mRingBuffer;
+	InputRingBufferPtr mRingBuffer;
 	XenBackend::Log mLog;
 
 	void onMove(int32_t x, int32_t y);
@@ -91,12 +91,12 @@ class TouchHandler
 {
 public:
 
-	TouchHandler(InputItf::TouchPtr touch, EventRingBufferPtr ringBuffer);
+	TouchHandler(InputItf::TouchPtr touch, InputRingBufferPtr ringBuffer);
 
 private:
 
 	InputItf::TouchPtr mTouch;
-	EventRingBufferPtr mRingBuffer;
+	InputRingBufferPtr mRingBuffer;
 	XenBackend::Log mLog;
 
 	void onDown(int32_t id, int32_t x, int32_t y);

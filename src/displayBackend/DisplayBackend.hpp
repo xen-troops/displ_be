@@ -43,11 +43,8 @@ enum class DisplayMode
  * Ring buffer used for the connector control.
  * @ingroup displ_be
  ******************************************************************************/
-class ConCtrlRingBuffer : public XenBackend::RingBufferInBase<
-											xen_displif_back_ring,
-											xen_displif_sring,
-											xendispl_req,
-											xendispl_resp>
+class CtrlRingBuffer : public XenBackend::RingBufferInBase<
+		xen_displif_back_ring, xen_displif_sring, xendispl_req, xendispl_resp>
 {
 public:
 	/**
@@ -58,10 +55,10 @@ public:
 	 * @param port           event channel port number
 	 * @param ref            grant table reference
 	 */
-	ConCtrlRingBuffer(std::shared_ptr<ConnectorItf> connector,
-					  std::shared_ptr<BuffersStorage> buffersStorage,
-					  std::shared_ptr<ConEventRingBuffer> eventBuffer,
-					  domid_t domId, evtchn_port_t port, grant_ref_t ref);
+	CtrlRingBuffer(std::shared_ptr<ConnectorItf> connector,
+				   BuffersStoragePtr buffersStorage,
+				   EventRingBufferPtr eventBuffer,
+				   domid_t domId, evtchn_port_t port, grant_ref_t ref);
 
 private:
 
@@ -70,6 +67,8 @@ private:
 
 	void processRequest(const xendispl_req& req);
 };
+
+typedef std::shared_ptr<CtrlRingBuffer> CtrlRingBufferPtr;
 
 /***************************************************************************//**
  * Display frontend handler.
@@ -105,7 +104,7 @@ private:
 
 	uint32_t mCurrentConId;
 	std::shared_ptr<DisplayItf> mDisplay;
-	std::shared_ptr<BuffersStorage> mBuffersStorage;
+	BuffersStoragePtr mBuffersStorage;
 	XenBackend::Log mLog;
 
 	void createConnector(const std::string& streamPath, int conId);

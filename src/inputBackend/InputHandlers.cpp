@@ -33,7 +33,7 @@ using InputItf::TouchPtr;
  ******************************************************************************/
 
 KeyboardHandler::KeyboardHandler(KeyboardPtr keyboard,
-								 EventRingBufferPtr ringBuffer) :
+								 InputRingBufferPtr ringBuffer) :
 	mKeyboard(keyboard),
 	mRingBuffer(ringBuffer),
 	mLog("KeyboardHandler")
@@ -59,7 +59,7 @@ void KeyboardHandler::onKey(uint32_t key, uint32_t state)
  ******************************************************************************/
 
 PointerHandler::PointerHandler(PointerPtr pointer,
-							   EventRingBufferPtr ringBuffer) :
+							   InputRingBufferPtr ringBuffer) :
 	mPointer(pointer),
 	mRingBuffer(ringBuffer),
 	mLog("PointerHandler")
@@ -118,7 +118,7 @@ void PointerHandler::onAxis(uint32_t axis, int32_t value)
  * TouchHandler
  ******************************************************************************/
 
-TouchHandler::TouchHandler(TouchPtr touch, EventRingBufferPtr ringBuffer) :
+TouchHandler::TouchHandler(TouchPtr touch, InputRingBufferPtr ringBuffer) :
 	mTouch(touch),
 	mRingBuffer(ringBuffer),
 	mLog("TouchHandler")

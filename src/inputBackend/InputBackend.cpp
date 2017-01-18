@@ -61,8 +61,8 @@ void InputFrontendHandler::onBind()
 	grant_ref_t ref = getXenStore().readUint(
 			getXsFrontendPath() + "/" XENKBD_FIELD_RING_GREF);
 
-	EventRingBufferPtr eventRingBuffer(
-			new EventRingBuffer(getDomId(), port, ref,
+	InputRingBufferPtr eventRingBuffer(
+			new InputRingBuffer(getDomId(), port, ref,
 								XENKBD_IN_RING_OFFS, XENKBD_IN_RING_SIZE));
 
 	addRingBuffer(eventRingBuffer);
@@ -73,7 +73,7 @@ void InputFrontendHandler::onBind()
 	createTouchHandlers();
 }
 
-void InputFrontendHandler::createKeyboardHandler(EventRingBufferPtr ringBuffer)
+void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer)
 {
 	try
 	{
@@ -86,7 +86,7 @@ void InputFrontendHandler::createKeyboardHandler(EventRingBufferPtr ringBuffer)
 	}
 }
 
-void InputFrontendHandler::createPointerHandler(EventRingBufferPtr ringBuffer)
+void InputFrontendHandler::createPointerHandler(InputRingBufferPtr ringBuffer)
 {
 	try
 	{
@@ -118,8 +118,8 @@ void InputFrontendHandler::createTouchHandlers()
 			grant_ref_t ref = getXenStore().readUint(
 					path + "/" XENKBD_FIELD_RING_GREF);
 
-			EventRingBufferPtr ringBuffer(
-					new EventRingBuffer(getDomId(), port, ref,
+			InputRingBufferPtr ringBuffer(
+					new InputRingBuffer(getDomId(), port, ref,
 										XENKBD_IN_RING_OFFS,
 										XENKBD_IN_RING_SIZE));
 

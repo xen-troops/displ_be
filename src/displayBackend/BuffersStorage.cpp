@@ -192,7 +192,8 @@ void BuffersStorage::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 				static_cast<xendispl_page_directory*>(pageBuffer.get());
 
 		size_t numGrefs = min(requestedNumGrefs, (XC_PAGE_SIZE -
-							  offsetof(xendispl_page_directory, gref)) / sizeof(uint32_t));
+							  offsetof(xendispl_page_directory, gref)) /
+							  sizeof(uint32_t));
 
 		DLOG(mLog, ERROR) << "Gref address: " << pageDirectory->gref;
 

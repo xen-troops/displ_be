@@ -36,8 +36,8 @@
  * Ring buffer used to send events to the frontend.
  * @ingroup displ_be
  ******************************************************************************/
-class ConEventRingBuffer : public XenBackend::RingBufferOutBase<
-											  xendispl_event_page, xendispl_evt>
+class EventRingBuffer : public XenBackend::RingBufferOutBase<
+		xendispl_event_page, xendispl_evt>
 {
 public:
 	/**
@@ -48,13 +48,15 @@ public:
 	 * @param offset    start of the ring buffer inside the page
 	 * @param size      size of the ring buffer
 	 */
-	ConEventRingBuffer(int id, domid_t domId, evtchn_port_t port,
-					   grant_ref_t ref, int offset, size_t size);
+	EventRingBuffer(int id, domid_t domId, evtchn_port_t port,
+					grant_ref_t ref, int offset, size_t size);
 
 private:
 	int mId;
 	XenBackend::Log mLog;
 };
+
+typedef std::shared_ptr<EventRingBuffer> EventRingBufferPtr;
 
 /**
  * Handles commands received from the frontend.
@@ -69,8 +71,8 @@ public:
 	 * @param eventBuffer    event ring buffer
 	 */
 	DisplayCommandHandler(std::shared_ptr<ConnectorItf> connector,
-				   std::shared_ptr<BuffersStorage> buffersStorage,
-				   std::shared_ptr<ConEventRingBuffer> eventBuffer);
+				   BuffersStoragePtr buffersStorage,
+				   EventRingBufferPtr eventBuffer);
 	~DisplayCommandHandler();
 
 	/**
@@ -86,8 +88,8 @@ private:
 	static std::unordered_map<int, CommandFn> sCmdTable;
 
 	std::shared_ptr<ConnectorItf> mConnector;
-	std::shared_ptr<BuffersStorage> mBuffersStorage;
-	std::shared_ptr<ConEventRingBuffer> mEventBuffer;
+	BuffersStoragePtr mBuffersStorage;
+	EventRingBufferPtr mEventBuffer;
 	uint16_t mEventId;
 
 	XenBackend::Log mLog;

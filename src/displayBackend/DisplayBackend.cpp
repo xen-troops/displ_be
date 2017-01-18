@@ -42,18 +42,17 @@ using std::shared_ptr;
 using std::string;
 using std::vector;
 
-using XenBackend::FrontendHandlerBase;
-using XenBackend::RingBufferBase;
+using XenBackend::FrontendHandlerPtr;
 
 /*******************************************************************************
  * ConCtrlRingBuffer
  ******************************************************************************/
 
-ConCtrlRingBuffer::ConCtrlRingBuffer(shared_ptr<ConnectorItf> connector,
-									 shared_ptr<BuffersStorage> buffersStorage,
-									 shared_ptr<ConEventRingBuffer> eventBuffer,
-									 domid_t domId,
-									 evtchn_port_t port, grant_ref_t ref) :
+CtrlRingBuffer::CtrlRingBuffer(shared_ptr<ConnectorItf> connector,
+							   BuffersStoragePtr buffersStorage,
+							   EventRingBufferPtr eventBuffer,
+							   domid_t domId,
+							   evtchn_port_t port, grant_ref_t ref) :
 	RingBufferInBase<xen_displif_back_ring, xen_displif_sring,
 					 xendispl_req, xendispl_resp>(domId, port, ref),
 	mCommandHandler(connector, buffersStorage, eventBuffer),
@@ -62,7 +61,7 @@ ConCtrlRingBuffer::ConCtrlRingBuffer(shared_ptr<ConnectorItf> connector,
 	LOG(mLog, DEBUG) << "Create ctrl ring buffer";
 }
 
-void ConCtrlRingBuffer::processRequest(const xendispl_req& req)
+void CtrlRingBuffer::processRequest(const xendispl_req& req)
 {
 	DLOG(mLog, DEBUG) << "Request received, cmd:"
 					  << static_cast<int>(req.operation);
@@ -110,10 +109,8 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 	uint32_t ref = getXenStore().readInt(conPath + "/" +
 										 XENDISPL_FIELD_EVT_RING_REF);
 
-	shared_ptr<ConEventRingBuffer> eventRingBuffer(
-			new ConEventRingBuffer(conId, getDomId(), port, ref,
-								   XENDISPL_IN_RING_OFFS,
-								   XENDISPL_IN_RING_SIZE));
+	EventRingBufferPtr eventRingBuffer(new EventRingBuffer(conId, getDomId(),
+			port, ref, XENDISPL_IN_RING_OFFS, XENDISPL_IN_RING_SIZE));
 
 	addRingBuffer(eventRingBuffer);
 
@@ -124,11 +121,11 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 	ref = getXenStore().readInt(conPath + "/" +
 								XENDISPL_FIELD_CTRL_RING_REF);
 
-	shared_ptr<RingBufferBase> ctrlRingBuffer(
-			new ConCtrlRingBuffer(mDisplay->getConnectorById(conId),
-								  mBuffersStorage,
-								  eventRingBuffer,
-								  getDomId(), port, ref));
+	CtrlRingBufferPtr ctrlRingBuffer(
+			new CtrlRingBuffer(mDisplay->getConnectorById(conId),
+							   mBuffersStorage,
+							   eventRingBuffer,
+							   getDomId(), port, ref));
 
 	addRingBuffer(ctrlRingBuffer);
 }
@@ -148,7 +145,6 @@ DisplayBackend::DisplayBackend(shared_ptr<DisplayItf> display,
 
 void DisplayBackend::onNewFrontend(domid_t domId, int id)
 {
-
-	addFrontendHandler(shared_ptr<FrontendHandlerBase>(
+	addFrontendHandler(FrontendHandlerPtr(
 			new DisplayFrontendHandler(mDisplay, *this, domId, id)));
 }

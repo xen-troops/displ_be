@@ -55,9 +55,9 @@ unordered_map<int, DisplayCommandHandler::CommandFn>
  * ConEventRingBuffer
  ******************************************************************************/
 
-ConEventRingBuffer::ConEventRingBuffer(int id, domid_t domId,
-									   evtchn_port_t port, grant_ref_t ref,
-									   int offset, size_t size) :
+EventRingBuffer::EventRingBuffer(int id, domid_t domId,
+								 evtchn_port_t port, grant_ref_t ref,
+								 int offset, size_t size) :
 	RingBufferOutBase<xendispl_event_page, xendispl_evt>(domId, port, ref,
 														 offset, size),
 	mId(id),
@@ -70,9 +70,10 @@ ConEventRingBuffer::ConEventRingBuffer(int id, domid_t domId,
  * CommandHandler
  ******************************************************************************/
 
-DisplayCommandHandler::DisplayCommandHandler(shared_ptr<ConnectorItf> connector,
-							   shared_ptr<BuffersStorage> buffersStorage,
-							   shared_ptr<ConEventRingBuffer> eventBuffer) :
+DisplayCommandHandler::DisplayCommandHandler(
+		shared_ptr<ConnectorItf> connector,
+		BuffersStoragePtr buffersStorage,
+		EventRingBufferPtr eventBuffer) :
 	mConnector(connector),
 	mBuffersStorage(buffersStorage),
 	mEventBuffer(eventBuffer),
