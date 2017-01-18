@@ -24,7 +24,6 @@
 #include "Display.hpp"
 
 using std::chrono::milliseconds;
-using std::shared_ptr;
 using std::this_thread::sleep_for;
 using std::to_string;
 

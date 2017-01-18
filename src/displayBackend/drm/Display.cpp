@@ -36,13 +36,11 @@
 using std::dynamic_pointer_cast;
 using std::lock_guard;
 using std::mutex;
-using std::shared_ptr;
 using std::string;
 using std::thread;
 using std::to_string;
 using std::vector;
 
-using DisplayItf::ConnectorPtr;
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
 
@@ -172,7 +170,7 @@ void Display::stop()
 	}
 }
 
-ConnectorPtr Display::getConnectorById(uint32_t id)
+DisplayItf::ConnectorPtr Display::getConnectorById(uint32_t id)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -186,7 +184,7 @@ ConnectorPtr Display::getConnectorById(uint32_t id)
 	return dynamic_pointer_cast<Connector>(iter->second);
 }
 
-shared_ptr<Connector> Display::getConnectorByIndex(uint32_t index)
+Drm::ConnectorPtr Display::getConnectorByIndex(uint32_t index)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -209,7 +207,7 @@ size_t Display::getConnectorsCount()
 	return mConnectors.size();
 }
 
-ConnectorPtr Display::createConnector(uint32_t id, uint32_t drmId)
+DisplayItf::ConnectorPtr Display::createConnector(uint32_t id, uint32_t drmId)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -217,7 +215,7 @@ ConnectorPtr Display::createConnector(uint32_t id, uint32_t drmId)
 	{
 		if (drmId == (*mRes)->connectors[i])
 		{
-			shared_ptr<Connector> connector(
+			Drm::ConnectorPtr connector(
 					new Connector(*this, (*mRes)->connectors[i]));
 
 			mConnectors.emplace(id, connector);

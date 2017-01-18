@@ -20,7 +20,6 @@
 
 #include "DisplayBackend.hpp"
 
-#include <memory>
 #include <vector>
 
 #include <drm_fourcc.h>
@@ -38,7 +37,6 @@
  *
  ******************************************************************************/
 
-using std::shared_ptr;
 using std::string;
 using std::vector;
 

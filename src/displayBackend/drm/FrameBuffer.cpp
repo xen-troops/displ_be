@@ -27,7 +27,6 @@
 
 #include "Exception.hpp"
 
-using std::shared_ptr;
 using std::string;
 
 using DisplayItf::DisplayBufferPtr;

@@ -40,7 +40,6 @@ using std::bind;
 using std::cin;
 using std::dynamic_pointer_cast;
 using std::make_shared;
-using std::shared_ptr;
 using std::setprecision;
 using std::fixed;
 using std::string;

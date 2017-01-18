@@ -29,7 +29,6 @@ using std::move;
 using std::mutex;
 using std::setfill;
 using std::setw;
-using std::shared_ptr;
 using std::vector;
 
 using XenBackend::XenGnttabBuffer;

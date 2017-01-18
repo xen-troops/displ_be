@@ -24,7 +24,6 @@
 
 #include "DisplayItf.hpp"
 
-#include <memory>
 #include <thread>
 #include <unordered_map>
 
@@ -78,7 +77,7 @@ public:
 	 * Returns connector by index
 	 * @param index index in arrays
 	 */
-	std::shared_ptr<Connector> getConnectorByIndex(uint32_t index);
+	Drm::ConnectorPtr getConnectorByIndex(uint32_t index);
 
 	/**
 	 * Returns number of connectors
@@ -159,7 +158,7 @@ private:
 
 	std::unique_ptr<ModeResource> mRes;
 
-	std::unordered_map<uint32_t, std::shared_ptr<Connector>> mConnectors;
+	std::unordered_map<uint32_t, Drm::ConnectorPtr> mConnectors;
 
 	std::mutex mMutex;
 	std::thread mThread;
@@ -176,6 +175,8 @@ private:
 
 	bool isStopped() { return mTerminate; }
 };
+
+typedef std::shared_ptr<Display> DisplayPtr;
 
 }
 

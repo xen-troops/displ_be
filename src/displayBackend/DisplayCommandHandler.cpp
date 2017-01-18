@@ -33,7 +33,6 @@ using std::hex;
 using std::out_of_range;
 using std::setfill;
 using std::setw;
-using std::shared_ptr;
 using std::unordered_map;
 
 using XenBackend::XenException;

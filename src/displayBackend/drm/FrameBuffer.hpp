@@ -22,7 +22,6 @@
 #ifndef SRC_DRM_FRAMEBUFFER_HPP_
 #define SRC_DRM_FRAMEBUFFER_HPP_
 
-#include <memory>
 #include <functional>
 
 #include "DisplayItf.hpp"

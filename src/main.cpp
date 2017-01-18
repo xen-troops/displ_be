@@ -129,9 +129,9 @@ bool commandLineOptions(int argc, char *argv[])
 	return true;
 }
 
-shared_ptr<Drm::Display> getDrmDisplay()
+Drm::DisplayPtr getDrmDisplay()
 {
-	shared_ptr<Drm::Display> device(new Drm::Display("/dev/dri/card0"));
+	Drm::DisplayPtr device(new Drm::Display("/dev/dri/card0"));
 
 	device->createConnector(0, 37);
 	device->createConnector(1, 42);

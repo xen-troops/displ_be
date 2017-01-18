@@ -23,7 +23,6 @@
 #define SRC_DRM_DUMB_HPP_
 
 #include <cstdint>
-#include <memory>
 
 #include "DisplayItf.hpp"
 

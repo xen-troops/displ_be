@@ -115,6 +115,8 @@ private:
 	void flipFinished();
 };
 
+typedef std::shared_ptr<Connector> ConnectorPtr;
+
 }
 
 #endif /* SRC_DRM_CONNECTOR_HPP_ */
