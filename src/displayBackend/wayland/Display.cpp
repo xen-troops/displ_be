@@ -32,11 +32,9 @@ using namespace std::placeholders;
 using std::bind;
 using std::dynamic_pointer_cast;
 using std::exception;
-using std::shared_ptr;
 using std::to_string;
 using std::thread;
 
-using DisplayItf::ConnectorPtr;
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
 
@@ -99,7 +97,7 @@ void Display::createBackgroundSurface(uint32_t width, uint32_t height)
 	}
 }
 
-ConnectorPtr Display::createConnector(uint32_t id, uint32_t x,
+DisplayItf::ConnectorPtr Display::createConnector(uint32_t id, uint32_t x,
 												  uint32_t y, uint32_t width,
 												  uint32_t height)
 {
@@ -124,7 +122,7 @@ ConnectorPtr Display::createConnector(uint32_t id, uint32_t x,
 
 	LOG(mLog, DEBUG) << "Create connector, id: " << id;
 
-	mConnectors.emplace(id, shared_ptr<Connector>(connector));
+	mConnectors.emplace(id, Wayland::ConnectorPtr(connector));
 
 	return getConnectorById(id);
 }
@@ -160,7 +158,7 @@ bool Display::isZeroCopySupported() const
 	return false;
 }
 
-ConnectorPtr Display::getConnectorById(uint32_t id)
+DisplayItf::ConnectorPtr Display::getConnectorById(uint32_t id)
 {
 	auto iter = mConnectors.find(id);
 
@@ -221,7 +219,7 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
  * Private
  ******************************************************************************/
 
-shared_ptr<ShellSurface> Display::createShellSurface(uint32_t x, uint32_t y)
+ShellSurfacePtr Display::createShellSurface(uint32_t x, uint32_t y)
 {
 	auto shellSurface =
 			mShell->createShellSurface(mCompositor->createSurface());
@@ -244,9 +242,8 @@ shared_ptr<ShellSurface> Display::createShellSurface(uint32_t x, uint32_t y)
 	return shellSurface;
 }
 
-shared_ptr<IviSurface> Display::createIviSurface(uint32_t x, uint32_t y,
-												 uint32_t width,
-												 uint32_t height)
+IviSurfacePtr Display::createIviSurface(uint32_t x, uint32_t y,
+										uint32_t width, uint32_t height)
 {
 	return mIviApplication->createIviSurface(mCompositor->createSurface(),
 											 width, height, 0);

@@ -12,7 +12,6 @@
 
 #include "Exception.hpp"
 
-using std::shared_ptr;
 using std::unordered_map;
 
 namespace Wayland {
@@ -30,8 +29,8 @@ unordered_map<uint32_t, ilmPixelFormat> IviSurface::sPixelFormatMap =
  * IviSurface
  ******************************************************************************/
 
-IviSurface::IviSurface(shared_ptr<Surface> surface,
-					   uint32_t width, uint32_t height, uint32_t pixelFormat) :
+IviSurface::IviSurface(SurfacePtr surface, uint32_t width, uint32_t height,
+					   uint32_t pixelFormat) :
 	mIlmSurface(INVALID_ID),
 	mSurface(surface),
 	mLog("IviSurface")

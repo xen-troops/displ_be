@@ -33,18 +33,18 @@ public:
 	/**
 	 * Returns associated surface
 	 */
-	std::shared_ptr<Surface> getSurface() const { return mSurface; }
+	SurfacePtr getSurface() const { return mSurface; }
 
 private:
 
 	friend class Display;
 	friend class IviApplication;
 
-	IviSurface(std::shared_ptr<Surface> surface,
-			   uint32_t width, uint32_t height, uint32_t pixelFormat);
+	IviSurface(SurfacePtr surface, uint32_t width, uint32_t height,
+			   uint32_t pixelFormat);
 
 	t_ilm_surface mIlmSurface;
-	std::shared_ptr<Surface> mSurface;
+	SurfacePtr mSurface;
 
 	XenBackend::Log mLog;
 
@@ -55,6 +55,8 @@ private:
 
 	ilmPixelFormat convertPixelFormat(uint32_t pixelFormat);
 };
+
+typedef std::shared_ptr<IviSurface> IviSurfacePtr;
 
 }
 

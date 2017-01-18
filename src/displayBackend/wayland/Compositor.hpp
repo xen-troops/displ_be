@@ -30,7 +30,7 @@ public:
 	/**
 	 * Creates surface
 	 */
-	std::shared_ptr<Surface> createSurface();
+	SurfacePtr createSurface();
 
 private:
 
@@ -46,6 +46,8 @@ private:
 	void init();
 	void release();
 };
+
+typedef std::shared_ptr<Compositor> CompositorPtr;
 
 }
 

@@ -9,8 +9,6 @@
 
 #include "Exception.hpp"
 
-using std::shared_ptr;
-
 using DisplayItf::DisplayBufferPtr;
 
 namespace Wayland {

@@ -22,7 +22,6 @@
 #ifndef SRC_WAYLAND_WAYLANDDRM_HPP_
 #define SRC_WAYLAND_WAYLANDDRM_HPP_
 
-#include <memory>
 #include <mutex>
 #include <string>
 
@@ -82,6 +81,8 @@ private:
 	void init();
 	void release();
 };
+
+typedef std::shared_ptr<WaylandDrm> WaylandDrmPtr;
 
 }
 

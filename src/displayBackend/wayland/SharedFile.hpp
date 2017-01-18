@@ -94,6 +94,8 @@ private:
 	void createTmpFile();
 };
 
+typedef std::shared_ptr<SharedFile> SharedFilePtr;
+
 }
 
 #endif /* SRC_WAYLAND_SHAREDFILE_HPP_ */

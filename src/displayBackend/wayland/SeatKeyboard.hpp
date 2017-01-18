@@ -55,6 +55,8 @@ private:
 	void release();
 };
 
+typedef std::shared_ptr<SeatKeyboard> SeatKeyboardPtr;
+
 }
 
 #endif /* SRC_WAYLAND_SEATKEYBOARD_HPP_ */

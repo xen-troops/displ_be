@@ -22,7 +22,6 @@
 #define SRC_DISPLAYCOMMANDHANDLER_HPP_
 
 #include <cstdint>
-#include <memory>
 #include <unordered_map>
 #include <vector>
 

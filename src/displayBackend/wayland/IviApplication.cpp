@@ -11,8 +11,6 @@
 
 #include "Exception.hpp"
 
-using std::shared_ptr;
-
 namespace Wayland {
 
 /*******************************************************************************
@@ -44,15 +42,13 @@ IviApplication::~IviApplication()
  * Public
  ******************************************************************************/
 
-shared_ptr<IviSurface> IviApplication::createIviSurface(
-		shared_ptr<Surface> surface,
-		uint32_t width, uint32_t height,
-		uint32_t pixelFormat)
+IviSurfacePtr IviApplication::createIviSurface(SurfacePtr surface,
+											   uint32_t width, uint32_t height,
+											   uint32_t pixelFormat)
 {
 	LOG(mLog, DEBUG) << "Create ivi surface";
 
-	return shared_ptr<IviSurface>(new IviSurface(surface, width, height,
-												 pixelFormat));
+	return IviSurfacePtr(new IviSurface(surface, width, height, pixelFormat));
 }
 
 /*******************************************************************************

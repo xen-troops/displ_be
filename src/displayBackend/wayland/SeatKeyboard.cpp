@@ -11,7 +11,6 @@
 
 using std::mutex;
 using std::lock_guard;
-using std::shared_ptr;
 
 using InputItf::KeyboardCallbacks;
 

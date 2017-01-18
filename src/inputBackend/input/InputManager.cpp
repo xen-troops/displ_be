@@ -12,12 +12,11 @@
 #include "WlInput.hpp"
 
 using std::dynamic_pointer_cast;
-using std::shared_ptr;
 using std::string;
 using std::to_string;
 
-using Wayland::Display;
 using Wayland::Connector;
+using Wayland::DisplayPtr;
 
 using InputItf::KeyboardPtr;
 using InputItf::PointerPtr;
@@ -29,7 +28,7 @@ namespace Input {
  * InputManager
  ******************************************************************************/
 
-InputManager::InputManager(shared_ptr<Display> wlDisplay) :
+InputManager::InputManager(DisplayPtr wlDisplay) :
 	InputManager()
 {
 	mDisplay = wlDisplay;

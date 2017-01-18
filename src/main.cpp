@@ -37,7 +37,6 @@ using std::chrono::milliseconds;
 using std::atomic_bool;
 using std::cout;
 using std::endl;
-using std::shared_ptr;
 using std::string;
 using std::this_thread::sleep_for;
 using std::toupper;
@@ -139,9 +138,9 @@ Drm::DisplayPtr getDrmDisplay()
 	return device;
 }
 
-shared_ptr<Wayland::Display> getWaylandDisplay()
+Wayland::DisplayPtr getWaylandDisplay()
 {
-	shared_ptr<Wayland::Display> display(new Wayland::Display());
+	Wayland::DisplayPtr display(new Wayland::Display());
 
 	display->createBackgroundSurface(cWlBackgroundWidth,
 									 cWlBackgroundHeight);
@@ -153,7 +152,7 @@ shared_ptr<Wayland::Display> getWaylandDisplay()
 	return display;
 }
 
-Input::InputManagerPtr getWlInputManager(shared_ptr<Wayland::Display> display)
+Input::InputManagerPtr getWlInputManager(Wayland::DisplayPtr display)
 {
 	Input::InputManagerPtr inputManager(new Input::InputManager(display));
 
@@ -182,7 +181,7 @@ int main(int argc, char *argv[])
 		{
 
 			DisplayItf::DisplayPtr display;
-			shared_ptr<Wayland::Display> wlDisplay;
+			Wayland::DisplayPtr wlDisplay;
 			InputItf::InputManagerPtr inputManager;
 
 

@@ -67,6 +67,8 @@ private:
 	void release();
 };
 
+typedef std::shared_ptr<SeatPointer> SeatPointerPtr;
+
 }
 
 #endif /* SRC_WAYLAND_SEATPOINTER_HPP_ */

@@ -25,7 +25,6 @@
 #include "DisplayItf.hpp"
 
 #include <atomic>
-#include <memory>
 #include <thread>
 #include <unordered_map>
 
@@ -131,7 +130,7 @@ public:
 			DisplayItf::DisplayBufferPtr displayBuffer,
 			uint32_t width,uint32_t height, uint32_t pixelFormat) override;
 
-	std::shared_ptr<Seat> getSeat() const { return mSeat; }
+	SeatPtr getSeat() const { return mSeat; }
 
 private:
 
@@ -143,23 +142,22 @@ private:
 	std::atomic_bool mTerminate;
 	XenBackend::Log mLog;
 
-	std::unordered_map<uint32_t, std::shared_ptr<Connector>> mConnectors;
+	std::unordered_map<uint32_t, Wayland::ConnectorPtr> mConnectors;
 
-	std::shared_ptr<Compositor> mCompositor;
-	std::shared_ptr<Shell> mShell;
-	std::shared_ptr<SharedMemory> mSharedMemory;
-	std::shared_ptr<IviApplication> mIviApplication;
-	std::shared_ptr<Seat> mSeat;
-	std::shared_ptr<WaylandDrm> mWaylandDrm;
+	CompositorPtr mCompositor;
+	ShellPtr mShell;
+	SharedMemoryPtr mSharedMemory;
+	IviApplicationPtr mIviApplication;
+	SeatPtr mSeat;
+	WaylandDrmPtr mWaylandDrm;
 
-	std::shared_ptr<ShellSurface> mBackgroundSurface;
+	ShellSurfacePtr mBackgroundSurface;
 
 	std::thread mThread;
 
-	std::shared_ptr<ShellSurface> createShellSurface(uint32_t x, uint32_t y);
-	std::shared_ptr<IviSurface> createIviSurface(uint32_t x, uint32_t y,
-												 uint32_t width,
-												 uint32_t height);
+	ShellSurfacePtr createShellSurface(uint32_t x, uint32_t y);
+	IviSurfacePtr createIviSurface(uint32_t x, uint32_t y,
+								   uint32_t width, uint32_t height);
 
 	static void sRegistryHandler(void *data, wl_registry *registry,
 								 uint32_t id, const char *interface,
@@ -177,6 +175,8 @@ private:
 	bool pollDisplayFd();
 	void dispatchThread();
 };
+
+typedef std::shared_ptr<Display> DisplayPtr;
 
 }
 

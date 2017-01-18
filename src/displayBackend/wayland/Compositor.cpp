@@ -9,8 +9,6 @@
 
 #include "Exception.hpp"
 
-using std::shared_ptr;
-
 namespace Wayland {
 
 /*******************************************************************************
@@ -45,11 +43,11 @@ Compositor::~Compositor()
  * Public
  ******************************************************************************/
 
-shared_ptr<Surface> Compositor::createSurface()
+SurfacePtr Compositor::createSurface()
 {
 	LOG(mLog, DEBUG) << "Create surface";
 
-	return shared_ptr<Surface>(new Surface(mWlDisplay, mWlCompositor));
+	return SurfacePtr(new Surface(mWlDisplay, mWlCompositor));
 }
 
 /*******************************************************************************

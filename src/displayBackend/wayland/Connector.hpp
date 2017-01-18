@@ -23,11 +23,10 @@
 #define SRC_WAYLAND_CONNECTOR_HPP_
 
 #include <atomic>
-#include <memory>
 
 #include <xen/be/Log.hpp>
 
-#include "../DisplayItf.hpp"
+#include "DisplayItf.hpp"
 #include "ShellSurface.hpp"
 
 namespace Wayland {
@@ -45,7 +44,7 @@ public:
 	/**
 	 * Returns Surface associated with this connector
 	 */
-	std::shared_ptr<Surface> getSurface() const { return mSurface; }
+	SurfacePtr getSurface() const { return mSurface; }
 
 	/**
 	 * Checks if the connector is connected
@@ -88,9 +87,9 @@ private:
 	friend class Display;
 	template<class T> friend class ConnectorType;
 
-	Connector(uint32_t id, std::shared_ptr<Surface> surface);
+	Connector(uint32_t id, SurfacePtr surface);
 
-	std::shared_ptr<Surface> mSurface;
+	SurfacePtr mSurface;
 	std::atomic_bool mInitialized;
 	XenBackend::Log mLog;
 };
@@ -112,6 +111,8 @@ private:
 
 	std::shared_ptr<T> mType;
 };
+
+typedef std::shared_ptr<Connector> ConnectorPtr;
 
 }
 

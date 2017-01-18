@@ -9,15 +9,13 @@
 
 #include "Exception.hpp"
 
-using std::shared_ptr;
-
 namespace Wayland {
 
 /*******************************************************************************
  * ShellSurface
  ******************************************************************************/
 
-ShellSurface::ShellSurface(wl_shell* shell, shared_ptr<Surface> surface) :
+ShellSurface::ShellSurface(wl_shell* shell, SurfacePtr surface) :
 	mWlShellSurface(nullptr),
 	mSurface(surface),
 	mLog("ShellSurface")

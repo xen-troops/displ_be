@@ -26,7 +26,6 @@
 
 using std::lock_guard;
 using std::mutex;
-using std::shared_ptr;
 using std::string;
 using std::vector;
 
@@ -100,7 +99,7 @@ WaylandDrm::createDrmBuffer(DisplayBufferPtr displayBuffer,
 {
 	lock_guard<mutex> lock(mMutex);
 
-	return  shared_ptr<DrmBuffer>(new DrmBuffer(mWlDrm, displayBuffer, width,
+	return  FrameBufferPtr(new DrmBuffer(mWlDrm, displayBuffer, width,
 												height, pixelFormat));
 }
 

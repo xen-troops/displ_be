@@ -8,13 +8,11 @@
 #ifndef SRC_WAYLAND_SHAREDBUFFER_HPP_
 #define SRC_WAYLAND_SHAREDBUFFER_HPP_
 
-#include <memory>
-
 #include <wayland-client.h>
 
 #include <xen/be/Log.hpp>
 
-#include "../DisplayItf.hpp"
+#include "DisplayItf.hpp"
 
 namespace Wayland {
 
@@ -74,6 +72,8 @@ private:
 	void init(wl_shm* wlSharedMemory, uint32_t pixelFormat);
 	void release();
 };
+
+typedef std::shared_ptr<SharedBuffer> SharedBufferPtr;
 
 }
 

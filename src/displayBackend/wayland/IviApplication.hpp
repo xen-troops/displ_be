@@ -28,10 +28,8 @@ public:
 	 * Creates IVI surface
 	 * @param surface surface
 	 */
-	std::shared_ptr<IviSurface> createIviSurface(
-			std::shared_ptr<Surface> surface,
-			uint32_t width, uint32_t height,
-			uint32_t pixelFormat);
+	IviSurfacePtr createIviSurface(SurfacePtr surface, uint32_t width,
+								   uint32_t height, uint32_t pixelFormat);
 
 private:
 
@@ -45,6 +43,8 @@ private:
 	void init(wl_display* display);
 	void release();
 };
+
+typedef std::shared_ptr<IviApplication> IviApplicationPtr;
 
 }
 

@@ -35,9 +35,8 @@ public:
 	 * @param bpp    bits per pixel
 	 * @return
 	 */
-	std::shared_ptr<SharedFile> createSharedFile(uint32_t width,
-												 uint32_t height,
-												 uint32_t bpp);
+	SharedFilePtr createSharedFile(uint32_t width, uint32_t height,
+								   uint32_t bpp);
 
 	/**
 	 * Creates shared buffer
@@ -47,7 +46,7 @@ public:
 	 * @param pixelFormat pixel format
 	 * @return
 	 */
-	std::shared_ptr<SharedBuffer> createSharedBuffer(
+	SharedBufferPtr createSharedBuffer(
 			DisplayItf::DisplayBufferPtr displayBuffer,
 			uint32_t width, uint32_t height, uint32_t pixelFormat);
 
@@ -63,6 +62,8 @@ private:
 	void init();
 	void release();
 };
+
+typedef std::shared_ptr<SharedMemory> SharedMemoryPtr;
 
 }
 

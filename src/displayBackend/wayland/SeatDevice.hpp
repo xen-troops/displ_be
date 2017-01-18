@@ -25,14 +25,14 @@ public:
 		mCurrentCallback = mCallbacks.end();
 	}
 
-	void setCallbacks(std::shared_ptr<Surface> surface, const T& callbacks)
+	void setCallbacks(SurfacePtr surface, const T& callbacks)
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
 
 		mCallbacks[surface->mWlSurface] = callbacks;
 	}
 
-	void clearCallbacks(std::shared_ptr<Surface> surface)
+	void clearCallbacks(SurfacePtr surface)
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
 

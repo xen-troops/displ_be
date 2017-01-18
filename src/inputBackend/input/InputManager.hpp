@@ -20,7 +20,7 @@ class InputManager : public InputItf::InputManager
 public:
 
 	InputManager();
-	InputManager(std::shared_ptr<Wayland::Display> wlDisplay);
+	InputManager(Wayland::DisplayPtr wlDisplay);
 	~InputManager();
 
 	InputItf::KeyboardPtr createWlKeyboard(int id, uint32_t connectorId);
@@ -37,7 +37,7 @@ public:
 
 private:
 
-	std::shared_ptr<Wayland::Display> mDisplay;
+	Wayland::DisplayPtr mDisplay;
 
 	XenBackend::Log mLog;
 

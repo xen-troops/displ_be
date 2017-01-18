@@ -22,7 +22,7 @@ class WlInput : public InputItf::InputDevice<T>
 {
 public:
 
-	WlInput(S seat, std::shared_ptr<Wayland::Surface> surface) :
+	WlInput(S seat, Wayland::SurfacePtr surface) :
 		mSeat(seat),
 		mSurface(surface)
 	{
@@ -45,7 +45,7 @@ public:
 private:
 
 	S mSeat;
-	std::shared_ptr<Wayland::Surface> mSurface;
+	Wayland::SurfacePtr mSurface;
 };
 
 typedef WlInput<std::shared_ptr<Wayland::SeatKeyboard>,

@@ -23,8 +23,6 @@
 
 #include "Exception.hpp"
 
-using std::shared_ptr;
-
 using DisplayItf::FrameBufferPtr;
 
 namespace Wayland {
@@ -33,7 +31,7 @@ namespace Wayland {
  * Connector
  ******************************************************************************/
 
-Connector::Connector(uint32_t id, std::shared_ptr<Surface> surface) :
+Connector::Connector(uint32_t id, SurfacePtr surface) :
 	DisplayItf::Connector(id),
 	mSurface(surface),
 	mInitialized(false),

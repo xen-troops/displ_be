@@ -22,7 +22,6 @@
 #define SRC_BUFFERSSTORAGE_HPP_
 
 #include <cstring>
-#include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>

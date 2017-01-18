@@ -12,7 +12,7 @@
 
 #include <xen/be/Log.hpp>
 
-#include "../DisplayItf.hpp"
+#include "DisplayItf.hpp"
 
 namespace Wayland {
 
@@ -65,6 +65,8 @@ private:
 	void init(wl_compositor* compositor);
 	void release();
 };
+
+typedef std::shared_ptr<Surface> SurfacePtr;
 
 }
 

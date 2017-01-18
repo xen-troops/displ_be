@@ -54,6 +54,8 @@ private:
 	void release();
 };
 
+typedef std::shared_ptr<SeatTouch> SeatTouchPtr;
+
 }
 
 #endif /* SRC_WAYLAND_SEATTOUCH_HPP_ */

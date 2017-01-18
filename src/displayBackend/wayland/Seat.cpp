@@ -11,7 +11,6 @@
 
 using std::lock_guard;
 using std::mutex;
-using std::shared_ptr;
 using std::string;
 
 using InputItf::KeyboardCallbacks;
@@ -50,21 +49,21 @@ Seat::~Seat()
  * Public
  ******************************************************************************/
 
-std::shared_ptr<SeatKeyboard> Seat::getKeyboard()
+SeatKeyboardPtr Seat::getKeyboard()
 {
 	lock_guard<mutex> lock(mMutex);
 
 	return mSeatKeyboard;
 }
 
-std::shared_ptr<SeatPointer> Seat::getPointer()
+SeatPointerPtr Seat::getPointer()
 {
 	lock_guard<mutex> lock(mMutex);
 
 	return mSeatPointer;
 }
 
-std::shared_ptr<SeatTouch> Seat::getTouch()
+SeatTouchPtr Seat::getTouch()
 {
 	lock_guard<mutex> lock(mMutex);
 

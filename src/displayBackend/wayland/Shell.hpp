@@ -29,8 +29,7 @@ public:
 	 * Creates shell surface
 	 * @param surface surface
 	 */
-	std::shared_ptr<ShellSurface> createShellSurface(std::shared_ptr<Surface>
-												  surface);
+	ShellSurfacePtr createShellSurface(SurfacePtr surface);
 
 private:
 
@@ -44,6 +43,8 @@ private:
 	void init();
 	void release();
 };
+
+typedef std::shared_ptr<Shell> ShellPtr;
 
 }
 

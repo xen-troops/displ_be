@@ -9,8 +9,6 @@
 
 #include "Exception.hpp"
 
-using std::shared_ptr;
-
 using DisplayItf::DisplayBufferPtr;
 
 namespace Wayland {
@@ -45,22 +43,21 @@ SharedMemory::~SharedMemory()
  * Public
  ******************************************************************************/
 
-shared_ptr<SharedFile> SharedMemory::createSharedFile(uint32_t width,
-													  uint32_t height,
-													  uint32_t bpp)
+SharedFilePtr SharedMemory::createSharedFile(uint32_t width, uint32_t height,
+											 uint32_t bpp)
 {
 	LOG(mLog, DEBUG) << "Create shared file";
 
-	return shared_ptr<SharedFile>(new SharedFile(width, height, bpp));
+	return SharedFilePtr(new SharedFile(width, height, bpp));
 }
 
-shared_ptr<SharedBuffer> SharedMemory::createSharedBuffer(
+SharedBufferPtr SharedMemory::createSharedBuffer(
 		DisplayBufferPtr displayBuffer, uint32_t width, uint32_t height,
 		uint32_t pixelFormat)
 {
 	LOG(mLog, DEBUG) << "Create shared buffer";
 
-	return shared_ptr<SharedBuffer>(new SharedBuffer(mWlSharedMemory,
+	return SharedBufferPtr(new SharedBuffer(mWlSharedMemory,
 													 displayBuffer,
 													 width, height,
 													 pixelFormat));

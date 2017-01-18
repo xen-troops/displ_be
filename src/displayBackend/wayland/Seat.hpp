@@ -33,9 +33,9 @@ public:
 
 	~Seat();
 
-	std::shared_ptr<SeatKeyboard> getKeyboard();
-	std::shared_ptr<SeatPointer> getPointer();
-	std::shared_ptr<SeatTouch> getTouch();
+	SeatKeyboardPtr getKeyboard();
+	SeatPointerPtr getPointer();
+	SeatTouchPtr getTouch();
 
 private:
 
@@ -52,9 +52,9 @@ private:
 
 	wl_seat_listener mWlListener;
 
-	std::shared_ptr<SeatKeyboard> mSeatKeyboard;
-	std::shared_ptr<SeatPointer> mSeatPointer;
-	std::shared_ptr<SeatTouch> mSeatTouch;
+	SeatKeyboardPtr mSeatKeyboard;
+	SeatPointerPtr mSeatPointer;
+	SeatTouchPtr mSeatTouch;
 
 	std::mutex mMutex;
 
@@ -68,6 +68,8 @@ private:
 	void init();
 	void release();
 };
+
+typedef std::shared_ptr<Seat> SeatPtr;
 
 }
 
