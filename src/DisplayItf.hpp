@@ -23,6 +23,9 @@
 
 #include <exception>
 #include <memory>
+#include <vector>
+
+#include <xen/be/XenGnttab.hpp>
 
 /***************************************************************************//**
  * @defgroup display_itf Display interface
@@ -72,14 +75,25 @@ public:
 	virtual void* getBuffer() const = 0;
 
 	/**
-	 * Get stride
+	 * Gets stride
 	 */
 	virtual uint32_t getStride() const = 0;
 
 	/**
-	 * Get handle
+	 * Gets handle
 	 */
-	virtual int getHandle() const = 0;
+	virtual uintptr_t getHandle() const = 0;
+
+	/**
+	 * Reads name
+	 */
+	virtual uint32_t readName() = 0;
+
+	/**
+	 * Copies data from associated grant table buffer
+	 */
+	virtual void copy() = 0;
+
 };
 
 /***************************************************************************//**
@@ -91,6 +105,21 @@ class FrameBufferItf
 public:
 
 	virtual ~FrameBufferItf() {};
+
+	/**
+	 * Gets handle
+	 */
+	virtual uintptr_t getHandle() const = 0;
+
+	/**
+	 * Gets width
+	 */
+	virtual uint32_t getWidth() const = 0;
+
+	/**
+	 * Gets width
+	 */
+	virtual uint32_t getHeight() const = 0;
 
 	/**
 	 * Returns pointer to the display buffer
@@ -184,6 +213,11 @@ public:
 	virtual void stop() = 0;
 
 	/**
+	 * Returns if display supports zero copy buffers
+	 */
+	virtual bool isZeroCopySupported() const = 0;
+
+	/**
 	 * Returns connector by id
 	 * @param id connector id
 	 */
@@ -197,6 +231,19 @@ public:
 	 * @return shared pointer to the display buffer
 	 */
 	virtual std::shared_ptr<DisplayBufferItf> createDisplayBuffer(
+			uint32_t width, uint32_t height, uint32_t bpp) = 0;
+
+	/**
+	 * Creates display buffer with associated grant table buffer
+	 * @param domId  domain ID
+	 * @param refs   vector of grant table reference
+	 * @param width  width
+	 * @param height height
+	 * @param bpp    bits per pixel
+	 * @return shared pointer to the display buffer
+	 */
+	virtual std::shared_ptr<DisplayBufferItf> createDisplayBuffer(
+			domid_t domId, const std::vector<grant_ref_t>& refs,
 			uint32_t width, uint32_t height, uint32_t bpp) = 0;
 
 	/**

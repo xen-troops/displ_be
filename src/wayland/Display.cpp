@@ -146,6 +146,16 @@ void Display::stop()
 	}
 }
 
+bool Display::isZeroCopySupported() const
+{
+	if (mWaylandDrm && mWaylandDrm->isZeroCopySupported())
+	{
+		return true;
+	}
+
+	return false;
+}
+
 shared_ptr<ConnectorItf> Display::getConnectorById(uint32_t id)
 {
 	auto iter = mConnectors.find(id);
@@ -158,19 +168,49 @@ shared_ptr<ConnectorItf> Display::getConnectorById(uint32_t id)
 	return dynamic_pointer_cast<ConnectorItf>(iter->second);
 }
 
-shared_ptr<DisplayBufferItf> Display::createDisplayBuffer(uint32_t width,
-														  uint32_t height,
-														  uint32_t bpp)
+shared_ptr<DisplayBufferItf> Display::createDisplayBuffer(
+		uint32_t width, uint32_t height, uint32_t bpp)
 {
-	return mSharedMemory->createSharedFile(width, height, bpp);
+	if (mSharedMemory)
+	{
+		return mSharedMemory->createSharedFile(width, height, bpp);
+	}
+
+	throw WlException("Can't create display buffer");
+}
+
+shared_ptr<DisplayBufferItf> Display::createDisplayBuffer(
+		domid_t domId, const std::vector<grant_ref_t>& refs,
+		uint32_t width, uint32_t height, uint32_t bpp)
+{
+	if (isZeroCopySupported())
+	{
+		return mWaylandDrm->createDumb(domId, refs, width, height, bpp);
+	}
+	else if (mSharedMemory)
+	{
+		return mSharedMemory->createSharedFile(width, height, bpp);
+	}
+
+	throw WlException("Can't create display buffer");
 }
 
 shared_ptr<FrameBufferItf> Display::createFrameBuffer(
 		shared_ptr<DisplayBufferItf> displayBuffer,
 		uint32_t width, uint32_t height, uint32_t pixelFormat)
 {
-	return mSharedMemory->createSharedBuffer(
-			displayBuffer, width, height, pixelFormat);
+	if (isZeroCopySupported())
+	{
+		return mWaylandDrm->createDrmBuffer(displayBuffer, width, height,
+											pixelFormat);
+	}
+	else if (mSharedMemory)
+	{
+		return mSharedMemory->createSharedBuffer(displayBuffer, width, height,
+												 pixelFormat);
+	}
+
+	throw WlException("Can't create frame buffer");
 }
 
 /*******************************************************************************
@@ -251,6 +291,11 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	{
 		mSeat.reset(new Seat(registry, id, version));
 	}
+
+	if (interface == "wl_drm")
+	{
+		mWaylandDrm.reset(new WaylandDrm(registry, id, version));
+	}
 }
 
 void Display::registryRemover(wl_registry *registry, uint32_t id)
@@ -308,6 +353,7 @@ void Display::release()
 	mSharedMemory.reset();
 	mCompositor.reset();
 	mSeat.reset();
+	mWaylandDrm.reset();
 
 	if (mWlRegistry)
 	{

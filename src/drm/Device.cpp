@@ -25,7 +25,13 @@
 #include <unistd.h>
 #include <poll.h>
 
+#include <xf86drm.h>
+
+#include <drm/xen_zcopy_drm.h>
 #include <xen/be/Log.hpp>
+
+#include "Dumb.hpp"
+#include "DumbZeroCopy.hpp"
 
 using std::exception;
 using std::dynamic_pointer_cast;
@@ -35,6 +41,7 @@ using std::shared_ptr;
 using std::string;
 using std::thread;
 using std::to_string;
+using std::vector;
 
 namespace Drm {
 
@@ -44,23 +51,23 @@ const uint32_t cInvalidId = 0;
  * Device
  ******************************************************************************/
 
-Device::Device(const string& name) try :
+Device::Device(const string& name) :
 	mName(name),
 	mFd(-1),
+	mZeroCopyFd(-1),
 	mTerminate(true),
 	mLog("Drm")
 {
-	LOG(mLog, DEBUG) << "Create Drm card: " << mName;
+	try
+	{
+		init();
+	}
+	catch(const exception& e)
+	{
+		release();
 
-	init();
-}
-catch(const exception& e)
-{
-	LOG(mLog, ERROR) << e.what();
-
-	release();
-
-	throw;
+		throw;
+	}
 }
 
 Device::~Device()
@@ -75,15 +82,50 @@ Device::~Device()
 /*******************************************************************************
  * Public
  ******************************************************************************/
-shared_ptr<DisplayBufferItf> Device::createDisplayBuffer(uint32_t width,
-														 uint32_t height,
-														 uint32_t bpp)
+
+drm_magic_t Device::getMagic()
+{
+	lock_guard<mutex> lock(mMutex);
+
+	drm_magic_t magic = 0;
+
+	if (drmGetMagic(mFd, &magic) < 0)
+	{
+		throw DrmException("Can't get magic");
+	}
+
+	LOG(mLog, DEBUG) << "Get magic: " << magic;
+
+	return magic;
+}
+
+shared_ptr<DisplayBufferItf> Device::createDisplayBuffer(
+		uint32_t width, uint32_t height, uint32_t bpp)
 {
 	lock_guard<mutex> lock(mMutex);
 
 	LOG(mLog, DEBUG) << "Create display buffer";
 
 	return shared_ptr<DisplayBufferItf>(new Dumb(mFd, width, height, bpp));
+}
+
+shared_ptr<DisplayBufferItf> Device::createDisplayBuffer(
+		domid_t domId, const std::vector<grant_ref_t>& refs,
+		uint32_t width, uint32_t height, uint32_t bpp)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	if (isZeroCopySupported())
+	{
+		return shared_ptr<DisplayBufferItf>(
+				new Dumb(mFd, width, height, bpp, domId, refs));
+	}
+	else
+	{
+		return shared_ptr<DisplayBufferItf>(
+				new DumbZeroCopy(mFd, mZeroCopyFd, width, height, bpp,
+								 domId, refs));
+	}
 }
 
 shared_ptr<FrameBufferItf> Device::createFrameBuffer(
@@ -130,6 +172,8 @@ void Device::stop()
 
 shared_ptr<ConnectorItf> Device::getConnectorById(uint32_t id)
 {
+	lock_guard<mutex> lock(mMutex);
+
 	auto iter = mConnectors.find(id);
 
 	if (iter == mConnectors.end())
@@ -142,6 +186,8 @@ shared_ptr<ConnectorItf> Device::getConnectorById(uint32_t id)
 
 shared_ptr<Connector> Device::getConnectorByIndex(uint32_t index)
 {
+	lock_guard<mutex> lock(mMutex);
+
 	if (index >= mConnectors.size())
 	{
 		throw DrmException("Wrong connector index " + to_string(index));
@@ -156,11 +202,15 @@ shared_ptr<Connector> Device::getConnectorByIndex(uint32_t index)
 
 size_t Device::getConnectorsCount()
 {
+	lock_guard<mutex> lock(mMutex);
+
 	return mConnectors.size();
 }
 
 shared_ptr<ConnectorItf> Device::createConnector(uint32_t id, uint32_t drmId)
 {
+	lock_guard<mutex> lock(mMutex);
+
 	for (int i = 0; i < (*mRes)->count_connectors; i++)
 	{
 		if (drmId == (*mRes)->connectors[i])
@@ -187,7 +237,7 @@ void Device::init()
 
 	if (mFd < 0)
 	{
-		throw DrmException("Cannot open " + mName);
+		throw DrmException("Cannot open DRM device: " + mName);
 	}
 
 	uint64_t hasDumb = false;
@@ -207,6 +257,16 @@ void Device::init()
 						 << ", connected: "
 						 << (connector->connection == DRM_MODE_CONNECTED);
 	}
+
+	mZeroCopyFd = drmOpen(XENDRM_ZCOPY_DRIVER_NAME, NULL);
+
+	if (mZeroCopyFd < 0)
+	{
+		LOG(mLog, WARNING) << "Can't open zero copy driver. "
+						   << "Zero copy functionality will be disabled.";
+	}
+
+	LOG(mLog, DEBUG) << "Create Drm card: " << mName;
 }
 
 void Device::release()
@@ -218,6 +278,11 @@ void Device::release()
 	if (mFd >= 0)
 	{
 		close(mFd);
+	}
+
+	if (mZeroCopyFd >= 0)
+	{
+		drmClose(mFd);
 	}
 }
 

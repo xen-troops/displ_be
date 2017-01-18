@@ -60,6 +60,11 @@ public:
 	int getFd() const { return mFd; }
 
 	/**
+	 * Returns DRM magic
+	 */
+	drm_magic_t getMagic();
+
+	/**
 	 * Returns number of supported CRTC's
 	 */
 	int getCtrcsCount() const { return (*mRes)->count_crtcs; }
@@ -100,11 +105,15 @@ public:
 	void stop() override;
 
 	/**
+	 * Returns if display supports zero copy buffers
+	 */
+	bool isZeroCopySupported() const override { return (mZeroCopyFd >= 0); }
+
+	/**
 	 * Returns connector by id
 	 * @param id connector id
 	 */
 	std::shared_ptr<ConnectorItf> getConnectorById(uint32_t id) override;
-
 
 	/**
 	 * Creates display buffer
@@ -114,6 +123,17 @@ public:
 	 * @return shared pointer to the display buffer
 	 */
 	std::shared_ptr<DisplayBufferItf> createDisplayBuffer(
+			uint32_t width, uint32_t height, uint32_t bpp) override;
+
+	/**
+	 * Creates display buffer with associated grand table buffer
+	 * @param width  width
+	 * @param height height
+	 * @param bpp    bits per pixel
+	 * @return shared pointer to the display buffer
+	 */
+	std::shared_ptr<DisplayBufferItf> createDisplayBuffer(
+			domid_t domId, const std::vector<grant_ref_t>& refs,
 			uint32_t width, uint32_t height, uint32_t bpp) override;
 
 	/**
@@ -134,6 +154,7 @@ private:
 
 	std::string mName;
 	int mFd;
+	int mZeroCopyFd;
 	std::atomic_bool mTerminate;
 	XenBackend::Log mLog;
 

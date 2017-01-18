@@ -133,9 +133,7 @@ void DisplayCommandHandler::pageFlip(const xendispl_req& req)
 					  << hex << setfill('0') << setw(16)
 					  << cookie;
 
-	mBuffersStorage->copyBuffer(cookie);
-
-	mConnector->pageFlip(mBuffersStorage->getFrameBuffer(flipReq.fb_cookie),
+	mConnector->pageFlip(mBuffersStorage->getFrameBufferAndCopy(cookie),
 						 [cookie, this] () { sendFlipEvent(cookie); });
 }
 
@@ -201,9 +199,9 @@ void DisplayCommandHandler::setConfig(const xendispl_req& req)
 
 	if (configReq->fb_cookie != 0)
 	{
-		mConnector->init(configReq->x, configReq->y,
-						 configReq->width, configReq->height,
-						 mBuffersStorage->getFrameBuffer(configReq->fb_cookie));
+		mConnector->init(
+				configReq->x, configReq->y, configReq->width, configReq->height,
+				mBuffersStorage->getFrameBufferAndCopy(configReq->fb_cookie));
 	}
 	else
 	{

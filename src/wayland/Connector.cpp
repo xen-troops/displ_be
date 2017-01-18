@@ -22,7 +22,6 @@
 #include "Connector.hpp"
 #include "Exception.hpp"
 
-using std::dynamic_pointer_cast;
 using std::shared_ptr;
 
 namespace Wayland {
@@ -55,7 +54,7 @@ void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 	LOG(mLog, DEBUG) << "Init, id: " << getId() << ", x: " << x << ", y: " << y
 					 << ", w: " << width << ", height: " << height;
 
-	mSurface->draw(dynamic_pointer_cast<SharedBuffer>(frameBuffer));
+	mSurface->draw(frameBuffer);
 
 	mInitialized = true;
 }
@@ -72,7 +71,7 @@ void Connector::pageFlip(shared_ptr<FrameBufferItf> frameBuffer,
 {
 	DLOG(mLog, DEBUG) << "Page flip, id: " << getId();
 
-	mSurface->draw(dynamic_pointer_cast<SharedBuffer>(frameBuffer), cbk);
+	mSurface->draw(frameBuffer, cbk);
 }
 
 }

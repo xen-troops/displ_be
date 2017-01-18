@@ -1,32 +1,31 @@
 /*
- * SharedBuffer.hpp
+ * DrmBuffer.hpp
  *
- *  Created on: Nov 24, 2016
+ *  Created on: Jan 17, 2017
  *      Author: al1
  */
 
-#ifndef SRC_WAYLAND_SHAREDBUFFER_HPP_
-#define SRC_WAYLAND_SHAREDBUFFER_HPP_
-
-#include <memory>
+#ifndef SRC_WAYLAND_DRMBUFFER_HPP_
+#define SRC_WAYLAND_DRMBUFFER_HPP_
 
 #include <wayland-client.h>
 
 #include <xen/be/Log.hpp>
 
+#include "wayland-drm/wayland-drm-client-protocol.h"
 #include "DisplayItf.hpp"
 
 namespace Wayland {
 
 /***************************************************************************//**
- * Shared buffer class.
+ * DRM buffer class.
  * @ingroup wayland
  ******************************************************************************/
-class SharedBuffer : public FrameBufferItf
+class DrmBuffer : public FrameBufferItf
 {
 public:
 
-	~SharedBuffer();
+	~DrmBuffer();
 
 	/**
 	 * Gets handle
@@ -56,25 +55,23 @@ public:
 
 private:
 
-	friend class SharedMemory;
+	friend class WaylandDrm;
 
-	SharedBuffer(wl_shm* wlSharedMemory,
-				 std::shared_ptr<DisplayBufferItf> displayBuffer,
-				 uint32_t width, uint32_t height,
-				 uint32_t pixelFormat);
+	DrmBuffer(wl_drm* wlDrm,
+			  std::shared_ptr<DisplayBufferItf> displayBuffer,
+			  uint32_t width, uint32_t height,
+			  uint32_t pixelFormat);
 
 	std::shared_ptr<DisplayBufferItf> mDisplayBuffer;
 	wl_buffer* mWlBuffer;
-	wl_shm_pool* mWlPool;
 	uint32_t mWidth;
 	uint32_t mHeight;
 	XenBackend::Log mLog;
 
-	uint32_t convertPixelFormat(uint32_t format);
-	void init(wl_shm* wlSharedMemory, uint32_t pixelFormat);
+	void init(wl_drm* wlDrm, uint32_t pixelFormat);
 	void release();
 };
 
 }
 
-#endif /* SRC_WAYLAND_SHAREDBUFFER_HPP_ */
+#endif /* SRC_WAYLAND_DRMBUFFER_HPP_ */

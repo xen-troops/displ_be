@@ -53,9 +53,19 @@ public:
 	~FrameBuffer();
 
 	/**
-	 * Returns frame buffer id
+	 * Gets handle
 	 */
-	uint32_t getId() const { return mId; }
+	uintptr_t getHandle() const override { return mId; }
+
+	/**
+	 * Gets width
+	 */
+	uint32_t getWidth() const override { return mWidth; }
+
+	/**
+	 * Gets width
+	 */
+	uint32_t getHeight() const override { return mHeight; }
 
 	/**
 	 * Returns pointer to the display buffer
@@ -68,6 +78,8 @@ public:
 private:
 	int mFd;
 	std::shared_ptr<DisplayBufferItf> mDisplayBuffer;
+	uint32_t mWidth;
+	uint32_t mHeight;
 	uint32_t mId;
 };
 

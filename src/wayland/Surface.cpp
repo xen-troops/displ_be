@@ -42,7 +42,7 @@ Surface::~Surface()
  * Public
  ******************************************************************************/
 
-void Surface::draw(std::shared_ptr<SharedBuffer> sharedBuffer,
+void Surface::draw(std::shared_ptr<FrameBufferItf> frameBuffer,
 				   FrameCallback callback)
 {
 	DLOG(mLog, DEBUG) << "Draw";
@@ -70,9 +70,11 @@ void Surface::draw(std::shared_ptr<SharedBuffer> sharedBuffer,
 	}
 
 	wl_surface_damage(mWlSurface, 0, 0,
-					  sharedBuffer->mWidth, sharedBuffer->mHeight);
+					  frameBuffer->getWidth(), frameBuffer->getHeight());
 
-	wl_surface_attach(mWlSurface, sharedBuffer->mWlBuffer, 0, 0);
+	wl_surface_attach(mWlSurface,
+					  reinterpret_cast<wl_buffer*>(frameBuffer->getHandle()),
+					  0, 0);
 
 	wl_surface_commit(mWlSurface);
 

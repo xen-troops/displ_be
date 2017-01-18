@@ -8,13 +8,16 @@ set(DRM_SOURCES
 	src/drm/Connector.cpp
 	src/drm/Device.cpp
 	src/drm/Dumb.cpp
+	src/drm/DumbZeroCopy.cpp
 	src/drm/FrameBuffer.cpp
 	src/drm/Modes.cpp
 )
 
 set(WL_SOURCES
+	src/wayland/wayland-drm/wayland-drm-protocol.c
 	src/wayland/Compositor.cpp
 	src/wayland/Connector.cpp
+	src/wayland/DrmBuffer.cpp
 	src/wayland/Display.cpp
 	src/wayland/IviApplication.cpp
 	src/wayland/IviSurface.cpp
@@ -28,16 +31,12 @@ set(WL_SOURCES
 	src/wayland/Shell.cpp
 	src/wayland/ShellSurface.cpp
 	src/wayland/Surface.cpp
+	src/wayland/WaylandDrm.cpp
 )
 
 set(WL_INPUT_SOURCES
 	src/input/LibInput.cpp
 	src/input/InputManager.cpp
-)
-
-set(DRMMAP_SOURCES
-	src/drmmap/DrmMap.cpp
-	src/drmmap/Dumb.cpp
 )
 
 set(BE_SOURCES
@@ -72,15 +71,12 @@ add_library(be_wl STATIC ${WL_SOURCES})
 
 add_library(be_wl_input STATIC ${WL_INPUT_SOURCES})
 
-add_library(drmmap STATIC ${DRMMAP_SOURCES})
-
 add_executable(${PROJECT_NAME} ${BE_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
 	be_wl_input
 	be_drm
 	be_wl
-	drmmap
 	xenbe
 	xenctrl
 	xenstore
@@ -98,7 +94,6 @@ target_link_libraries(displ_test
 	be_wl_input
 	be_drm
 	be_wl
-	drmmap
 	xenbe
 	xenctrl
 	xenstore

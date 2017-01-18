@@ -18,7 +18,7 @@ namespace Wayland {
 /*******************************************************************************
  * SharedBuffer
  ******************************************************************************/
-SharedBuffer::SharedBuffer(wl_shm* sharedMemory,
+SharedBuffer::SharedBuffer(wl_shm* wlSharedMemory,
 						   shared_ptr<DisplayBufferItf> displayBuffer,
 						   uint32_t width, uint32_t height,
 						   uint32_t pixelFormat) :
@@ -31,7 +31,7 @@ SharedBuffer::SharedBuffer(wl_shm* sharedMemory,
 {
 	try
 	{
-		init(sharedMemory, pixelFormat);
+		init(wlSharedMemory, pixelFormat);
 	}
 	catch(const WlException& e)
 	{
@@ -69,9 +69,9 @@ uint32_t SharedBuffer::convertPixelFormat(uint32_t format)
 	return format;
 }
 
-void SharedBuffer::init(wl_shm* sharedMemory, uint32_t pixelFormat)
+void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 {
-	mWlPool = wl_shm_create_pool(sharedMemory, mDisplayBuffer->getHandle(),
+	mWlPool = wl_shm_create_pool(wlSharedMemory, mDisplayBuffer->getHandle(),
 							   mHeight * mDisplayBuffer->getStride());
 
 	if (!mWlPool)

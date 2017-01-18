@@ -190,16 +190,19 @@ int main(int argc, char *argv[])
 
 		registerSignals();
 
-		// Drm::Device display("/dev/dri/card0");
+		Drm::Device display("/dev/dri/card0");
 #if 0
 		Wayland::Display display;
+#endif
 
 		display.start();
 
+#if 0
 		display.createBackgroundSurface(BACK_WIDTH, BACK_HEIGHT);
 
 		auto connector1 = display.createConnector(37, 0, 0, WIDTH, HEIGHT);
 		auto connector2 = display.createConnector(38, WIDTH, 0, WIDTH, HEIGHT);
+#endif
 
 
 		auto displayBuffer1 = display.createDisplayBuffer(WIDTH, HEIGHT, 32);
@@ -211,7 +214,6 @@ int main(int argc, char *argv[])
 		auto frameBuffer2 = display.createFrameBuffer(displayBuffer2,
 													  WIDTH, HEIGHT,
 													  DRM_FORMAT_XRGB8888);
-		Rgb* data1 = reinterpret_cast<Rgb*>(gBuffer1);
 
 		Rgb* data1 = reinterpret_cast<Rgb*>(displayBuffer1->getBuffer());
 
@@ -223,8 +225,6 @@ int main(int argc, char *argv[])
 			data1[i].b = 0x00;
 		}
 
-		Rgb* data2 = reinterpret_cast<Rgb*>(gBuffer2);
-
 		Rgb* data2 = reinterpret_cast<Rgb*>(displayBuffer2->getBuffer());
 
 		for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
@@ -234,16 +234,17 @@ int main(int argc, char *argv[])
 			data2[i].g = 0x00;
 			data2[i].b = 0xFF;
 		}
-
+#if 0
 		connector1->init(0, 0, WIDTH, HEIGHT, frameBuffer1);
 
 		connector2->init(0, 0, WIDTH, HEIGHT, frameBuffer2);
+#endif
 
 		gTerminate = false;
 
-		thread flipThread(bind(flipHandler, connector, frameBuffer1, frameBuffer2));
+	//	thread flipThread(bind(flipHandler, connector, frameBuffer1, frameBuffer2));
 
-
+#if 0
 		Input::WlKeyboard keyboard1(display, 37);
 		Input::WlKeyboard keyboard2(display, 38);
 
@@ -258,26 +259,18 @@ int main(int argc, char *argv[])
 
 		keyboard1.setCallbacks({keyboardEvent1});
 		keyboard2.setCallbacks({keyboardEvent2});
-#endif
 
 
 		Input::InputManager inputManager;
 
 		inputManager.createInputKeyboard(0, "/dev/input/event7");
+#endif
 
 		waitSignals();
 
-#if 0
-		{
-			std::unique_lock<std::mutex> lock(gMutex);
+		gTerminate = true;
 
-			gTerminate = true;
-
-			gCondVar.notify_one();
-		}
-
-		flipThread.join();
-#endif
+//		flipThread.join();
 
 	}
 	catch(const exception& e)

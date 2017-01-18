@@ -29,14 +29,14 @@
 
 #include <xen/be/Log.hpp>
 
+#include "DisplayItf.hpp"
 #include "Compositor.hpp"
 #include "Connector.hpp"
 #include "IviApplication.hpp"
 #include "Seat.hpp"
 #include "SharedMemory.hpp"
 #include "Shell.hpp"
-
-#include "DisplayItf.hpp"
+#include "WaylandDrm.hpp"
 
 namespace Wayland {
 
@@ -87,6 +87,11 @@ public:
 	void stop() override;
 
 	/**
+	 * Returns if display supports zero copy buffers
+	 */
+	bool isZeroCopySupported() const override;
+
+	/**
 	 * Returns connector by id
 	 * @param id connector id
 	 */
@@ -100,6 +105,17 @@ public:
 	 * @return shared pointer to the display buffer
 	 */
 	std::shared_ptr<DisplayBufferItf> createDisplayBuffer(
+			uint32_t width, uint32_t height, uint32_t bpp) override;
+
+	/**
+	 * Creates display buffer with associated grant table buffer
+	 * @param width  width
+	 * @param height height
+	 * @param bpp    bits per pixel
+	 * @return shared pointer to the display buffer
+	 */
+	std::shared_ptr<DisplayBufferItf> createDisplayBuffer(
+			domid_t domId, const std::vector<grant_ref_t>& refs,
 			uint32_t width, uint32_t height, uint32_t bpp) override;
 
 	/**
@@ -133,6 +149,7 @@ private:
 	std::shared_ptr<SharedMemory> mSharedMemory;
 	std::shared_ptr<IviApplication> mIviApplication;
 	std::shared_ptr<Seat> mSeat;
+	std::shared_ptr<WaylandDrm> mWaylandDrm;
 
 	std::shared_ptr<ShellSurface> mBackgroundSurface;
 

@@ -38,12 +38,9 @@ using XenBackend::XenGnttabBuffer;
  * BuffersStorage
  ******************************************************************************/
 
-BuffersStorage::BuffersStorage(domid_t domId,
-							   shared_ptr<DisplayItf> display,
-							   shared_ptr<DrmMap> drmMap) :
+BuffersStorage::BuffersStorage(domid_t domId, shared_ptr<DisplayItf> display) :
 	mDomId(domId),
 	mDisplay(display),
-	mDrmMap(drmMap),
 	mLog("BuffersStorage")
 {
 
@@ -72,25 +69,10 @@ void BuffersStorage::createDisplayBuffer(uint64_t dbCookie,
 
 	getBufferRefs(startDirectory, size, refs);
 
-	LocalDisplayBuffer localDisplayBuffer {};
-
-	if (mDrmMap)
-	{
-		localDisplayBuffer.displayBuffer =
-				mDrmMap->createDisplayBuffer(mDomId, refs, width, height, bpp);
-	}
-	else
-	{
-		localDisplayBuffer.displayBuffer =
-				mDisplay->createDisplayBuffer(width, height, bpp);
-
-		localDisplayBuffer.buffer.reset(new XenGnttabBuffer(mDomId, refs.data(),
-															refs.size()));
-	}
-
-	mDisplayBuffers.emplace(dbCookie, move(localDisplayBuffer));
+	mDisplayBuffers.emplace(dbCookie,
+							mDisplay->createDisplayBuffer(mDomId, refs,
+														  width, height, bpp));
 }
-
 
 void BuffersStorage::createFrameBuffer(uint64_t dbCookie, uint64_t fbCookie,
 									   uint32_t width, uint32_t height,
@@ -121,14 +103,22 @@ shared_ptr<DisplayBufferItf> BuffersStorage::getDisplayBuffer(uint64_t dbCookie)
 	return getDisplayBufferUnlocked(dbCookie);
 }
 
-shared_ptr<FrameBufferItf> BuffersStorage::getFrameBuffer(uint64_t fbCookie)
+shared_ptr<FrameBufferItf>
+BuffersStorage::getFrameBufferAndCopy(uint64_t fbCookie)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	DLOG(mLog, DEBUG) << "Get frame buffer, FB cookie: "
+	DLOG(mLog, DEBUG) << "Get frame buffer and copy, FB cookie: "
 					  << hex << setfill('0') << setw(16) << fbCookie;
 
-	return getFrameBufferUnlocked(fbCookie);
+	auto frameBuffer = getFrameBufferUnlocked(fbCookie);
+
+	if (mDisplay->isZeroCopySupported())
+	{
+		frameBuffer->getDisplayBuffer()->copy();
+	}
+
+	return frameBuffer;
 }
 
 void BuffersStorage::destroyDisplayBuffer(uint64_t dbCookie)
@@ -151,44 +141,12 @@ void BuffersStorage::destroyFrameBuffer(uint64_t fbCookie)
 	mFrameBuffers.erase(fbCookie);
 }
 
-void BuffersStorage::copyBuffer(uint64_t fbCookie)
-{
-	lock_guard<mutex> lock(mMutex);
-
-	if (mDrmMap)
-	{
-		return;
-	}
-
-	auto displayBuffer = getFrameBufferUnlocked(fbCookie)->getDisplayBuffer();
-
-	auto iter = mDisplayBuffers.begin();
-
-	for (; iter != mDisplayBuffers.end(); iter++)
-	{
-		if (displayBuffer == iter->second.displayBuffer)
-		{
-			DLOG(mLog, DEBUG) << "Copy buffer, size: "
-							  << displayBuffer->getSize()
-							  << ", FB cookie: "
-							  << hex << setfill('0') << setw(16) << fbCookie;
-
-			memcpy(displayBuffer->getBuffer(), iter->second.buffer->get(),
-					displayBuffer->getSize());
-
-			return;
-		}
-	}
-
-	throw DisplayItfException("Handle not found");
-}
-
 /*******************************************************************************
  * Private
  ******************************************************************************/
 
 shared_ptr<DisplayBufferItf>
-	BuffersStorage::getDisplayBufferUnlocked(uint64_t dbCookie)
+BuffersStorage::getDisplayBufferUnlocked(uint64_t dbCookie)
 {
 	auto iter = mDisplayBuffers.find(dbCookie);
 
@@ -197,11 +155,11 @@ shared_ptr<DisplayBufferItf>
 		throw DisplayItfException("Dumb cookie not found");
 	}
 
-	return iter->second.displayBuffer;
+	return iter->second;
 }
 
 shared_ptr<FrameBufferItf>
-	BuffersStorage::getFrameBufferUnlocked(uint64_t fbCookie)
+BuffersStorage::getFrameBufferUnlocked(uint64_t fbCookie)
 {
 	auto iter = mFrameBuffers.find(fbCookie);
 

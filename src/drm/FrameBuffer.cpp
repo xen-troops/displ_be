@@ -42,6 +42,8 @@ FrameBuffer::FrameBuffer(int fd, shared_ptr<DisplayBufferItf> displayBuffer,
 						 uint32_t pixelFormat) :
 	mFd(fd),
 	mDisplayBuffer(displayBuffer),
+	mWidth(width),
+	mHeight(height),
 	mId(cInvalidId)
 {
 	uint32_t handles[4], pitches[4], offsets[4] = {0};

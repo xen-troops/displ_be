@@ -31,7 +31,6 @@
 
 #include <xen/io/displif.h>
 
-#include "drmmap/DrmMap.hpp"
 #include "DisplayItf.hpp"
 
 using std::memcpy;
@@ -50,8 +49,7 @@ public:
 	 * @param domId   domain id
 	 * @param display display object
 	 */
-	BuffersStorage(domid_t domId, std::shared_ptr<DisplayItf> display,
-				   std::shared_ptr<DrmMap> drmMap);
+	BuffersStorage(domid_t domId, std::shared_ptr<DisplayItf> display);
 
 	/**
 	 * Creates display buffer
@@ -88,7 +86,7 @@ public:
 	 * Returns frame buffer object
 	 * @param fbCookie frame buffer cookie
 	 */
-	std::shared_ptr<FrameBufferItf> getFrameBuffer(uint64_t fbCookie);
+	std::shared_ptr<FrameBufferItf> getFrameBufferAndCopy(uint64_t fbCookie);
 
 	/**
 	 * Destroys display buffer
@@ -102,34 +100,23 @@ public:
 	 */
 	void destroyFrameBuffer(uint64_t fbCookie);
 
-	/**
-	 * Copies data from  shared buffer to local display buffer
-	 * @param fbCookie frame buffer cookie
-	 */
-	void copyBuffer(uint64_t fbCookie);
-
 private:
 
 	domid_t mDomId;
 	std::shared_ptr<DisplayItf> mDisplay;
-	std::shared_ptr<DrmMap> mDrmMap;
 	XenBackend::Log mLog;
 
 	std::mutex mMutex;
 
-	struct LocalDisplayBuffer
-	{
-		std::shared_ptr<DisplayBufferItf> displayBuffer;
-		std::unique_ptr<XenBackend::XenGnttabBuffer> buffer;
-	};
-
-	std::unordered_map<uint64_t, std::shared_ptr<FrameBufferItf>> mFrameBuffers;
-	std::unordered_map<uint64_t, LocalDisplayBuffer> mDisplayBuffers;
+	std::unordered_map<uint64_t,
+					   std::shared_ptr<FrameBufferItf>> mFrameBuffers;
+	std::unordered_map<uint64_t,
+					   std::shared_ptr<DisplayBufferItf>> mDisplayBuffers;
 
 	std::shared_ptr<DisplayBufferItf>
-		getDisplayBufferUnlocked(uint64_t dbCookie);
+			getDisplayBufferUnlocked(uint64_t dbCookie);
 	std::shared_ptr<FrameBufferItf>
-		getFrameBufferUnlocked(uint64_t fbCookie);
+			getFrameBufferUnlocked(uint64_t fbCookie);
 
 	void getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 					   std::vector<grant_ref_t>& refs);

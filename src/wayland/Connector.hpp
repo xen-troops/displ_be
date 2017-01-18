@@ -44,6 +44,11 @@ public:
 	virtual ~Connector();
 
 	/**
+	 * Returns Surface associated with this connector
+	 */
+	std::shared_ptr<Surface> getSurface() const { return mSurface; }
+
+	/**
 	 * Checks if the connector is connected
 	 * @return <i>true</i> if connected
 	 */
@@ -78,8 +83,6 @@ public:
 	 */
 	void pageFlip(std::shared_ptr<FrameBufferItf> frameBuffer,
 				  FlipCallback cbk) override;
-
-	std::shared_ptr<Surface> getSurface() const { return mSurface; }
 
 private:
 

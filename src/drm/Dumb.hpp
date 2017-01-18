@@ -23,6 +23,7 @@
 #define SRC_DRM_DUMB_HPP_
 
 #include <cstdint>
+#include <memory>
 
 #include "DisplayItf.hpp"
 
@@ -44,7 +45,9 @@ public:
 	 * @param height dumb height
 	 * @param bpp    bits per pixel
 	 */
-	Dumb(int fd, uint32_t width, uint32_t height, uint32_t bpp);
+	Dumb(int fd, uint32_t width, uint32_t height, uint32_t bpp,
+		 domid_t domId = 0,
+		 const std::vector<grant_ref_t>& refs = std::vector<grant_ref_t>());
 
 	~Dumb();
 
@@ -59,14 +62,24 @@ public:
 	void* getBuffer() const override { return mBuffer; }
 
 	/**
-	 * Get stride
+	 * Gets stride
 	 */
 	uint32_t getStride() const override { return mStride; }
 
 	/**
-	 * Get handle
+	 * Gets handle
 	 */
-	int getHandle() const override { return mHandle; }
+	uintptr_t getHandle() const override { return mHandle; }
+
+	/**
+	 * Gets name
+	 */
+	uint32_t readName() override;
+
+	/**
+	 * Copies data from associated grant table buffer
+	 */
+	void copy() override;
 
 private:
 
@@ -77,9 +90,18 @@ private:
 	uint32_t mStride;
 	uint32_t mWidth;
 	uint32_t mHeight;
+	uint32_t mName;
 	size_t mSize;
 	void* mBuffer;
+	XenBackend::Log mLog;
 
+	std::unique_ptr<XenBackend::XenGnttabBuffer> mGnttabBuffer;
+
+	void createDumb(uint32_t bpp);
+	void mapDumb();
+
+	void init(uint32_t bpp, domid_t domId,
+			  const std::vector<grant_ref_t>& refs);
 	void release();
 };
 

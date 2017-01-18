@@ -24,7 +24,6 @@
 #include "Device.hpp"
 
 using std::chrono::milliseconds;
-using std::dynamic_pointer_cast;
 using std::shared_ptr;
 using std::this_thread::sleep_for;
 using std::to_string;
@@ -83,7 +82,7 @@ void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 		throw DrmException("Already initialized");
 	}
 
-	auto fbId = dynamic_pointer_cast<FrameBuffer>(frameBuffer)->getId();
+	auto fbId = frameBuffer->getHandle();
 
 	LOG(mLog, DEBUG) << "Init, con id:" << mConnector->connector_id
 					 << ", w: " << width << ", h: " << height
@@ -144,7 +143,7 @@ void Connector::pageFlip(shared_ptr<FrameBufferItf> frameBuffer,
 	mFlipPending = true;
 	mFlipCallback = cbk;
 
-	auto fbId = dynamic_pointer_cast<FrameBuffer>(frameBuffer)->getId();
+	auto fbId = frameBuffer->getHandle();
 
 	auto ret = drmModePageFlip(mDev.getFd(), mCrtcId, fbId,
 							   DRM_MODE_PAGE_FLIP_EVENT, this);

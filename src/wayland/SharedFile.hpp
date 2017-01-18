@@ -56,7 +56,17 @@ public:
 	/**
 	 * Get handle
 	 */
-	virtual int getHandle() const override { return mFd; }
+	virtual uintptr_t getHandle() const override { return mFd; }
+
+	/**
+	 * Reads name
+	 */
+	uint32_t readName() override { return 0; }
+
+	/**
+	 * Copies data from associated grant table buffer
+	 */
+	void copy() override;
 
 private:
 
@@ -76,6 +86,8 @@ private:
 	size_t mSize;
 
 	XenBackend::Log mLog;
+
+	std::unique_ptr<XenBackend::XenGnttabBuffer> mGnttabBuffer;
 
 	void init();
 	void release();

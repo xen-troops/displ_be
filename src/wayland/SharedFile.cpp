@@ -54,6 +54,17 @@ SharedFile::~SharedFile()
  * Public
  ******************************************************************************/
 
+void SharedFile::copy()
+{
+	if(!mGnttabBuffer)
+	{
+		throw WlException("There is no buffer to copy from");
+	}
+
+	DLOG("Dumb", DEBUG) << "Copy dumb, handle: " << mFd;
+
+	memcpy(mBuffer, mGnttabBuffer->get(), mSize);
+}
 
 /*******************************************************************************
  * Private

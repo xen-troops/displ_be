@@ -28,6 +28,10 @@
 #include "Device.hpp"
 
 using std::exception;
+using std::string;
+using std::vector;
+
+using XenBackend::XenGnttabBuffer;
 
 namespace Drm {
 
@@ -35,58 +39,21 @@ namespace Drm {
  * Dumb
  ******************************************************************************/
 
-Dumb::Dumb(int fd, uint32_t width, uint32_t height, uint32_t bpp) :
+Dumb::Dumb(int fd, uint32_t width, uint32_t height, uint32_t bpp,
+		   domid_t domId, const vector<grant_ref_t>& refs) :
 	mFd(fd),
 	mHandle(cInvalidId),
 	mStride(0),
 	mWidth(width),
 	mHeight(height),
+	mName(0),
 	mSize(0),
-	mBuffer(nullptr)
+	mBuffer(nullptr),
+	mLog("Dumb")
 {
 	try
 	{
-		drm_mode_create_dumb creq {0};
-
-		creq.width = width;
-		creq.height = height;
-		creq.bpp = bpp;
-
-		auto ret = drmIoctl(mFd, DRM_IOCTL_MODE_CREATE_DUMB, &creq);
-
-		if (ret < 0)
-		{
-			throw DrmException("Cannot create dumb buffer");
-		}
-
-		mStride = creq.pitch;
-		mSize = creq.size;
-		mHandle = creq.handle;
-
-		drm_mode_map_dumb mreq {0};
-
-		mreq.handle = mHandle;
-
-		ret = drmIoctl(mFd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
-
-		if (ret < 0)
-		{
-			throw DrmException("Cannot map dumb buffer.");
-		}
-
-		auto map = mmap(0, mSize, PROT_READ | PROT_WRITE, MAP_SHARED,
-						mFd, mreq.offset);
-
-		if (map == MAP_FAILED)
-		{
-			throw DrmException("Cannot mmap dumb buffer");
-		}
-
-		mBuffer = map;
-
-		DLOG("Dumb", DEBUG) << "Create dumb, handle: " << mHandle << ", size: "
-						   << mSize << ", stride: " << mStride;
-
+		init(bpp, domId, refs);
 	}
 	catch(const exception& e)
 	{
@@ -99,8 +66,98 @@ Dumb::Dumb(int fd, uint32_t width, uint32_t height, uint32_t bpp) :
 Dumb::~Dumb()
 {
 	release();
+}
 
-	DLOG("Dumb", DEBUG) << "Delete dumb, handle: " << mHandle;
+/*******************************************************************************
+ * Public
+ ******************************************************************************/
+
+uint32_t Dumb::readName()
+{
+	if (!mName)
+	{
+		drm_gem_flink req = { .handle = mHandle };
+
+		if (drmIoctl(mFd, DRM_IOCTL_GEM_FLINK, &req) < 0)
+		{
+			throw DrmException("Cannot get name");
+		}
+
+		mName = req.name;
+	}
+
+	return mName;
+}
+
+void Dumb::copy()
+{
+	if(!mGnttabBuffer)
+	{
+		throw DrmException("There is no buffer to copy from");
+	}
+
+	DLOG(mLog, DEBUG) << "Copy dumb, handle: " << mHandle;
+
+	memcpy(mBuffer, mGnttabBuffer->get(), mSize);
+}
+
+/*******************************************************************************
+ * Private
+ ******************************************************************************/
+
+void Dumb::createDumb(uint32_t bpp)
+{
+	drm_mode_create_dumb creq {0};
+
+	creq.width = mWidth;
+	creq.height = mHeight;
+	creq.bpp = bpp;
+
+	if (drmIoctl(mFd, DRM_IOCTL_MODE_CREATE_DUMB, &creq) < 0)
+	{
+		throw DrmException("Cannot create dumb buffer");
+	}
+
+	mStride = creq.pitch;
+	mSize = creq.size;
+	mHandle = creq.handle;
+}
+
+void Dumb::mapDumb()
+{
+	drm_mode_map_dumb mreq {0};
+
+	mreq.handle = mHandle;
+
+	if (drmIoctl(mFd, DRM_IOCTL_MODE_MAP_DUMB, &mreq) < 0)
+	{
+		throw DrmException("Cannot map dumb buffer.");
+	}
+
+	auto map = mmap(0, mSize, PROT_READ | PROT_WRITE, MAP_SHARED,
+					mFd, mreq.offset);
+
+	if (map == MAP_FAILED)
+	{
+		throw DrmException("Cannot mmap dumb buffer");
+	}
+
+	mBuffer = map;
+}
+
+void Dumb::init(uint32_t bpp, domid_t domId, const vector<grant_ref_t>& refs)
+{
+	if (refs.size())
+	{
+		mGnttabBuffer.reset(
+				new XenGnttabBuffer(domId, refs.data(), refs.size()));
+	}
+
+	createDumb(bpp);
+	mapDumb();
+
+	DLOG(mLog, DEBUG) << "Create dumb, handle: " << mHandle << ", size: "
+					   << mSize << ", stride: " << mStride;
 }
 
 void Dumb::release()
@@ -116,11 +173,10 @@ void Dumb::release()
 
 		dreq.handle = mHandle;
 
-		if (drmIoctl(mFd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq) < 0)
-		{
-			DLOG("Dumb" , ERROR) << "Cannot destroy dumb";
-		}
+		drmIoctl(mFd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
 	}
+
+	DLOG(mLog, DEBUG) << "Delete dumb, handle: " << mHandle;
 }
 
 }
