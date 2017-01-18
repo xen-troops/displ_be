@@ -112,7 +112,7 @@ DisplayItf::ConnectorPtr Display::createConnector(uint32_t id, uint32_t x,
 	else if (mIviApplication)
 	{
 		connector = new ConnectorType<IviSurface>(id,
-												  createIviSurface(x, y,
+												  createIviSurface(id, x, y,
 												  width, height));
 	}
 	else
@@ -242,10 +242,10 @@ ShellSurfacePtr Display::createShellSurface(uint32_t x, uint32_t y)
 	return shellSurface;
 }
 
-IviSurfacePtr Display::createIviSurface(uint32_t x, uint32_t y,
+IviSurfacePtr Display::createIviSurface(int id, uint32_t x, uint32_t y,
 										uint32_t width, uint32_t height)
 {
-	return mIviApplication->createIviSurface(mCompositor->createSurface(),
+	return mIviApplication->createIviSurface(id, mCompositor->createSurface(),
 											 width, height, 0);
 }
 

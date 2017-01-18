@@ -29,9 +29,9 @@ unordered_map<uint32_t, ilmPixelFormat> IviSurface::sPixelFormatMap =
  * IviSurface
  ******************************************************************************/
 
-IviSurface::IviSurface(SurfacePtr surface, uint32_t width, uint32_t height,
-					   uint32_t pixelFormat) :
-	mIlmSurface(INVALID_ID),
+IviSurface::IviSurface(int id, SurfacePtr surface,
+					   uint32_t width, uint32_t height, uint32_t pixelFormat) :
+	mIlmSurface(id),
 	mSurface(surface),
 	mLog("IviSurface")
 {
@@ -62,17 +62,13 @@ IviSurface::~IviSurface()
 
 void IviSurface::init(uint32_t width, uint32_t height, uint32_t pixelFormat)
 {
-	t_ilm_surface surface;
-
 	if (ilm_surfaceCreate(
 			reinterpret_cast<t_ilm_nativehandle>(mSurface->mWlSurface),
-			width, height, convertPixelFormat(pixelFormat),	&surface) !=
+			width, height, convertPixelFormat(pixelFormat), &mIlmSurface) !=
 		ILM_SUCCESS)
 	{
 		throw Exception("Can't create ivi surface");
 	}
-
-	mIlmSurface = surface;
 
 	LOG(mLog, DEBUG) << "Create, id: " << mIlmSurface;
 }

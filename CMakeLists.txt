@@ -77,8 +77,8 @@ add_executable(${PROJECT_NAME} ${BE_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
 	be_wl_input
-	be_drm
 	be_wl
+	be_drm
 	xenbe
 	xenctrl
 	xenstore
@@ -94,8 +94,8 @@ add_executable(displ_test ${TEST_SOURCES})
 
 target_link_libraries(displ_test
 	be_wl_input
-	be_drm
 	be_wl
+	be_drm
 	xenbe
 	xenctrl
 	xenstore

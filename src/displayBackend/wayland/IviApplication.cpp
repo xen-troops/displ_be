@@ -42,13 +42,14 @@ IviApplication::~IviApplication()
  * Public
  ******************************************************************************/
 
-IviSurfacePtr IviApplication::createIviSurface(SurfacePtr surface,
+IviSurfacePtr IviApplication::createIviSurface(int id, SurfacePtr surface,
 											   uint32_t width, uint32_t height,
 											   uint32_t pixelFormat)
 {
 	LOG(mLog, DEBUG) << "Create ivi surface";
 
-	return IviSurfacePtr(new IviSurface(surface, width, height, pixelFormat));
+	return IviSurfacePtr(new IviSurface(id, surface, width, height,
+										pixelFormat));
 }
 
 /*******************************************************************************

@@ -156,7 +156,7 @@ private:
 	std::thread mThread;
 
 	ShellSurfacePtr createShellSurface(uint32_t x, uint32_t y);
-	IviSurfacePtr createIviSurface(uint32_t x, uint32_t y,
+	IviSurfacePtr createIviSurface(int id, uint32_t x, uint32_t y,
 								   uint32_t width, uint32_t height);
 
 	static void sRegistryHandler(void *data, wl_registry *registry,

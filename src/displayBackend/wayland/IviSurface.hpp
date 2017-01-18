@@ -40,7 +40,7 @@ private:
 	friend class Display;
 	friend class IviApplication;
 
-	IviSurface(SurfacePtr surface, uint32_t width, uint32_t height,
+	IviSurface(int id, SurfacePtr surface, uint32_t width, uint32_t height,
 			   uint32_t pixelFormat);
 
 	t_ilm_surface mIlmSurface;
