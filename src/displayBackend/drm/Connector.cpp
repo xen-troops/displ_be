@@ -28,13 +28,16 @@ using std::shared_ptr;
 using std::this_thread::sleep_for;
 using std::to_string;
 
+using DisplayItf::FrameBufferPtr;
+
 namespace Drm {
 
 /*******************************************************************************
  * Connector
  ******************************************************************************/
 
-Connector::Connector(Display& device, int conId) : ConnectorItf(conId),
+Connector::Connector(Display& device, int conId) :
+	DisplayItf::Connector(conId),
 	mDev(device),
 	mFd(device.getFd()),
 	mCrtcId(cInvalidId),
@@ -74,12 +77,12 @@ void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 
 	if (mConnector->connection != DRM_MODE_CONNECTED)
 	{
-		throw DrmException("Connector is not connected");
+		throw Exception("Connector is not connected");
 	}
 
 	if (mCrtcId != cInvalidId)
 	{
-		throw DrmException("Already initialized");
+		throw Exception("Already initialized");
 	}
 
 	auto fbId = frameBuffer->getHandle();
@@ -92,14 +95,14 @@ void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 
 	if (mCrtcId == cInvalidId)
 	{
-		throw DrmException("Cannot find CRTC for connector");
+		throw Exception("Cannot find CRTC for connector");
 	}
 
 	auto mode = findMode(width, height);
 
 	if (!mode)
 	{
-		throw DrmException("Unsupported mode");
+		throw Exception("Unsupported mode");
 	}
 
 	mSavedCrtc = drmModeGetCrtc(mFd, mCrtcId);
@@ -107,7 +110,7 @@ void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 	if (drmModeSetCrtc(mFd, mCrtcId, fbId, 0, 0,
 					   &mConnector->connector_id, 1, mode))
 	{
-		throw DrmException("Cannot set CRTC for connector");
+		throw Exception("Cannot set CRTC for connector");
 	}
 }
 
@@ -131,12 +134,12 @@ void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 {
 	if (!isInitialized())
 	{
-		throw DrmException("Connector is not initialized");
+		throw Exception("Connector is not initialized");
 	}
 
 	if (mFlipPending)
 	{
-		throw DrmException("Page flip already scheduled");
+		throw Exception("Page flip already scheduled");
 	}
 
 	mFlipPending = true;
@@ -149,7 +152,7 @@ void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 
 	if (ret)
 	{
-		throw DrmException("Cannot flip CRTC: " + fbId);
+		throw Exception("Cannot flip CRTC: " + fbId);
 	}
 
 

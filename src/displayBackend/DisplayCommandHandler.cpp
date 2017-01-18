@@ -30,7 +30,6 @@
 #include <drm_fourcc.h>
 
 using std::hex;
-using std::exception;
 using std::out_of_range;
 using std::setfill;
 using std::setw;
@@ -39,6 +38,8 @@ using std::unordered_map;
 
 using XenBackend::XenException;
 using XenBackend::XenGnttabBuffer;
+
+using DisplayItf::ConnectorPtr;
 
 unordered_map<int, DisplayCommandHandler::CommandFn>
 	DisplayCommandHandler::sCmdTable =
@@ -108,7 +109,7 @@ uint8_t DisplayCommandHandler::processCommand(const xendispl_req& req)
 
 		status = XENDISPL_RSP_NOTSUPP;
 	}
-	catch(const exception& e)
+	catch(const std::exception& e)
 	{
 		LOG(mLog, ERROR) << e.what();
 

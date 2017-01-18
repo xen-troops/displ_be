@@ -39,13 +39,16 @@
 using std::bind;
 using std::cin;
 using std::dynamic_pointer_cast;
-using std::exception;
 using std::make_shared;
 using std::shared_ptr;
 using std::setprecision;
 using std::fixed;
 using std::string;
 using std::thread;
+
+using DisplayItf::ConnectorPtr;
+using DisplayItf::DisplayBufferPtr;
+using DisplayItf::FrameBufferPtr;
 
 #define BACK_WIDTH 640
 #define BACK_HEIGHT 480
@@ -281,7 +284,7 @@ int main(int argc, char *argv[])
 //		flipThread.join();
 
 	}
-	catch(const exception& e)
+	catch(const std::exception& e)
 	{
 		LOG("Test", ERROR) << e.what();
 	}

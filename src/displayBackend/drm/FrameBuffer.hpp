@@ -35,7 +35,7 @@ extern const uint32_t cInvalidId;
  * Provides DRM frame buffer functionality.
  * @ingroup drm
  ******************************************************************************/
-class FrameBuffer : public FrameBufferItf
+class FrameBuffer : public DisplayItf::FrameBuffer
 {
 public:
 
@@ -45,7 +45,7 @@ public:
 	 * @param height      frame buffer height
 	 * @param pixelFormat frame buffer pixel format
 	 */
-	FrameBuffer(int fd, DisplayBufferPtr displayBuffer,
+	FrameBuffer(int fd, DisplayItf::DisplayBufferPtr displayBuffer,
 				uint32_t width, uint32_t height,
 				uint32_t pixelFormat);
 
@@ -69,17 +69,21 @@ public:
 	/**
 	 * Returns pointer to the display buffer
 	 */
-	DisplayBufferPtr getDisplayBuffer() override
+	DisplayItf::DisplayBufferPtr getDisplayBuffer() override
 	{
 		return mDisplayBuffer;
 	}
 
 private:
 	int mFd;
-	DisplayBufferPtr mDisplayBuffer;
+	DisplayItf::DisplayBufferPtr mDisplayBuffer;
 	uint32_t mWidth;
 	uint32_t mHeight;
 	uint32_t mId;
+	XenBackend::Log mLog;
+
+	void init(uint32_t pixelFormat);
+	void release();
 };
 
 }

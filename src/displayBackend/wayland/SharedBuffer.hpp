@@ -14,7 +14,7 @@
 
 #include <xen/be/Log.hpp>
 
-#include "DisplayItf.hpp"
+#include "../DisplayItf.hpp"
 
 namespace Wayland {
 
@@ -22,7 +22,7 @@ namespace Wayland {
  * Shared buffer class.
  * @ingroup wayland
  ******************************************************************************/
-class SharedBuffer : public FrameBufferItf
+class SharedBuffer : public DisplayItf::FrameBuffer
 {
 public:
 
@@ -49,7 +49,7 @@ public:
 	/**
 	 * Returns pointer to the display buffer
 	 */
-	DisplayBufferPtr getDisplayBuffer() override
+	DisplayItf::DisplayBufferPtr getDisplayBuffer() override
 	{
 		return mDisplayBuffer;
 	}
@@ -59,11 +59,11 @@ private:
 	friend class SharedMemory;
 
 	SharedBuffer(wl_shm* wlSharedMemory,
-				 DisplayBufferPtr displayBuffer,
+				 DisplayItf::DisplayBufferPtr displayBuffer,
 				 uint32_t width, uint32_t height,
 				 uint32_t pixelFormat);
 
-	DisplayBufferPtr mDisplayBuffer;
+	DisplayItf::DisplayBufferPtr mDisplayBuffer;
 	wl_buffer* mWlBuffer;
 	wl_shm_pool* mWlPool;
 	uint32_t mWidth;

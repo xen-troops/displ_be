@@ -30,6 +30,9 @@ using std::shared_ptr;
 using std::string;
 using std::vector;
 
+using DisplayItf::DisplayBufferPtr;
+using DisplayItf::FrameBufferPtr;
+
 namespace Wayland {
 
 /*******************************************************************************
@@ -47,7 +50,7 @@ WaylandDrm::WaylandDrm(wl_registry* registry,
 	{
 		init();
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -87,7 +90,7 @@ WaylandDrm::createDumb(domid_t domId, const vector<grant_ref_t>& refs,
 		return mDrmDevice->createDisplayBuffer(domId, refs, width, height, bpp);
 	}
 
-	throw WlException("Can't create dumb");
+	throw Exception("Can't create dumb");
 }
 
 FrameBufferPtr
@@ -167,14 +170,14 @@ void WaylandDrm::init()
 
 	if (!mWlDrm)
 	{
-		throw WlException("Can't bind drm");
+		throw Exception("Can't bind drm");
 	}
 
 	mWlListener = {sOnDevice, sOnFormat, sOnAuthenticated, sOnCapabilities};
 
 	if (wl_drm_add_listener(mWlDrm, &mWlListener, this) < 0)
 	{
-		throw WlException("Can't add listener");
+		throw Exception("Can't add listener");
 	}
 
 	LOG(mLog, DEBUG) << "Create";

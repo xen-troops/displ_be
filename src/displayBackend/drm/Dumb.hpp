@@ -35,7 +35,7 @@ extern const uint32_t cInvalidId;
  * Provides DRM dumb functionality.
  * @ingroup drm
  ******************************************************************************/
-class Dumb : public DisplayBufferItf
+class Dumb : public DisplayItf::DisplayBuffer
 {
 public:
 

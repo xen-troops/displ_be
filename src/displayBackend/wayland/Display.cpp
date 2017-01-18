@@ -36,6 +36,10 @@ using std::shared_ptr;
 using std::to_string;
 using std::thread;
 
+using DisplayItf::ConnectorPtr;
+using DisplayItf::DisplayBufferPtr;
+using DisplayItf::FrameBufferPtr;
+
 namespace Wayland {
 
 /*******************************************************************************
@@ -52,7 +56,7 @@ Display::Display() :
 	{
 		init();
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -162,10 +166,10 @@ ConnectorPtr Display::getConnectorById(uint32_t id)
 
 	if (iter == mConnectors.end())
 	{
-		throw WlException("Wrong connector id " + to_string(id));
+		throw Exception("Wrong connector id " + to_string(id));
 	}
 
-	return dynamic_pointer_cast<ConnectorItf>(iter->second);
+	return dynamic_pointer_cast<Connector>(iter->second);
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
@@ -176,7 +180,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		return mSharedMemory->createSharedFile(width, height, bpp);
 	}
 
-	throw WlException("Can't create display buffer");
+	throw Exception("Can't create display buffer");
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
@@ -192,7 +196,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		return mSharedMemory->createSharedFile(width, height, bpp);
 	}
 
-	throw WlException("Can't create display buffer");
+	throw Exception("Can't create display buffer");
 }
 
 FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
@@ -210,7 +214,7 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 												 pixelFormat);
 	}
 
-	throw WlException("Can't create frame buffer");
+	throw Exception("Can't create frame buffer");
 }
 
 /*******************************************************************************
@@ -309,7 +313,7 @@ void Display::init()
 
 	if (!mWlDisplay)
 	{
-		throw WlException("Can't connect to display");
+		throw Exception("Can't connect to display");
 	}
 
 	LOG(mLog, DEBUG) << "Connected";
@@ -320,7 +324,7 @@ void Display::init()
 
 	if (!mWlRegistry)
 	{
-		throw WlException("Can't get registry");
+		throw Exception("Can't get registry");
 	}
 
 	wl_registry_add_listener(mWlRegistry, &mWlRegistryListener, this);
@@ -330,12 +334,12 @@ void Display::init()
 
 	if (!mCompositor)
 	{
-		throw WlException("Can't get compositor");
+		throw Exception("Can't get compositor");
 	}
 
 	if (!mSharedMemory)
 	{
-		throw WlException("Can't get shared memory");
+		throw Exception("Can't get shared memory");
 	}
 }
 
@@ -386,7 +390,7 @@ bool Display::pollDisplayFd()
 
 		if (ret < 0)
 		{
-			throw WlException("Can't poll events");
+			throw Exception("Can't poll events");
 		}
 		else if (ret > 0)
 		{
@@ -409,7 +413,7 @@ void Display::dispatchThread()
 
 				if (val < 0)
 				{
-					throw WlException("Can't dispatch pending events");
+					throw Exception("Can't dispatch pending events");
 				}
 
 				DLOG(mLog, DEBUG) << "Dispatch events: " << val;

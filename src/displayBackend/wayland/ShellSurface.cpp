@@ -26,7 +26,7 @@ ShellSurface::ShellSurface(wl_shell* shell, shared_ptr<Surface> surface) :
 	{
 		init(shell);
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -102,14 +102,14 @@ void ShellSurface::init(wl_shell* shell)
 
 	if (!mWlShellSurface)
 	{
-		throw WlException("Can't create shell surface");
+		throw Exception("Can't create shell surface");
 	}
 
 	mWlListener = {sPingHandler, sConfigHandler, sPopupDone};
 
 	if (wl_shell_surface_add_listener(mWlShellSurface, &mWlListener, this) < 0)
 	{
-		throw WlException("Can't add listener");
+		throw Exception("Can't add listener");
 	}
 
 	LOG(mLog, DEBUG) << "Create";

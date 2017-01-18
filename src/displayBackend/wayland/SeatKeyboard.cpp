@@ -29,7 +29,7 @@ SeatKeyboard::SeatKeyboard(wl_seat* seat) :
 	{
 		init(seat);
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -128,7 +128,7 @@ void SeatKeyboard::init(wl_seat* seat)
 
 	if (!mWlKeyboard)
 	{
-		throw WlException("Can't create keyboard");
+		throw Exception("Can't create keyboard");
 	}
 
 	mListener = { sOnKeymap, sOnEnter, sOnLeave, sOnKey,
@@ -136,7 +136,7 @@ void SeatKeyboard::init(wl_seat* seat)
 
 	if (wl_keyboard_add_listener(mWlKeyboard, &mListener, this))
 	{
-		throw WlException("Can't add listener");
+		throw Exception("Can't add listener");
 	}
 
 	LOG(mLog, DEBUG) << "Create";

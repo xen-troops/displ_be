@@ -18,7 +18,7 @@ using std::vector;
 
 namespace Drm {
 
-class DumbZeroCopy : public DisplayBufferItf
+class DumbZeroCopy : public DisplayItf::DisplayBuffer
 {
 public:
 

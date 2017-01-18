@@ -18,8 +18,6 @@
 
 #include "Exception.hpp"
 
-using std::exception;
-
 namespace Drm {
 
 /*******************************************************************************
@@ -45,7 +43,7 @@ DumbZeroCopy::DumbZeroCopy(int mapFd, int drmFd,
 	{
 		init(bpp, domId, refs);
 	}
-	catch(const exception& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -70,7 +68,7 @@ uint32_t DumbZeroCopy::readName()
 
 		if (drmIoctl(mDrmFd, DRM_IOCTL_GEM_FLINK, &req) < 0)
 		{
-			throw DrmException("Cannot get name");
+			throw Exception("Cannot get name");
 		}
 
 		mName = req.name;
@@ -81,7 +79,7 @@ uint32_t DumbZeroCopy::readName()
 
 void DumbZeroCopy::copy()
 {
-	throw DrmException("There is no buffer to copy from");
+	throw Exception("There is no buffer to copy from");
 }
 
 /*******************************************************************************
@@ -103,7 +101,7 @@ void DumbZeroCopy::createDumb(uint32_t bpp, domid_t domId,
 
 	if (drmIoctl(mMappedFd, DRM_IOCTL_XEN_ZCOPY_CREATE_DUMB, &mapreq) < 0)
 	{
-		throw DrmException("Cannot create mapped dumb buffer");
+		throw Exception("Cannot create mapped dumb buffer");
 	}
 
 	mStride = mapreq.dumb.pitch;
@@ -121,14 +119,14 @@ void DumbZeroCopy::createHandle()
 
 	if (drmIoctl(mMappedFd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &prime) < 0)
 	{
-		throw DrmException("Cannot export prime buffer.");
+		throw Exception("Cannot export prime buffer.");
 	}
 
 	prime.flags = DRM_CLOEXEC;
 
 	if (drmIoctl(mDrmFd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime) < 0)
 	{
-		throw DrmException("Cannot import prime buffer.");
+		throw Exception("Cannot import prime buffer.");
 	}
 
 	mHandle = prime.handle;
@@ -142,7 +140,7 @@ void DumbZeroCopy::mapDumb()
 
 	if (drmIoctl(mDrmFd, DRM_IOCTL_MODE_MAP_DUMB, &mreq) < 0)
 	{
-		throw DrmException("Cannot map dumb buffer.");
+		throw Exception("Cannot map dumb buffer.");
 	}
 
 	auto map = mmap(0, mSize, PROT_READ | PROT_WRITE, MAP_SHARED,
@@ -150,7 +148,7 @@ void DumbZeroCopy::mapDumb()
 
 	if (map == MAP_FAILED)
 	{
-		throw DrmException("Cannot mmap dumb buffer");
+		throw Exception("Cannot mmap dumb buffer");
 	}
 
 	mBuffer = map;

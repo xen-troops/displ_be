@@ -27,7 +27,7 @@
 
 #include <xen/be/Log.hpp>
 
-#include "DisplayItf.hpp"
+#include "../DisplayItf.hpp"
 #include "ShellSurface.hpp"
 
 namespace Wayland {
@@ -36,7 +36,7 @@ namespace Wayland {
  * Virtual connector class.
  * @ingroup wayland
  ******************************************************************************/
-class Connector : public ConnectorItf
+class Connector : public DisplayItf::Connector
 {
 public:
 
@@ -68,7 +68,7 @@ public:
 	 * @param frameBuffer frame buffer
 	 */
 	void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
-			  FrameBufferPtr frameBuffer) override;
+			  DisplayItf::FrameBufferPtr frameBuffer) override;
 
 	/**
 	 * Releases initialized connector
@@ -80,7 +80,8 @@ public:
 	 * @param frameBuffer frame buffer to flip
 	 * @param cbk         callback
 	 */
-	void pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk) override;
+	void pageFlip(DisplayItf::FrameBufferPtr frameBuffer,
+				  FlipCallback cbk) override;
 
 private:
 

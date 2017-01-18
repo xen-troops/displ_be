@@ -28,7 +28,7 @@ Compositor::Compositor(wl_display* display, wl_registry* registry,
 	{
 		init();
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -64,7 +64,7 @@ void Compositor::init()
 
 	if (!mWlCompositor)
 	{
-		throw WlException("Can't bind compositor");
+		throw Exception("Can't bind compositor");
 	}
 
 	LOG(mLog, DEBUG) << "Create";

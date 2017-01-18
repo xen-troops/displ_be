@@ -16,7 +16,6 @@
 
 #include "Exception.hpp"
 
-using std::exception;
 using std::setfill;
 using std::setw;
 using std::string;
@@ -41,7 +40,7 @@ InputBase::InputBase(const string& name) :
 	{
 		init();
 	}
-	catch(const Exception& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -136,7 +135,7 @@ void InputBase::run()
 			}
 		}
 	}
-	catch(const exception& e)
+	catch(const std::exception& e)
 	{
 		LOG(mLog, ERROR) << e.what();
 	}

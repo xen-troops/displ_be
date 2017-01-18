@@ -38,7 +38,7 @@ class Display;
  * Provides DRM connector functionality.
  * @ingroup drm
  ******************************************************************************/
-class Connector : public ConnectorItf
+class Connector : public DisplayItf::Connector
 {
 public:
 
@@ -77,7 +77,7 @@ public:
 	 * @param frameBuffer frame buffer
 	 */
 	void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
-			  FrameBufferPtr frameBuffer) override;
+			  DisplayItf::FrameBufferPtr frameBuffer) override;
 
 	/**
 	 * Releases the previously initialized CRTC mode
@@ -89,7 +89,7 @@ public:
 	 * @param frameBuffer frame buffer
 	 * @param cbk         callback which will be called when page flip is done
 	 */
-	virtual void pageFlip(FrameBufferPtr frameBuffer,
+	virtual void pageFlip(DisplayItf::FrameBufferPtr frameBuffer,
 						  FlipCallback cbk) override;
 
 private:

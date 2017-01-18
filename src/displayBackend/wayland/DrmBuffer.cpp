@@ -11,6 +11,8 @@
 
 using std::shared_ptr;
 
+using DisplayItf::DisplayBufferPtr;
+
 namespace Wayland {
 
 /*******************************************************************************
@@ -31,7 +33,7 @@ DrmBuffer::DrmBuffer(wl_drm* wlDrm,
 	{
 		init(wlDrm, pixelFormat);
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -60,7 +62,7 @@ void DrmBuffer::init(wl_drm* wlDrm, uint32_t pixelFormat)
 
 	if (!mWlBuffer)
 	{
-		throw WlException("Can't create Drm buffer");
+		throw Exception("Can't create Drm buffer");
 	}
 
 	LOG(mLog, DEBUG) << "Create, w: " << mWidth << ", h: " << mHeight

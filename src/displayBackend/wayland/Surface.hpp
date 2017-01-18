@@ -12,7 +12,7 @@
 
 #include <xen/be/Log.hpp>
 
-#include "DisplayItf.hpp"
+#include "../DisplayItf.hpp"
 
 namespace Wayland {
 
@@ -36,7 +36,8 @@ public:
 	 * @param frameBuffer  shared buffer
 	 * @param callback     called when frame with the content is displayed
 	 */
-	void draw(FrameBufferPtr frameBuffer, FrameCallback callback = nullptr);
+	void draw(DisplayItf::FrameBufferPtr frameBuffer,
+			  FrameCallback callback = nullptr);
 
 private:
 

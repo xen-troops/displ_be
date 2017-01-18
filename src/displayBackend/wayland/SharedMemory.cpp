@@ -11,6 +11,8 @@
 
 using std::shared_ptr;
 
+using DisplayItf::DisplayBufferPtr;
+
 namespace Wayland {
 
 /*******************************************************************************
@@ -26,7 +28,7 @@ SharedMemory::SharedMemory(wl_registry* registry, uint32_t id, uint32_t version)
 	{
 		init();
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -76,7 +78,7 @@ void SharedMemory::init()
 
 	if (!mWlSharedMemory)
 	{
-		throw WlException("Can't bind shared memory");
+		throw Exception("Can't bind shared memory");
 	}
 
 	LOG(mLog, DEBUG) << "Create";

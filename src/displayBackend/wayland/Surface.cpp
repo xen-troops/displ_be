@@ -9,6 +9,8 @@
 
 #include "Exception.hpp"
 
+using DisplayItf::FrameBufferPtr;
+
 namespace Wayland {
 
 /*******************************************************************************
@@ -25,7 +27,7 @@ Surface::Surface(wl_display* display, wl_compositor* compositor) :
 	{
 		init(compositor);
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -49,7 +51,7 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 
 	if (mWlFrameCallback)
 	{
-		throw WlException("Draw event is in progress");
+		throw Exception("Draw event is in progress");
 	}
 
 	mStoredCallback = callback;
@@ -60,12 +62,12 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 
 		if (!mWlFrameCallback)
 		{
-			throw WlException("Can't get frame callback");
+			throw Exception("Can't get frame callback");
 		}
 
 		if (wl_callback_add_listener(mWlFrameCallback, &mWlFrameListener, this) < 0)
 		{
-			throw WlException("Can't add listener");
+			throw Exception("Can't add listener");
 		}
 	}
 
@@ -82,12 +84,12 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 
 	if (wl_display_dispatch_pending(mWlDisplay) == -1)
 	{
-		throw WlException("Failed to dispatch pending events");
+		throw Exception("Failed to dispatch pending events");
 	}
 
 	if (wl_display_flush(mWlDisplay) == -1)
 	{
-		throw WlException("Failed to flush display");
+		throw Exception("Failed to flush display");
 	}
 }
 
@@ -120,7 +122,7 @@ void Surface::init(wl_compositor* compositor)
 
 	if (!mWlSurface)
 	{
-		throw WlException("Can't create surface");
+		throw Exception("Can't create surface");
 	}
 
 	mWlFrameListener = { sFrameHandler };

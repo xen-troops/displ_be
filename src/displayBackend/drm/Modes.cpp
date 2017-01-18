@@ -41,7 +41,7 @@ ModeResource::ModeResource(int fd)
 
 	if (!mData)
 	{
-		throw DrmException("Cannot retrieve DRM resources");
+		throw Exception("Cannot retrieve DRM resources");
 	}
 }
 
@@ -67,7 +67,7 @@ ModeConnector::ModeConnector(int fd, int connectorId)
 
 	if (!mData)
 	{
-		throw DrmException("Cannot retrieve DRM connector");
+		throw Exception("Cannot retrieve DRM connector");
 	}
 }
 
@@ -92,7 +92,7 @@ ModeEncoder::ModeEncoder(int fd, int encoderId)
 
 	if (!mData)
 	{
-		throw DrmException("Cannot retrieve DRM encoder: " + to_string(encoderId));
+		throw Exception("Cannot retrieve DRM encoder: " + to_string(encoderId));
 	}
 
 	DLOG("ModeEncoder", DEBUG) << "Create ModeEncoder, id: " << encoderId

@@ -27,7 +27,7 @@ IviApplication::IviApplication(wl_display* display) :
 	{
 		init(display);
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -64,7 +64,7 @@ void IviApplication::init(wl_display* display)
 	if (ilmClient_init(reinterpret_cast<t_ilm_nativedisplay>(display)) !=
 		ILM_SUCCESS)
 	{
-		throw WlException("Can't initialize layer manage");
+		throw Exception("Can't initialize layer manage");
 	}
 
 	mInitialised = true;

@@ -34,6 +34,10 @@ using std::vector;
 
 using XenBackend::XenGnttabBuffer;
 
+using DisplayItf::DisplayPtr;
+using DisplayItf::DisplayBufferPtr;
+using DisplayItf::FrameBufferPtr;
+
 /*******************************************************************************
  * BuffersStorage
  ******************************************************************************/
@@ -150,7 +154,7 @@ DisplayBufferPtr BuffersStorage::getDisplayBufferUnlocked(uint64_t dbCookie)
 
 	if (iter == mDisplayBuffers.end())
 	{
-		throw DisplayItfException("Dumb cookie not found");
+		throw DisplayItf::Exception("Dumb cookie not found");
 	}
 
 	return iter->second;
@@ -162,7 +166,7 @@ FrameBufferPtr BuffersStorage::getFrameBufferUnlocked(uint64_t fbCookie)
 
 	if (iter == mFrameBuffers.end())
 	{
-		throw DisplayItfException("Frame buffer cookie not found");
+		throw DisplayItf::Exception("Frame buffer cookie not found");
 	}
 
 	return iter->second;

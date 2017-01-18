@@ -33,7 +33,6 @@
 #include "Dumb.hpp"
 #include "DumbZeroCopy.hpp"
 
-using std::exception;
 using std::dynamic_pointer_cast;
 using std::lock_guard;
 using std::mutex;
@@ -42,6 +41,10 @@ using std::string;
 using std::thread;
 using std::to_string;
 using std::vector;
+
+using DisplayItf::ConnectorPtr;
+using DisplayItf::DisplayBufferPtr;
+using DisplayItf::FrameBufferPtr;
 
 namespace Drm {
 
@@ -62,7 +65,7 @@ Display::Display(const string& name) :
 	{
 		init();
 	}
-	catch(const exception& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -91,7 +94,7 @@ drm_magic_t Display::getMagic()
 
 	if (drmGetMagic(mFd, &magic) < 0)
 	{
-		throw DrmException("Can't get magic");
+		throw Exception("Can't get magic");
 	}
 
 	LOG(mLog, DEBUG) << "Get magic: " << magic;
@@ -177,10 +180,10 @@ ConnectorPtr Display::getConnectorById(uint32_t id)
 
 	if (iter == mConnectors.end())
 	{
-		throw DrmException("Wrong connector id " + to_string(id));
+		throw Exception("Wrong connector id " + to_string(id));
 	}
 
-	return dynamic_pointer_cast<ConnectorItf>(iter->second);
+	return dynamic_pointer_cast<Connector>(iter->second);
 }
 
 shared_ptr<Connector> Display::getConnectorByIndex(uint32_t index)
@@ -189,7 +192,7 @@ shared_ptr<Connector> Display::getConnectorByIndex(uint32_t index)
 
 	if (index >= mConnectors.size())
 	{
-		throw DrmException("Wrong connector index " + to_string(index));
+		throw Exception("Wrong connector index " + to_string(index));
 	}
 
 	auto iter = mConnectors.begin();
@@ -223,7 +226,7 @@ ConnectorPtr Display::createConnector(uint32_t id, uint32_t drmId)
 		}
 	}
 
-	throw DrmException("No DRM connector id found: " + to_string(drmId));
+	throw Exception("No DRM connector id found: " + to_string(drmId));
 }
 
 /*******************************************************************************
@@ -236,14 +239,14 @@ void Display::init()
 
 	if (mFd < 0)
 	{
-		throw DrmException("Cannot open DRM device: " + mName);
+		throw Exception("Cannot open DRM device: " + mName);
 	}
 
 	uint64_t hasDumb = false;
 
 	if (drmGetCap(mFd, DRM_CAP_DUMB_BUFFER, &hasDumb) < 0 || !hasDumb)
 	{
-		throw DrmException("Drm device does not support dumb buffers");
+		throw Exception("Drm device does not support dumb buffers");
 	}
 
 	mRes.reset(new ModeResource(mFd));
@@ -314,7 +317,7 @@ void Display::eventThread()
 			}
 		}
 	}
-	catch(const exception& e)
+	catch(const std::exception& e)
 	{
 		LOG(mLog, ERROR) << e.what();
 	}

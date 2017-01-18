@@ -26,7 +26,7 @@ Shell::Shell(wl_registry* registry, uint32_t id, uint32_t version) :
 	{
 		init();
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -61,7 +61,7 @@ void Shell::init()
 
 	if (!mWlShell)
 	{
-		throw WlException("Can't bind shell");
+		throw Exception("Can't bind shell");
 	}
 
 	LOG(mLog, DEBUG) << "Create";

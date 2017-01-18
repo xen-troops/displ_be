@@ -40,7 +40,7 @@ IviSurface::IviSurface(shared_ptr<Surface> surface,
 	{
 		init(width, height, pixelFormat);
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -70,7 +70,7 @@ void IviSurface::init(uint32_t width, uint32_t height, uint32_t pixelFormat)
 			width, height, convertPixelFormat(pixelFormat),	&surface) !=
 		ILM_SUCCESS)
 	{
-		throw WlException("Can't create ivi surface");
+		throw Exception("Can't create ivi surface");
 	}
 
 	mIlmSurface = surface;

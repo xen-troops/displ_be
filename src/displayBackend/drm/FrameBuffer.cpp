@@ -30,6 +30,8 @@
 using std::shared_ptr;
 using std::string;
 
+using DisplayItf::DisplayBufferPtr;
+
 namespace Drm {
 
 /*******************************************************************************
@@ -43,34 +45,24 @@ FrameBuffer::FrameBuffer(int fd, DisplayBufferPtr displayBuffer,
 	mDisplayBuffer(displayBuffer),
 	mWidth(width),
 	mHeight(height),
-	mId(cInvalidId)
+	mId(cInvalidId),
+	mLog("FrameBuffer")
 {
-	uint32_t handles[4], pitches[4], offsets[4] = {0};
-
-	handles[0] = mDisplayBuffer->getHandle();
-	pitches[0] = mDisplayBuffer->getStride();
-
-	auto ret = drmModeAddFB2(mFd, width, height, pixelFormat,
-							 handles, pitches, offsets, &mId, 0);
-
-	if (ret)
+	try
 	{
-		throw DrmException ("Cannot create frame buffer: " +
-							string(strerror(errno)));
+		init(pixelFormat);
 	}
+	catch(const std::exception& e)
+	{
+		release();
 
-	DLOG("FrameBuffer", DEBUG) << "Create frame buffer, handle: " << handles[0]
-							  << ", id: " << mId;
+		throw;
+	}
 }
 
 FrameBuffer::~FrameBuffer()
 {
-	if (mId != cInvalidId)
-	{
-		DLOG("FrameBuffer", DEBUG) << "Delete frame buffer, id: " << mId;
-
-		drmModeRmFB(mFd, mId);
-	}
+	release();
 }
 
 /*******************************************************************************
@@ -81,5 +73,34 @@ FrameBuffer::~FrameBuffer()
  * Private
  ******************************************************************************/
 
+void FrameBuffer::init(uint32_t pixelFormat)
+{
+	uint32_t handles[4], pitches[4], offsets[4] = {0};
+
+	handles[0] = mDisplayBuffer->getHandle();
+	pitches[0] = mDisplayBuffer->getStride();
+
+	auto ret = drmModeAddFB2(mFd, mWidth, mHeight, pixelFormat,
+							 handles, pitches, offsets, &mId, 0);
+
+	if (ret)
+	{
+		throw Exception ("Cannot create frame buffer: " +
+						 string(strerror(errno)));
+	}
+
+	DLOG("FrameBuffer", DEBUG) << "Create frame buffer, handle: " << handles[0]
+							  << ", id: " << mId;
 }
 
+void FrameBuffer::release()
+{
+	if (mId != cInvalidId)
+	{
+		DLOG("FrameBuffer", DEBUG) << "Delete frame buffer, id: " << mId;
+
+		drmModeRmFB(mFd, mId);
+	}
+}
+
+}

@@ -44,6 +44,9 @@ using std::vector;
 
 using XenBackend::FrontendHandlerPtr;
 
+using DisplayItf::ConnectorPtr;
+using DisplayItf::DisplayPtr;
+
 /*******************************************************************************
  * ConCtrlRingBuffer
  ******************************************************************************/

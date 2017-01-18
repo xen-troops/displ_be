@@ -37,7 +37,7 @@ SharedFile::SharedFile(uint32_t width, uint32_t height, uint32_t bpp) :
 	{
 		init();
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -58,7 +58,7 @@ void SharedFile::copy()
 {
 	if(!mGnttabBuffer)
 	{
-		throw WlException("There is no buffer to copy from");
+		throw Exception("There is no buffer to copy from");
 	}
 
 	DLOG("Dumb", DEBUG) << "Copy dumb, handle: " << mFd;
@@ -78,7 +78,7 @@ void SharedFile::init()
 
 	if (map == MAP_FAILED)
 	{
-		throw WlException("Can't map shared file");
+		throw Exception("Can't map shared file");
 	}
 
 	mBuffer = map;
@@ -108,7 +108,7 @@ void SharedFile::createTmpFile()
 
 	if (!path)
 	{
-		throw WlException("Can't get XDG_RUNTIME_DIR environment var");
+		throw Exception("Can't get XDG_RUNTIME_DIR environment var");
 	}
 
 	char name[strlen(path) + strlen(cFileNameTemplate)];
@@ -120,14 +120,14 @@ void SharedFile::createTmpFile()
 
 	if (mFd < 0)
 	{
-		throw WlException("Can't create file: " + string(name));
+		throw Exception("Can't create file: " + string(name));
 	}
 
 	unlink(name);
 
 	if (ftruncate(mFd, mSize) < 0)
 	{
-		throw WlException("Can't truncate file: " + string(name));
+		throw Exception("Can't truncate file: " + string(name));
 	}
 
 	LOG(mLog, DEBUG) << "Create tmp file: " << name;

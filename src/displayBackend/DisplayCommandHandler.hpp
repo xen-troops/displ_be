@@ -29,8 +29,8 @@
 #include <xen/be/RingBufferBase.hpp>
 #include <xen/be/Log.hpp>
 
-#include "DisplayItf.hpp"
 #include "BuffersStorage.hpp"
+#include "DisplayItf.hpp"
 
 /***************************************************************************//**
  * Ring buffer used to send events to the frontend.
@@ -70,7 +70,7 @@ public:
 	 * @param buffersStorage buffers storage
 	 * @param eventBuffer    event ring buffer
 	 */
-	DisplayCommandHandler(ConnectorPtr connector,
+	DisplayCommandHandler(DisplayItf::ConnectorPtr connector,
 						  BuffersStoragePtr buffersStorage,
 						  EventRingBufferPtr eventBuffer);
 	~DisplayCommandHandler();
@@ -87,7 +87,7 @@ private:
 
 	static std::unordered_map<int, CommandFn> sCmdTable;
 
-	ConnectorPtr mConnector;
+	DisplayItf::ConnectorPtr mConnector;
 	BuffersStoragePtr mBuffersStorage;
 	EventRingBufferPtr mEventBuffer;
 	uint16_t mEventId;

@@ -29,7 +29,6 @@
 
 #include "Exception.hpp"
 
-using std::exception;
 using std::string;
 using std::vector;
 
@@ -57,7 +56,7 @@ Dumb::Dumb(int fd, uint32_t width, uint32_t height, uint32_t bpp,
 	{
 		init(bpp, domId, refs);
 	}
-	catch(const exception& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -82,7 +81,7 @@ uint32_t Dumb::readName()
 
 		if (drmIoctl(mFd, DRM_IOCTL_GEM_FLINK, &req) < 0)
 		{
-			throw DrmException("Cannot get name");
+			throw Exception("Cannot get name");
 		}
 
 		mName = req.name;
@@ -95,7 +94,7 @@ void Dumb::copy()
 {
 	if(!mGnttabBuffer)
 	{
-		throw DrmException("There is no buffer to copy from");
+		throw Exception("There is no buffer to copy from");
 	}
 
 	DLOG(mLog, DEBUG) << "Copy dumb, handle: " << mHandle;
@@ -117,7 +116,7 @@ void Dumb::createDumb(uint32_t bpp)
 
 	if (drmIoctl(mFd, DRM_IOCTL_MODE_CREATE_DUMB, &creq) < 0)
 	{
-		throw DrmException("Cannot create dumb buffer");
+		throw Exception("Cannot create dumb buffer");
 	}
 
 	mStride = creq.pitch;
@@ -133,7 +132,7 @@ void Dumb::mapDumb()
 
 	if (drmIoctl(mFd, DRM_IOCTL_MODE_MAP_DUMB, &mreq) < 0)
 	{
-		throw DrmException("Cannot map dumb buffer.");
+		throw Exception("Cannot map dumb buffer.");
 	}
 
 	auto map = mmap(0, mSize, PROT_READ | PROT_WRITE, MAP_SHARED,
@@ -141,7 +140,7 @@ void Dumb::mapDumb()
 
 	if (map == MAP_FAILED)
 	{
-		throw DrmException("Cannot mmap dumb buffer");
+		throw Exception("Cannot mmap dumb buffer");
 	}
 
 	mBuffer = map;

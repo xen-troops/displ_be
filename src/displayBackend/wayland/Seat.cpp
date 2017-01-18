@@ -33,7 +33,7 @@ Seat::Seat(wl_registry* registry, uint32_t id, uint32_t version) :
 	{
 		init();
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -133,14 +133,14 @@ void Seat::init()
 
 	if (!mWlSeat)
 	{
-		throw WlException("Can't bind seat");
+		throw Exception("Can't bind seat");
 	}
 
 	mWlListener = {sReadCapabilities, sReadName};
 
 	if (wl_seat_add_listener(mWlSeat, &mWlListener, this) < 0)
 	{
-		throw WlException("Can't add listener");
+		throw Exception("Can't add listener");
 	}
 
 	LOG(mLog, DEBUG) << "Create";

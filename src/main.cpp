@@ -37,7 +37,6 @@ using std::chrono::milliseconds;
 using std::atomic_bool;
 using std::cout;
 using std::endl;
-using std::exception;
 using std::shared_ptr;
 using std::string;
 using std::this_thread::sleep_for;
@@ -182,7 +181,7 @@ int main(int argc, char *argv[])
 		if (commandLineOptions(argc, argv))
 		{
 
-			DisplayPtr display;
+			DisplayItf::DisplayPtr display;
 			shared_ptr<Wayland::Display> wlDisplay;
 			InputItf::InputManagerPtr inputManager;
 
@@ -221,7 +220,7 @@ int main(int argc, char *argv[])
 				 << "(drm, wayland)" << endl;
 		}
 	}
-	catch(const exception& e)
+	catch(const std::exception& e)
 	{
 		LOG("Main", ERROR) << e.what();
 	}

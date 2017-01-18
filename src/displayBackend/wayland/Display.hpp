@@ -22,6 +22,8 @@
 #ifndef SRC_WAYLAND_DISPLAY_HPP_
 #define SRC_WAYLAND_DISPLAY_HPP_
 
+#include "DisplayItf.hpp"
+
 #include <atomic>
 #include <memory>
 #include <thread>
@@ -29,7 +31,6 @@
 
 #include <xen/be/Log.hpp>
 
-#include "DisplayItf.hpp"
 #include "Compositor.hpp"
 #include "Connector.hpp"
 #include "IviApplication.hpp"
@@ -49,7 +50,7 @@ namespace Wayland {
  * Wayland display class.
  * @ingroup wayland
  ******************************************************************************/
-class Display : public DisplayItf
+class Display : public DisplayItf::Display
 {
 public:
 
@@ -72,9 +73,9 @@ public:
 	 * @param height     height
 	 * @return created connector
 	 */
-	ConnectorPtr createConnector(uint32_t id, uint32_t x,
-												  uint32_t y, uint32_t width,
-												  uint32_t height);
+	DisplayItf::ConnectorPtr createConnector(uint32_t id, uint32_t x,
+											 uint32_t y, uint32_t width,
+											 uint32_t height);
 
 	/**
 	 * Starts events handling
@@ -95,7 +96,7 @@ public:
 	 * Returns connector by id
 	 * @param id connector id
 	 */
-	ConnectorPtr getConnectorById(uint32_t id) override;
+	DisplayItf::ConnectorPtr getConnectorById(uint32_t id) override;
 
 	/**
 	 * Creates display buffer
@@ -104,8 +105,8 @@ public:
 	 * @param bpp    bits per pixel
 	 * @return shared pointer to the display buffer
 	 */
-	DisplayBufferPtr createDisplayBuffer(uint32_t width, uint32_t height,
-										 uint32_t bpp) override;
+	DisplayItf::DisplayBufferPtr createDisplayBuffer(
+			uint32_t width, uint32_t height, uint32_t bpp) override;
 
 	/**
 	 * Creates display buffer with associated grant table buffer
@@ -114,7 +115,7 @@ public:
 	 * @param bpp    bits per pixel
 	 * @return shared pointer to the display buffer
 	 */
-	DisplayBufferPtr createDisplayBuffer(
+	DisplayItf::DisplayBufferPtr createDisplayBuffer(
 			domid_t domId, const std::vector<grant_ref_t>& refs,
 			uint32_t width, uint32_t height, uint32_t bpp) override;
 
@@ -126,9 +127,9 @@ public:
 	 * @param pixelFormat   pixel format
 	 * @return shared pointer to the frame buffer
 	 */
-	FrameBufferPtr createFrameBuffer(DisplayBufferPtr displayBuffer,
-									 uint32_t width,uint32_t height,
-									 uint32_t pixelFormat) override;
+	DisplayItf::FrameBufferPtr createFrameBuffer(
+			DisplayItf::DisplayBufferPtr displayBuffer,
+			uint32_t width,uint32_t height, uint32_t pixelFormat) override;
 
 	std::shared_ptr<Seat> getSeat() const { return mSeat; }
 

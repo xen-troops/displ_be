@@ -13,6 +13,8 @@
 
 using std::shared_ptr;
 
+using DisplayItf::DisplayBufferPtr;
+
 namespace Wayland {
 
 /*******************************************************************************
@@ -33,7 +35,7 @@ SharedBuffer::SharedBuffer(wl_shm* wlSharedMemory,
 	{
 		init(wlSharedMemory, pixelFormat);
 	}
-	catch(const WlException& e)
+	catch(const std::exception& e)
 	{
 		release();
 
@@ -76,7 +78,7 @@ void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 
 	if (!mWlPool)
 	{
-		throw WlException("Can't create pool");
+		throw Exception("Can't create pool");
 	}
 
 	mWlBuffer = wl_shm_pool_create_buffer(mWlPool, 0, mWidth, mHeight,
@@ -85,7 +87,7 @@ void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 
 	if (!mWlBuffer)
 	{
-		throw WlException("Can't create shared buffer");
+		throw Exception("Can't create shared buffer");
 	}
 
 	wl_shm_pool_destroy(mWlPool);

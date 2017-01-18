@@ -32,7 +32,7 @@ namespace Wayland {
  * Shared file class.
  * @ingroup wayland
  ******************************************************************************/
-class SharedFile : public DisplayBufferItf
+class SharedFile : public DisplayItf::DisplayBuffer
 {
 public:
 

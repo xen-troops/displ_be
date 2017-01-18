@@ -22,11 +22,12 @@
 #ifndef SRC_DRM_DEVICE_HPP_
 #define SRC_DRM_DEVICE_HPP_
 
+#include "DisplayItf.hpp"
+
 #include <memory>
 #include <thread>
 #include <unordered_map>
 
-#include "DisplayItf.hpp"
 #include "Connector.hpp"
 #include "FrameBuffer.hpp"
 
@@ -41,7 +42,7 @@ namespace Drm {
  * DRM Display class.
  * @ingroup drm
  ******************************************************************************/
-class Display : public DisplayItf
+class Display : public DisplayItf::Display
 {
 public:
 
@@ -90,7 +91,7 @@ public:
 	 * @param drmId    DRM connector id
 	 * @return created connector
 	 */
-	ConnectorPtr createConnector(uint32_t id, uint32_t drmId);
+	DisplayItf::ConnectorPtr createConnector(uint32_t id, uint32_t drmId);
 
 	/**
 	 * Starts events handling
@@ -111,7 +112,7 @@ public:
 	 * Returns connector by id
 	 * @param id connector id
 	 */
-	ConnectorPtr getConnectorById(uint32_t id) override;
+	DisplayItf::ConnectorPtr getConnectorById(uint32_t id) override;
 
 	/**
 	 * Creates display buffer
@@ -120,8 +121,8 @@ public:
 	 * @param bpp    bits per pixel
 	 * @return shared pointer to the display buffer
 	 */
-	DisplayBufferPtr createDisplayBuffer(uint32_t width, uint32_t height,
-										 uint32_t bpp) override;
+	DisplayItf::DisplayBufferPtr createDisplayBuffer(
+			uint32_t width, uint32_t height, uint32_t bpp) override;
 
 	/**
 	 * Creates display buffer with associated grand table buffer
@@ -130,7 +131,7 @@ public:
 	 * @param bpp    bits per pixel
 	 * @return shared pointer to the display buffer
 	 */
-	DisplayBufferPtr createDisplayBuffer(
+	DisplayItf::DisplayBufferPtr createDisplayBuffer(
 			domid_t domId, const std::vector<grant_ref_t>& refs,
 			uint32_t width, uint32_t height, uint32_t bpp) override;
 
@@ -142,9 +143,9 @@ public:
 	 * @param pixelFormat   pixel format
 	 * @return shared pointer to the frame buffer
 	 */
-	FrameBufferPtr createFrameBuffer(DisplayBufferPtr displayBuffer,
-									 uint32_t width,uint32_t height,
-									 uint32_t pixelFormat) override;
+	DisplayItf::FrameBufferPtr createFrameBuffer(
+			DisplayItf::DisplayBufferPtr displayBuffer,
+			uint32_t width,uint32_t height, uint32_t pixelFormat) override;
 
 private:
 

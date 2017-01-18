@@ -46,13 +46,14 @@ public:
 
 	bool isZeroCopySupported();
 
-	DisplayBufferPtr createDumb(
+	DisplayItf::DisplayBufferPtr createDumb(
 			domid_t domId, const std::vector<grant_ref_t>& refs,
 			uint32_t width, uint32_t height, uint32_t bpp);
 
-	FrameBufferPtr createDrmBuffer(DisplayBufferPtr displayBuffer,
-								   uint32_t width,uint32_t height,
-								   uint32_t pixelFormat);
+	DisplayItf::FrameBufferPtr createDrmBuffer(
+			DisplayItf::DisplayBufferPtr displayBuffer,
+			uint32_t width,uint32_t height, uint32_t pixelFormat);
+
 private:
 
 	friend class Display;
