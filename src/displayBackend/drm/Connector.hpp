@@ -24,10 +24,9 @@
 
 #include <xen/be/Log.hpp>
 
+#include "DisplayItf.hpp"
 #include "Exception.hpp"
 #include "Modes.hpp"
-
-#include "DisplayItf.hpp"
 
 namespace Drm {
 

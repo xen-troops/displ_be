@@ -16,7 +16,6 @@
 
 #include <xen/be/Log.hpp>
 
-#include "DumbZeroCopy.hpp"
 #include "Exception.hpp"
 
 using std::exception;

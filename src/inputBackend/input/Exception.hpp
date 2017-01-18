@@ -8,7 +8,7 @@
 #ifndef SRC_INPUT_EXCEPTION_HPP_
 #define SRC_INPUT_EXCEPTION_HPP_
 
-#include "DisplayItf.hpp"
+#include "InputItf.hpp"
 
 namespace Input {
 

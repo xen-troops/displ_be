@@ -29,6 +29,8 @@
 
 namespace Drm {
 
+extern const uint32_t cInvalidId;
+
 class Device;
 class Dumb;
 

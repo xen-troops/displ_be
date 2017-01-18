@@ -27,9 +27,7 @@
 #include <unordered_map>
 
 #include "DisplayItf.hpp"
-
 #include "Connector.hpp"
-#include "Dumb.hpp"
 #include "FrameBuffer.hpp"
 
 namespace Drm {

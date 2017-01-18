@@ -32,9 +32,9 @@
 #include <drm_fourcc.h>
 
 #include "drm/Device.hpp"
-#include "input/WlInput.hpp"
 #include "wayland/Display.hpp"
 #include "input/InputManager.hpp"
+#include "input/WlInput.hpp"
 
 using std::bind;
 using std::cin;

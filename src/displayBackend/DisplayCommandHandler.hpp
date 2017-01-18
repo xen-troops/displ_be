@@ -29,8 +29,8 @@
 #include <xen/be/RingBufferBase.hpp>
 #include <xen/be/Log.hpp>
 
-#include "BuffersStorage.hpp"
 #include "DisplayItf.hpp"
+#include "BuffersStorage.hpp"
 
 /***************************************************************************//**
  * Ring buffer used to send events to the frontend.

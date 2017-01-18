@@ -28,8 +28,8 @@
 
 #include <xen/be/Log.hpp>
 
-#include "DisplayBackend.hpp"
 #include "drm/Device.hpp"
+#include "DisplayBackend.hpp"
 #include "input/InputManager.hpp"
 #include "InputBackend.hpp"
 

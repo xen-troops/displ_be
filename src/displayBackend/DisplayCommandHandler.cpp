@@ -18,6 +18,8 @@
  * Copyright (C) 2016 EPAM Systems Inc.
  */
 
+#include "DisplayCommandHandler.hpp"
+
 #include <iomanip>
 
 #include <cstddef>
@@ -26,7 +28,6 @@
 
 #include <wayland-client.h>
 #include <drm_fourcc.h>
-#include "DisplayCommandHandler.hpp"
 
 using std::hex;
 using std::exception;

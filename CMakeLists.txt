@@ -5,55 +5,57 @@ set(PROJECT_NAME "displ_be")
 project(${PROJECT_NAME})
 
 set(DRM_SOURCES
-	src/drm/Connector.cpp
-	src/drm/Device.cpp
-	src/drm/Dumb.cpp
-	src/drm/DumbZeroCopy.cpp
-	src/drm/FrameBuffer.cpp
-	src/drm/Modes.cpp
+	src/displayBackend/drm/Connector.cpp
+	src/displayBackend/drm/Device.cpp
+	src/displayBackend/drm/Dumb.cpp
+	src/displayBackend/drm/DumbZeroCopy.cpp
+	src/displayBackend/drm/FrameBuffer.cpp
+	src/displayBackend/drm/Modes.cpp
 )
 
 set(WL_SOURCES
-	src/wayland/wayland-drm/wayland-drm-protocol.c
-	src/wayland/Compositor.cpp
-	src/wayland/Connector.cpp
-	src/wayland/DrmBuffer.cpp
-	src/wayland/Display.cpp
-	src/wayland/IviApplication.cpp
-	src/wayland/IviSurface.cpp
-	src/wayland/SharedBuffer.cpp
-	src/wayland/Seat.cpp
-	src/wayland/SeatKeyboard.cpp
-	src/wayland/SeatPointer.cpp
-	src/wayland/SeatTouch.cpp
-	src/wayland/SharedFile.cpp
-	src/wayland/SharedMemory.cpp
-	src/wayland/Shell.cpp
-	src/wayland/ShellSurface.cpp
-	src/wayland/Surface.cpp
-	src/wayland/WaylandDrm.cpp
+	src/displayBackend/wayland/wayland-drm/wayland-drm-protocol.c
+	src/displayBackend/wayland/Compositor.cpp
+	src/displayBackend/wayland/Connector.cpp
+	src/displayBackend/wayland/DrmBuffer.cpp
+	src/displayBackend/wayland/Display.cpp
+	src/displayBackend/wayland/IviApplication.cpp
+	src/displayBackend/wayland/IviSurface.cpp
+	src/displayBackend/wayland/SharedBuffer.cpp
+	src/displayBackend/wayland/Seat.cpp
+	src/displayBackend/wayland/SeatKeyboard.cpp
+	src/displayBackend/wayland/SeatPointer.cpp
+	src/displayBackend/wayland/SeatTouch.cpp
+	src/displayBackend/wayland/SharedFile.cpp
+	src/displayBackend/wayland/SharedMemory.cpp
+	src/displayBackend/wayland/Shell.cpp
+	src/displayBackend/wayland/ShellSurface.cpp
+	src/displayBackend/wayland/Surface.cpp
+	src/displayBackend/wayland/WaylandDrm.cpp
 )
 
 set(WL_INPUT_SOURCES
-	src/input/LibInput.cpp
-	src/input/InputManager.cpp
+	src/inputBackend/input/LibInput.cpp
+	src/inputBackend/input/InputManager.cpp
 )
 
 set(BE_SOURCES
-	src/Backend.cpp
-	src/BuffersStorage.cpp
-	src/DisplayBackend.cpp
-	src/DisplayCommandHandler.cpp
-	src/InputBackend.cpp
-	src/InputHandlers.cpp
+	src/main.cpp
+	src/displayBackend/BuffersStorage.cpp
+	src/displayBackend/DisplayBackend.cpp
+	src/displayBackend/DisplayCommandHandler.cpp
+	src/inputBackend/InputBackend.cpp
+	src/inputBackend/InputHandlers.cpp
 )
 
 set(TEST_SOURCES
-	src/Test.cpp
+	src/test.cpp
 )
 
 include_directories(
 	src
+	src/displayBackend
+	src/inputBackend
 	${XEN_INCLUDE_PATH}
 	${XENBE_INCLUDE_PATH}
 	${IF_INCLUDE_PATH}

@@ -38,7 +38,7 @@ public:
 
 private:
 
-	std::shared_ptr<Wayland::Display> mWlDisplay;
+	std::shared_ptr<Wayland::Display> mDisplay;
 
 	XenBackend::Log mLog;
 

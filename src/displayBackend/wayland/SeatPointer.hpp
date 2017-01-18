@@ -12,8 +12,8 @@
 
 #include <xen/be/Log.hpp>
 
-#include "InputItf.hpp"
 #include "SeatDevice.hpp"
+#include "InputItf.hpp"
 
 namespace Wayland {
 

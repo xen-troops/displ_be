@@ -23,9 +23,11 @@
 
 #include <sys/mman.h>
 
+#include <xf86drm.h>
+
 #include <xen/be/Log.hpp>
 
-#include "Device.hpp"
+#include "Exception.hpp"
 
 using std::exception;
 using std::string;

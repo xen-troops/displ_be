@@ -8,12 +8,12 @@
 #ifndef SRC_INPUT_WLINPUT_HPP_
 #define SRC_INPUT_WLINPUT_HPP_
 
-#include "InputItf.hpp"
-
 #include "wayland/SeatKeyboard.hpp"
 #include "wayland/SeatPointer.hpp"
 #include "wayland/SeatTouch.hpp"
 #include "wayland/Surface.hpp"
+#include "InputItf.hpp"
+
 
 namespace Input {
 

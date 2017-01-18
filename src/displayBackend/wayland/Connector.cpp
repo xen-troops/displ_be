@@ -20,6 +20,7 @@
  */
 
 #include "Connector.hpp"
+
 #include "Exception.hpp"
 
 using std::shared_ptr;

@@ -32,7 +32,7 @@ namespace Input {
 InputManager::InputManager(shared_ptr<Display> wlDisplay) :
 	InputManager()
 {
-	mWlDisplay = wlDisplay;
+	mDisplay = wlDisplay;
 }
 
 InputManager::InputManager() :
@@ -60,10 +60,10 @@ KeyboardPtr InputManager::createWlKeyboard(int id, uint32_t connectorId)
 					 << ", connector: " << connectorId;
 
 	auto surface = dynamic_pointer_cast<Connector>(
-			mWlDisplay->getConnectorById(connectorId))->getSurface();
+			mDisplay->getConnectorById(connectorId))->getSurface();
 
 	KeyboardPtr keyboard(
-			new WlKeyboard(mWlDisplay->getSeat()->getKeyboard(), surface));
+			new WlKeyboard(mDisplay->getSeat()->getKeyboard(), surface));
 
 	mKeyboards.emplace(id, keyboard);
 
@@ -76,10 +76,10 @@ PointerPtr InputManager::createWlPointer(int id, uint32_t connectorId)
 					 << ", connector: " << connectorId;
 
 	auto surface = dynamic_pointer_cast<Connector>(
-			mWlDisplay->getConnectorById(connectorId))->getSurface();
+			mDisplay->getConnectorById(connectorId))->getSurface();
 
 	PointerPtr pointer(
-			new WlPointer(mWlDisplay->getSeat()->getPointer(), surface));
+			new WlPointer(mDisplay->getSeat()->getPointer(), surface));
 
 	mPointers.emplace(id, pointer);
 
@@ -92,10 +92,10 @@ TouchPtr InputManager::createWlTouch(int id, uint32_t connectorId)
 					 << ", connector: " << connectorId;
 
 	auto surface = dynamic_pointer_cast<Connector>(
-			mWlDisplay->getConnectorById(connectorId))->getSurface();
+			mDisplay->getConnectorById(connectorId))->getSurface();
 
 	TouchPtr touch(
-			new WlTouch(mWlDisplay->getSeat()->getTouch(), surface));
+			new WlTouch(mDisplay->getSeat()->getTouch(), surface));
 
 	mTouches.emplace(id, touch);
 

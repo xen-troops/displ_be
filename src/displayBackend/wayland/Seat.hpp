@@ -13,13 +13,13 @@
 
 #include <xen/be/Log.hpp>
 
-#include "InputItf.hpp"
-
 #include "Registry.hpp"
+#include "ShellSurface.hpp"
 #include "SeatKeyboard.hpp"
 #include "SeatPointer.hpp"
 #include "SeatTouch.hpp"
-#include "ShellSurface.hpp"
+#include "InputItf.hpp"
+
 
 namespace Wayland {
 

@@ -12,8 +12,8 @@
 
 #include <xen/be/Log.hpp>
 
-#include "wayland-drm/wayland-drm-client-protocol.h"
 #include "DisplayItf.hpp"
+#include "wayland-drm/wayland-drm-client-protocol.h"
 
 namespace Wayland {
 

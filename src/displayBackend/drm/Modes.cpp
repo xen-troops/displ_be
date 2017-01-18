@@ -21,9 +21,9 @@
 
 #include "Modes.hpp"
 
-#include "Exception.hpp"
-
 #include <xen/be/Log.hpp>
+
+#include "Exception.hpp"
 
 using std::to_string;
 

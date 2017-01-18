@@ -27,9 +27,8 @@
 
 #include <xen/be/Log.hpp>
 
-#include "ShellSurface.hpp"
-
 #include "DisplayItf.hpp"
+#include "ShellSurface.hpp"
 
 namespace Wayland {
 

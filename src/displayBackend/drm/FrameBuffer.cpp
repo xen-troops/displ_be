@@ -23,15 +23,13 @@
 
 #include <xen/be/Log.hpp>
 
-#include "Device.hpp"
 #include "Dumb.hpp"
+#include "Device.hpp"
 
 using std::shared_ptr;
 using std::string;
 
 namespace Drm {
-
-extern const uint32_t cInvalidId;
 
 /*******************************************************************************
  * FrameBuffer
