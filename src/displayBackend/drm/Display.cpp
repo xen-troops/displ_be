@@ -118,13 +118,13 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 	if (isZeroCopySupported())
 	{
-		return DisplayBufferPtr(new Dumb(mFd, width, height, bpp, domId, refs));
-	}
-	else
-	{
 		return DisplayBufferPtr(new DumbZeroCopy(mFd, mZeroCopyFd,
 												 width, height, bpp,
 												 domId, refs));
+	}
+	else
+	{
+		return DisplayBufferPtr(new Dumb(mFd, width, height, bpp, domId, refs));
 	}
 }
 
