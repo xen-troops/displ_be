@@ -132,8 +132,7 @@ Drm::DisplayPtr getDrmDisplay()
 {
 	Drm::DisplayPtr device(new Drm::Display("/dev/dri/card0"));
 
-	device->createConnector(0, 37);
-	device->createConnector(1, 42);
+	device->autoCreateConnectors();
 
 	return device;
 }

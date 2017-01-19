@@ -22,7 +22,6 @@
 #include "Display.hpp"
 
 #include <fcntl.h>
-#include <unistd.h>
 #include <poll.h>
 
 #include <xf86drm.h>
@@ -100,44 +99,69 @@ drm_magic_t Display::getMagic()
 	return magic;
 }
 
-DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
-											 uint32_t bpp)
+Drm::ConnectorPtr Display::getConnectorByIndex(uint32_t index)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	LOG(mLog, DEBUG) << "Create display buffer";
+	if (index >= mConnectors.size())
+	{
+		throw Exception("Wrong connector index " + to_string(index));
+	}
 
-	return DisplayBufferPtr(new Dumb(mFd, width, height, bpp));
+	auto iter = mConnectors.begin();
+
+	advance(iter, index);
+
+	return iter->second;
 }
 
-DisplayBufferPtr Display::createDisplayBuffer(
-		domid_t domId, const vector<grant_ref_t>& refs,
-		uint32_t width, uint32_t height, uint32_t bpp)
+size_t Display::getConnectorsCount()
 {
 	lock_guard<mutex> lock(mMutex);
 
-	if (isZeroCopySupported())
-	{
-		return DisplayBufferPtr(new DumbZeroCopy(mFd, mZeroCopyFd,
-												 width, height, bpp,
-												 domId, refs));
-	}
-	else
-	{
-		return DisplayBufferPtr(new Dumb(mFd, width, height, bpp, domId, refs));
-	}
+	return mConnectors.size();
 }
 
-FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
-										 uint32_t width, uint32_t height,
-										 uint32_t pixelFormat)
+void Display::autoCreateConnectors()
 {
 	lock_guard<mutex> lock(mMutex);
 
-	LOG(mLog, DEBUG) << "Create frame buffer";
+	int id = 0;
 
-	return FrameBufferPtr(new FrameBuffer(mFd, displayBuffer, width,
-										  height, pixelFormat));
+	for (int i = 0; i < (*mRes)->count_connectors; i++)
+	{
+		ModeConnector connector(mFd, (*mRes)->connectors[i]);
+
+		if (connector->connection == DRM_MODE_CONNECTED)
+		{
+			Drm::ConnectorPtr connector(
+					new Connector(*this, (*mRes)->connectors[i]));
+
+			mConnectors.emplace(id++, connector);
+		}
+	}
+
+	LOG(mLog, DEBUG) << "Created connectors: " << id;
+}
+
+DisplayItf::ConnectorPtr Display::createConnector(uint32_t id, uint32_t drmId)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	for (int i = 0; i < (*mRes)->count_connectors; i++)
+	{
+		if (drmId == (*mRes)->connectors[i])
+		{
+			Drm::ConnectorPtr connector(
+					new Connector(*this, (*mRes)->connectors[i]));
+
+			mConnectors.emplace(id, connector);
+
+			return connector;
+		}
+	}
+
+	throw Exception("No DRM connector id found: " + to_string(drmId));
 }
 
 void Display::start()
@@ -184,47 +208,44 @@ DisplayItf::ConnectorPtr Display::getConnectorById(uint32_t id)
 	return dynamic_pointer_cast<Connector>(iter->second);
 }
 
-Drm::ConnectorPtr Display::getConnectorByIndex(uint32_t index)
+DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
+											 uint32_t bpp)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	if (index >= mConnectors.size())
-	{
-		throw Exception("Wrong connector index " + to_string(index));
-	}
+	LOG(mLog, DEBUG) << "Create display buffer";
 
-	auto iter = mConnectors.begin();
-
-	advance(iter, index);
-
-	return iter->second;
+	return DisplayBufferPtr(new Dumb(mFd, width, height, bpp));
 }
 
-size_t Display::getConnectorsCount()
+DisplayBufferPtr Display::createDisplayBuffer(
+		domid_t domId, const vector<grant_ref_t>& refs,
+		uint32_t width, uint32_t height, uint32_t bpp)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	return mConnectors.size();
+	if (isZeroCopySupported())
+	{
+		return DisplayBufferPtr(new DumbZeroCopy(mFd, mZeroCopyFd,
+												 width, height, bpp,
+												 domId, refs));
+	}
+	else
+	{
+		return DisplayBufferPtr(new Dumb(mFd, width, height, bpp, domId, refs));
+	}
 }
 
-DisplayItf::ConnectorPtr Display::createConnector(uint32_t id, uint32_t drmId)
+FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
+										 uint32_t width, uint32_t height,
+										 uint32_t pixelFormat)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	for (int i = 0; i < (*mRes)->count_connectors; i++)
-	{
-		if (drmId == (*mRes)->connectors[i])
-		{
-			Drm::ConnectorPtr connector(
-					new Connector(*this, (*mRes)->connectors[i]));
+	LOG(mLog, DEBUG) << "Create frame buffer";
 
-			mConnectors.emplace(id, connector);
-
-			return connector;
-		}
-	}
-
-	throw Exception("No DRM connector id found: " + to_string(drmId));
+	return FrameBufferPtr(new FrameBuffer(mFd, displayBuffer, width,
+										  height, pixelFormat));
 }
 
 /*******************************************************************************

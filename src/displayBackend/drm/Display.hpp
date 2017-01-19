@@ -85,6 +85,12 @@ public:
 	size_t getConnectorsCount();
 
 	/**
+	 * Automatically creates virtual connectors.
+	 * First available and connected becomes virtual index 0 etc.
+	 */
+	void autoCreateConnectors();
+
+	/**
 	 * Creates virtual connector
 	 * @param id       connector id
 	 * @param drmId    DRM connector id
