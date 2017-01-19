@@ -375,7 +375,7 @@ bool Display::pollDisplayFd()
 	pollfd fds;
 
 	fds.fd = wl_display_get_fd(mWlDisplay);
-	fds.events = POLLIN;
+	fds.events = POLLIN | POLLOUT;
 
 	while(!mTerminate)
 	{

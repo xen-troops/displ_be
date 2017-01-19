@@ -221,7 +221,8 @@ int main(int argc, char *argv[])
 													  WIDTH, HEIGHT,
 													  DRM_FORMAT_XRGB8888);
 
-		Rgb* data1 = reinterpret_cast<Rgb*>(displayBuffer1->getBuffer());
+		Rgb* data1 = reinterpret_cast<Rgb*>(gBuffer1);
+//		Rgb* data1 = reinterpret_cast<Rgb*>(displayBuffer1->getBuffer());
 
 		for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
 		{
@@ -231,7 +232,8 @@ int main(int argc, char *argv[])
 			data1[i].b = 0x00;
 		}
 
-		Rgb* data2 = reinterpret_cast<Rgb*>(displayBuffer2->getBuffer());
+		Rgb* data2 = reinterpret_cast<Rgb*>(gBuffer2);
+//		Rgb* data2 = reinterpret_cast<Rgb*>(displayBuffer2->getBuffer());
 
 		for (size_t i = 0; i < displayBuffer1->getSize() / sizeof(Rgb); i++)
 		{
@@ -246,8 +248,8 @@ int main(int argc, char *argv[])
 
 		gTerminate = false;
 
-	//	thread flipThread(bind(flipHandler, connector,
-	//						   frameBuffer1, frameBuffer2));
+		thread flipThread(bind(flipHandler, connector1,
+							   frameBuffer1, frameBuffer2));
 
 #if 0
 		Input::WlKeyboard keyboard1(display, 37);
@@ -275,7 +277,7 @@ int main(int argc, char *argv[])
 
 		gTerminate = true;
 
-//		flipThread.join();
+		flipThread.join();
 
 	}
 	catch(const std::exception& e)
