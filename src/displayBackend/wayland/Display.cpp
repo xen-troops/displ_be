@@ -21,8 +21,6 @@
 
 #include "Display.hpp"
 
-#include <poll.h>
-
 #include <drm_fourcc.h>
 
 #include "Exception.hpp"
@@ -39,6 +37,8 @@ using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
 using DisplayItf::GrantRefs;
 
+using XenBackend::PollFd;
+
 namespace Wayland {
 
 /*******************************************************************************
@@ -48,7 +48,6 @@ namespace Wayland {
 Display::Display() :
 	mWlDisplay(nullptr),
 	mWlRegistry(nullptr),
-	mTerminate(false),
 	mLog("Display")
 {
 	try
@@ -132,8 +131,6 @@ void Display::start()
 {
 	LOG(mLog, DEBUG) << "Start";
 
-	mTerminate = false;
-
 	mThread = thread(&Display::dispatchThread, this);
 }
 
@@ -141,12 +138,14 @@ void Display::stop()
 {
 	LOG(mLog, DEBUG) << "Stop";
 
-	mTerminate = true;
+	mPollFd->stop();
 
 	if (mThread.joinable())
 	{
 		mThread.join();
 	}
+
+	LOG(mLog, DEBUG) << "Stopped";
 }
 
 bool Display::isZeroCopySupported() const
@@ -314,6 +313,8 @@ void Display::init()
 		throw Exception("Can't connect to display");
 	}
 
+	mPollFd.reset(new PollFd(wl_display_get_fd(mWlDisplay), POLLIN | POLLOUT));
+
 	LOG(mLog, DEBUG) << "Connected";
 
 	mWlRegistryListener = {sRegistryHandler, sRegistryRemover};
@@ -371,39 +372,13 @@ void Display::release()
 	}
 }
 
-bool Display::pollDisplayFd()
-{
-	pollfd fds;
-
-	fds.fd = wl_display_get_fd(mWlDisplay);
-	fds.events = POLLIN | POLLOUT;
-
-	while(!mTerminate)
-	{
-		fds.revents = 0;
-
-		wl_display_flush(mWlDisplay);
-
-		auto ret = poll(&fds, 1, cPoolEventTimeoutMs);
-
-		if (ret < 0)
-		{
-			throw Exception("Can't poll events");
-		}
-		else if (ret > 0)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 void Display::dispatchThread()
 {
 	try
 	{
-		while(!mTerminate)
+		bool terminate = false;
+
+		while(!terminate)
 		{
 			while (wl_display_prepare_read(mWlDisplay) != 0)
 			{
@@ -417,22 +392,24 @@ void Display::dispatchThread()
 				DLOG(mLog, DEBUG) << "Dispatch events: " << val;
 			}
 
-			if (pollDisplayFd())
+			wl_display_flush(mWlDisplay);
+
+			if (mPollFd->poll())
 			{
 				wl_display_read_events(mWlDisplay);
 			}
 			else
 			{
-				wl_display_cancel_read(mWlDisplay);
+				terminate = true;
 			}
 		}
 	}
 	catch(const exception& e)
 	{
-		wl_display_cancel_read(mWlDisplay);
-
 		LOG(mLog, ERROR) << e.what();
 	}
+
+	wl_display_cancel_read(mWlDisplay);
 }
 
 }

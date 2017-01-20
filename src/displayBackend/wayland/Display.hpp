@@ -24,11 +24,11 @@
 
 #include "DisplayItf.hpp"
 
-#include <atomic>
 #include <thread>
 #include <unordered_map>
 
 #include <xen/be/Log.hpp>
+#include <xen/be/Utils.hpp>
 
 #include "Compositor.hpp"
 #include "Connector.hpp"
@@ -134,12 +134,9 @@ public:
 
 private:
 
-	const int cPoolEventTimeoutMs = 100;
-
 	wl_display* mWlDisplay;
 	wl_registry* mWlRegistry;
 	wl_registry_listener mWlRegistryListener;
-	std::atomic_bool mTerminate;
 	XenBackend::Log mLog;
 
 	std::unordered_map<uint32_t, Wayland::ConnectorPtr> mConnectors;
@@ -154,6 +151,8 @@ private:
 	ShellSurfacePtr mBackgroundSurface;
 
 	std::thread mThread;
+
+	std::unique_ptr<XenBackend::PollFd> mPollFd;
 
 	ShellSurfacePtr createShellSurface(uint32_t x, uint32_t y);
 	IviSurfacePtr createIviSurface(int id, uint32_t x, uint32_t y,
@@ -172,7 +171,6 @@ private:
 	void init();
 	void release();
 
-	bool pollDisplayFd();
 	void dispatchThread();
 };
 
