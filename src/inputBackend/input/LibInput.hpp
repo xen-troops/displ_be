@@ -14,6 +14,7 @@
 #include <linux/input.h>
 
 #include <xen/be/Log.hpp>
+#include <xen/be/Utils.hpp>
 
 #include "InputItf.hpp"
 
@@ -40,9 +41,9 @@ private:
 	int mFd;
 	XenBackend::Log mLog;
 
-	std::atomic_bool mTerminate;
-
 	std::thread mThread;
+
+	std::unique_ptr<XenBackend::PollFd> mPollFd;
 
 	void init();
 	void release();

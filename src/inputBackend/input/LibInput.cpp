@@ -10,9 +10,6 @@
 #include <iomanip>
 
 #include <fcntl.h>
-#include <poll.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
 
 #include "Exception.hpp"
 
@@ -20,6 +17,8 @@ using std::setfill;
 using std::setw;
 using std::string;
 using std::thread;
+
+using XenBackend::PollFd;
 
 using InputItf::KeyboardCallbacks;
 using InputItf::PointerCallbacks;
@@ -73,7 +72,7 @@ void InputBase::init()
 
 	ioctl(mFd, EVIOCGRAB, reinterpret_cast<void*>(0));
 
-	mTerminate = false;
+	mPollFd.reset(new PollFd(mFd, POLLIN));
 
 	mThread = thread(&InputBase::run, this);
 
@@ -82,7 +81,7 @@ void InputBase::init()
 
 void InputBase::release()
 {
-	mTerminate = true;
+	mPollFd->stop();
 
 	if (mThread.joinable())
 	{
@@ -101,37 +100,22 @@ void InputBase::run()
 {
 	try
 	{
-		pollfd fds;
-
-		fds.fd = mFd;
-		fds.events = POLLIN;
-
-		while(!mTerminate)
+		while(mPollFd->poll())
 		{
-			auto ret = poll(&fds, 1, cPoolEventTimeoutMs);
+			int readSize = 0;
 
-			if (ret < 0)
+			input_event events[64];
+
+			readSize = read(mFd, events, sizeof(events));
+
+			if (readSize < static_cast<int>(sizeof(struct input_event)))
 			{
-				throw Exception("Polling error");
+				throw Exception("Read error");
 			}
 
-			if (ret > 0)
+			for(size_t i = 0; i < readSize/sizeof(input_event); i++)
 			{
-				int readSize = 0;
-
-				input_event events[64];
-
-				readSize = read(mFd, events, sizeof(events));
-
-				if (readSize < static_cast<int>(sizeof(struct input_event)))
-				{
-					throw Exception("Read error");
-				}
-
-				for(size_t i = 0; i < readSize/sizeof(input_event); i++)
-				{
-					onEvent(events[i]);
-				}
+				onEvent(events[i]);
 			}
 		}
 	}
