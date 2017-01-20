@@ -1,11 +1,11 @@
 /*
- * Dumb.cpp
+ * DumbZCopyBack.cpp
  *
- *  Created on: Dec 9, 2016
+ *  Created on: Jan 20, 2017
  *      Author: al1
  */
 
-#include "DumbZeroCopy.hpp"
+#include "DumbZCopyBack.hpp"
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -23,12 +23,12 @@ using DisplayItf::GrantRefs;
 namespace Drm {
 
 /*******************************************************************************
- * DumbZeroCopy
+ * DumbZCopyBack
  ******************************************************************************/
 
-DumbZeroCopy::DumbZeroCopy(int mapFd, int drmFd,
-						   uint32_t width, uint32_t height, uint32_t bpp,
-						   domid_t domId, const GrantRefs& refs) :
+DumbZCopyBack::DumbZCopyBack(int mapFd, int drmFd,
+							 uint32_t width, uint32_t height, uint32_t bpp,
+							  domid_t domId, GrantRefs& refs) :
 	mDrmFd(drmFd),
 	mMappedFd(mapFd),
 	mHandle(0),
@@ -39,7 +39,7 @@ DumbZeroCopy::DumbZeroCopy(int mapFd, int drmFd,
 	mName(0),
 	mSize(0),
 	mBuffer(nullptr),
-	mLog("DumbZeroCopy")
+	mLog("DumbZCopyBack")
 {
 	try
 	{
@@ -53,7 +53,7 @@ DumbZeroCopy::DumbZeroCopy(int mapFd, int drmFd,
 	}
 }
 
-DumbZeroCopy::~DumbZeroCopy()
+DumbZCopyBack::~DumbZCopyBack()
 {
 	release();
 }
@@ -62,7 +62,7 @@ DumbZeroCopy::~DumbZeroCopy()
  * Public
  ******************************************************************************/
 
-uint32_t DumbZeroCopy::readName()
+uint32_t DumbZCopyBack::readName()
 {
 	if (!mName)
 	{
@@ -79,7 +79,7 @@ uint32_t DumbZeroCopy::readName()
 	return mName;
 }
 
-void DumbZeroCopy::copy()
+void DumbZCopyBack::copy()
 {
 	throw Exception("There is no buffer to copy from");
 }
@@ -88,8 +88,7 @@ void DumbZeroCopy::copy()
  * Private
  ******************************************************************************/
 
-void DumbZeroCopy::createDumb(uint32_t bpp, domid_t domId,
-							  const GrantRefs& refs)
+void DumbZCopyBack::createDumb(uint32_t bpp, domid_t domId, GrantRefs& refs)
 {
 	drm_xen_zcopy_create_dumb mapreq {0};
 
@@ -111,7 +110,7 @@ void DumbZeroCopy::createDumb(uint32_t bpp, domid_t domId,
 	mMappedHandle = mapreq.dumb.handle;
 }
 
-void DumbZeroCopy::createHandle()
+void DumbZCopyFront::createHandle()
 {
 	drm_prime_handle prime {0};
 
@@ -134,7 +133,7 @@ void DumbZeroCopy::createHandle()
 	mHandle = prime.handle;
 }
 
-void DumbZeroCopy::mapDumb()
+void DumbZCopyFront::mapDumb()
 {
 	drm_mode_map_dumb mreq {0};
 
@@ -156,7 +155,7 @@ void DumbZeroCopy::mapDumb()
 	mBuffer = map;
 }
 
-void DumbZeroCopy::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
+void DumbZCopyFront::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
 {
 
 	createDumb(bpp, domId, refs);
@@ -167,7 +166,7 @@ void DumbZeroCopy::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
 					  << mSize << ", stride: " << mStride;
 }
 
-void DumbZeroCopy::release()
+void DumbZCopyFront::release()
 {
 	if (mBuffer)
 	{

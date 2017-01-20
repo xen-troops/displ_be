@@ -1,14 +1,12 @@
 /*
- * Dumb.hpp
+ * DumbZCopyBack.hpp
  *
- *  Created on: Dec 9, 2016
+ *  Created on: Jan 20, 2017
  *      Author: al1
  */
 
-#ifndef SRC_DRM_DUMBZEROCOPY_HPP_
-#define SRC_DRM_DUMBZEROCOPY_HPP_
-
-#include <vector>
+#ifndef SRC_DRM_DUMBZCOPYBACK_HPP_
+#define SRC_DRM_DUMBZCOPYBACK_HPP_
 
 #include <xen/be/XenGnttab.hpp>
 
@@ -16,7 +14,7 @@
 
 namespace Drm {
 
-class DumbZeroCopy : public DisplayItf::DisplayBuffer
+class DumbZCopyBack : public DisplayItf::DisplayBuffer
 {
 public:
 
@@ -26,11 +24,11 @@ public:
 	 * @param height dumb height
 	 * @param bpp    bits per pixel
 	 */
-	DumbZeroCopy(int drmFd, int mapFd,
-				 uint32_t width, uint32_t height, uint32_t bpp,
-				 domid_t domId, const DisplayItf::GrantRefs& refs);
+	DumbZCopyBack(int drmFd, int mapFd,
+				  uint32_t width, uint32_t height, uint32_t bpp,
+				  domid_t domId, DisplayItf::GrantRefs& refs);
 
-	~DumbZeroCopy();
+	~DumbZCopyBack();
 
 	/**
 	 * Returns dumb size
@@ -64,8 +62,6 @@ public:
 
 private:
 
-	friend class FrameBuffer;
-
 	int mDrmFd;
 	int mMappedFd;
 	uint32_t mHandle;
@@ -80,13 +76,14 @@ private:
 
 	void createDumb(uint32_t bpp, domid_t domId,
 					const DisplayItf::GrantRefs& refs);
+
 	void createHandle();
 	void mapDumb();
 
-	void init(uint32_t bpp, domid_t domId, const DisplayItf::GrantRefs& refs);
+	void init(uint32_t bpp, domid_t domId, DisplayItf::GrantRefs& refs);
 	void release();
 };
 
 }
 
-#endif /* SRC_DRM_DUMBZEROCOPY_HPP_ */
+#endif /* SRC_DRM_DUMBZCOPYBACK_HPP_ */

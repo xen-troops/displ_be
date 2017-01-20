@@ -8,7 +8,7 @@ set(DRM_SOURCES
 	src/displayBackend/drm/Connector.cpp
 	src/displayBackend/drm/Display.cpp
 	src/displayBackend/drm/Dumb.cpp
-	src/displayBackend/drm/DumbZeroCopy.cpp
+	src/displayBackend/drm/DumbZCopyFront.cpp
 	src/displayBackend/drm/FrameBuffer.cpp
 	src/displayBackend/drm/Modes.cpp
 )

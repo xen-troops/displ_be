@@ -29,7 +29,7 @@
 #include <xen/be/Log.hpp>
 
 #include "Dumb.hpp"
-#include "DumbZeroCopy.hpp"
+#include "DumbZCopyFront.hpp"
 
 using std::dynamic_pointer_cast;
 using std::lock_guard;
@@ -229,7 +229,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 	if (isZeroCopySupported())
 	{
-		return DisplayBufferPtr(new DumbZeroCopy(mFd, mZeroCopyFd,
+		return DisplayBufferPtr(new DumbZCopyFront(mFd, mZeroCopyFd,
 												 width, height, bpp,
 												 domId, refs));
 	}

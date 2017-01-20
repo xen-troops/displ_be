@@ -199,21 +199,20 @@ int main(int argc, char *argv[])
 
 		registerSignals();
 
+#if 0
 		Drm::Display display("/dev/dri/card0");
 
 		display.autoCreateConnectors();
 
 		auto connector1 = display.getConnectorById(0);
+#endif
 
-
-#if 0
 		Wayland::Display display;
 //		display.createBackgroundSurface(BACK_WIDTH, BACK_HEIGHT);
 
 		auto connector1 = display.createConnector(37, 0, 0, WIDTH, HEIGHT);
 //		auto connector2 = display.createConnector(38, WIDTH, 0, WIDTH, HEIGHT);
 
-#endif
 		display.start();
 
 		auto displayBuffer1 = display.createDisplayBuffer(WIDTH, HEIGHT, 32);
