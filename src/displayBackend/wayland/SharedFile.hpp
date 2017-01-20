@@ -74,8 +74,8 @@ private:
 	friend class SharedBuffer;
 
 	SharedFile(
-			uint32_t width, uint32_t height, uint32_t bpp, domid_t domId = 0,
-			const DisplayItf::GrantRefs& refs = DisplayItf::GrantRefs());
+			uint32_t width, uint32_t height, uint32_t bpp,
+			domid_t domId, const DisplayItf::GrantRefs& refs);
 
 	constexpr static const char *cFileNameTemplate = "/weston-shared-XXXXXX";
 	constexpr static const char *cXdgRuntimeVar = "XDG_RUNTIME_DIR";

@@ -191,7 +191,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 	}
 	else if (mSharedMemory)
 	{
-		return mSharedMemory->createSharedFile(width, height, bpp);
+		return mSharedMemory->createSharedFile(width, height, bpp, domId, refs);
 	}
 
 	throw Exception("Can't create display buffer");
@@ -201,7 +201,7 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 										  uint32_t width, uint32_t height,
 										  uint32_t pixelFormat)
 {
-	if (isZeroCopySupported())
+	if (mWaylandDrm)
 	{
 		return mWaylandDrm->createDrmBuffer(displayBuffer, width, height,
 											pixelFormat);

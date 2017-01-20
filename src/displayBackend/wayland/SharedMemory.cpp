@@ -10,6 +10,7 @@
 #include "Exception.hpp"
 
 using DisplayItf::DisplayBufferPtr;
+using DisplayItf::GrantRefs;
 
 namespace Wayland {
 
@@ -43,12 +44,13 @@ SharedMemory::~SharedMemory()
  * Public
  ******************************************************************************/
 
-SharedFilePtr SharedMemory::createSharedFile(uint32_t width, uint32_t height,
-											 uint32_t bpp)
+SharedFilePtr SharedMemory::createSharedFile(
+		uint32_t width, uint32_t height, uint32_t bpp,
+		domid_t domId, const GrantRefs& refs)
 {
 	LOG(mLog, DEBUG) << "Create shared file";
 
-	return SharedFilePtr(new SharedFile(width, height, bpp));
+	return SharedFilePtr(new SharedFile(width, height, bpp, domId, refs));
 }
 
 SharedBufferPtr SharedMemory::createSharedBuffer(

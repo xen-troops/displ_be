@@ -35,8 +35,9 @@ public:
 	 * @param bpp    bits per pixel
 	 * @return
 	 */
-	SharedFilePtr createSharedFile(uint32_t width, uint32_t height,
-								   uint32_t bpp);
+	SharedFilePtr createSharedFile(
+			uint32_t width, uint32_t height, uint32_t bpp, domid_t domId = 0,
+			const DisplayItf::GrantRefs& refs = DisplayItf::GrantRefs());
 
 	/**
 	 * Creates shared buffer
