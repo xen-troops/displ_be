@@ -101,7 +101,6 @@ DisplayItf::ConnectorPtr Display::createConnector(uint32_t id, uint32_t x,
 												  uint32_t y, uint32_t width,
 												  uint32_t height)
 {
-
 	Connector* connector = nullptr;
 
 	if (mShell)
@@ -144,8 +143,6 @@ void Display::stop()
 	{
 		mThread.join();
 	}
-
-	LOG(mLog, DEBUG) << "Stopped";
 }
 
 bool Display::isZeroCopySupported() const
@@ -313,7 +310,7 @@ void Display::init()
 		throw Exception("Can't connect to display");
 	}
 
-	mPollFd.reset(new PollFd(wl_display_get_fd(mWlDisplay), POLLIN | POLLOUT));
+	mPollFd.reset(new PollFd(wl_display_get_fd(mWlDisplay), POLLIN));
 
 	LOG(mLog, DEBUG) << "Connected";
 
