@@ -27,6 +27,8 @@
 #include <thread>
 #include <unordered_map>
 
+#include <xen/be/Utils.hpp>
+
 #include "Connector.hpp"
 #include "FrameBuffer.hpp"
 
@@ -154,12 +156,10 @@ public:
 
 private:
 
-	const int cPoolEventTimeoutMs = 100;
-
 	std::string mName;
 	int mFd;
 	int mZeroCopyFd;
-	std::atomic_bool mTerminate;
+	std::atomic_bool mStarted;
 	XenBackend::Log mLog;
 
 	std::unique_ptr<ModeResource> mRes;
@@ -168,6 +168,8 @@ private:
 
 	std::mutex mMutex;
 	std::thread mThread;
+
+	std::unique_ptr<XenBackend::PollFd> mPollFd;
 
 	void init();
 	void release();
@@ -178,8 +180,6 @@ private:
 								void *user_data);
 
 	friend class FrameBuffer;
-
-	bool isStopped() { return mTerminate; }
 };
 
 typedef std::shared_ptr<Display> DisplayPtr;

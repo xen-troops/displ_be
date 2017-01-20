@@ -22,7 +22,6 @@
 #include "Display.hpp"
 
 #include <fcntl.h>
-#include <poll.h>
 
 #include <xf86drm.h>
 
@@ -40,6 +39,8 @@ using std::thread;
 using std::to_string;
 using std::vector;
 
+using XenBackend::PollFd;
+
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
 
@@ -55,7 +56,7 @@ Display::Display(const string& name) :
 	mName(name),
 	mFd(-1),
 	mZeroCopyFd(-1),
-	mTerminate(true),
+	mStarted(false),
 	mLog("Drm")
 {
 	try
@@ -170,12 +171,14 @@ void Display::start()
 
 	DLOG(mLog, DEBUG) << "Start";
 
-	if (!mTerminate)
+	if (mStarted)
 	{
+		LOG(mLog, WARNING) << "Already started";
+
 		return;
 	}
 
-	mTerminate = false;
+	mStarted = false;
 
 	mThread = thread(&Display::eventThread, this);
 }
@@ -186,7 +189,7 @@ void Display::stop()
 
 	DLOG(mLog, DEBUG) << "Stop";
 
-	mTerminate = true;
+	mPollFd->stop();
 
 	if (mThread.joinable())
 	{
@@ -261,6 +264,8 @@ void Display::init()
 		throw Exception("Cannot open DRM device: " + mName);
 	}
 
+	mPollFd.reset(new PollFd(mFd, POLLIN));
+
 	uint64_t hasDumb = false;
 
 	if (drmGetCap(mFd, DRM_CAP_DUMB_BUFFER, &hasDumb) < 0 || !hasDumb)
@@ -311,35 +316,22 @@ void Display::eventThread()
 {
 	try
 	{
-		pollfd fds;
-
-		fds.fd = mFd;
-		fds.events = POLLIN;
-
 		drmEventContext ev { 0 };
 
 		ev.version = DRM_EVENT_CONTEXT_VERSION;
 		ev.page_flip_handler = handleFlipEvent;
 
-		while(!mTerminate)
+		while(mPollFd->poll())
 		{
-			auto ret = poll(&fds, 1, cPoolEventTimeoutMs);
-
-			if (ret < 0)
-			{
-				LOG(mLog, ERROR) << "Can't poll events";
-			}
-
-			if (ret > 0)
-			{
-				drmHandleEvent(mFd, &ev);
-			}
+			drmHandleEvent(mFd, &ev);
 		}
 	}
 	catch(const std::exception& e)
 	{
 		LOG(mLog, ERROR) << e.what();
 	}
+
+	mStarted = false;
 }
 
 void Display::handleFlipEvent(int fd, unsigned int sequence,
