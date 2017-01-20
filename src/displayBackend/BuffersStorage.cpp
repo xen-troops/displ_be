@@ -29,13 +29,13 @@ using std::move;
 using std::mutex;
 using std::setfill;
 using std::setw;
-using std::vector;
 
 using XenBackend::XenGnttabBuffer;
 
 using DisplayItf::DisplayPtr;
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
+using DisplayItf::GrantRefs;
 
 /*******************************************************************************
  * BuffersStorage
@@ -68,13 +68,13 @@ void BuffersStorage::createDisplayBuffer(uint64_t dbCookie,
 					  << hex << setfill('0') << setw(16)
 					  << dbCookie;
 
-	vector<grant_ref_t> refs;
+	GrantRefs refs;
 
 	getBufferRefs(startDirectory, size, refs);
 
 	mDisplayBuffers.emplace(dbCookie,
-							mDisplay->createDisplayBuffer(mDomId, refs,
-														  width, height, bpp));
+							mDisplay->createDisplayBuffer(width, height, bpp,
+														  mDomId, refs));
 }
 
 void BuffersStorage::createFrameBuffer(uint64_t dbCookie, uint64_t fbCookie,
@@ -172,7 +172,7 @@ FrameBufferPtr BuffersStorage::getFrameBufferUnlocked(uint64_t fbCookie)
 }
 
 void BuffersStorage::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
-								   vector<grant_ref_t>& refs)
+								   GrantRefs& refs)
 {
 	refs.clear();
 

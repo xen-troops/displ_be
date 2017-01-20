@@ -18,13 +18,18 @@
 
 using std::string;
 
+using XenBackend::XenGnttabBuffer;
+
+using DisplayItf::GrantRefs;
+
 namespace Wayland {
 
 /*******************************************************************************
  * SharedFile
  ******************************************************************************/
 
-SharedFile::SharedFile(uint32_t width, uint32_t height, uint32_t bpp) :
+SharedFile::SharedFile(uint32_t width, uint32_t height, uint32_t bpp,
+					   domid_t domId, const GrantRefs& refs) :
 	mFd(-1),
 	mBuffer(nullptr),
 	mWidth(width),
@@ -35,7 +40,7 @@ SharedFile::SharedFile(uint32_t width, uint32_t height, uint32_t bpp) :
 {
 	try
 	{
-		init();
+		init(domId, refs);
 	}
 	catch(const std::exception& e)
 	{
@@ -70,7 +75,7 @@ void SharedFile::copy()
  * Private
  ******************************************************************************/
 
-void SharedFile::init()
+void SharedFile::init(domid_t domId, const GrantRefs& refs)
 {
 	createTmpFile();
 
@@ -82,6 +87,12 @@ void SharedFile::init()
 	}
 
 	mBuffer = map;
+
+	if (refs.size())
+	{
+		mGnttabBuffer.reset(
+				new XenGnttabBuffer(domId, refs.data(), refs.size()));
+	}
 
 	LOG(mLog, DEBUG) << "Create, w: " << mWidth << ", h: " << mHeight
 					 << ", stride: " << mStride << ", fd: " << mFd;
@@ -104,17 +115,18 @@ void SharedFile::release()
 
 void SharedFile::createTmpFile()
 {
-	const char* path(getenv(cXdgRuntimeVar));
+	string templateName(getenv(cXdgRuntimeVar));
 
-	if (!path)
+	if (templateName.empty())
 	{
 		throw Exception("Can't get XDG_RUNTIME_DIR environment var");
 	}
 
-	char name[strlen(path) + strlen(cFileNameTemplate)];
+	templateName += string(cFileNameTemplate);
 
-	strcpy(name, path);
-	strcat(name, cFileNameTemplate);
+	char name[templateName.length() + 1];
+
+	strcpy(name, templateName.c_str());
 
 	mFd = mkostemp(name, O_CLOEXEC);
 

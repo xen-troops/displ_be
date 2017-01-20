@@ -27,10 +27,10 @@
 using std::lock_guard;
 using std::mutex;
 using std::string;
-using std::vector;
 
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
+using DisplayItf::GrantRefs;
 
 namespace Wayland {
 
@@ -79,17 +79,17 @@ bool WaylandDrm::isZeroCopySupported()
 }
 
 DisplayBufferPtr
-WaylandDrm::createDumb(domid_t domId, const vector<grant_ref_t>& refs,
-					   uint32_t width, uint32_t height, uint32_t bpp)
+WaylandDrm::createDumb(uint32_t width, uint32_t height, uint32_t bpp,
+					   domid_t domId, GrantRefs& refs)
 {
 	lock_guard<mutex> lock(mMutex);
 
 	if (mDrmDevice)
 	{
-		return mDrmDevice->createDisplayBuffer(domId, refs, width, height, bpp);
+		return mDrmDevice->createDisplayBuffer(width, height, bpp, domId, refs);
 	}
 
-	throw Exception("Can't create dumb");
+	throw Exception("Can't create dumb: no DRM device");
 }
 
 FrameBufferPtr

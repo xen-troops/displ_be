@@ -46,7 +46,7 @@ public:
 	 */
 	Dumb(int fd, uint32_t width, uint32_t height, uint32_t bpp,
 		 domid_t domId = 0,
-		 const std::vector<grant_ref_t>& refs = std::vector<grant_ref_t>());
+		 const DisplayItf::GrantRefs& refs = DisplayItf::GrantRefs());
 
 	~Dumb();
 
@@ -99,8 +99,7 @@ private:
 	void createDumb(uint32_t bpp);
 	void mapDumb();
 
-	void init(uint32_t bpp, domid_t domId,
-			  const std::vector<grant_ref_t>& refs);
+	void init(uint32_t bpp, domid_t domId, const DisplayItf::GrantRefs& refs);
 	void release();
 };
 

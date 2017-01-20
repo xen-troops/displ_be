@@ -200,6 +200,8 @@ private:
 
 typedef std::shared_ptr<Connector> ConnectorPtr;
 
+typedef std::vector<grant_ref_t> GrantRefs;
+
 /***************************************************************************//**
  * Display interface class.
  * @ingroup display_itf
@@ -251,8 +253,8 @@ public:
 	 * @return shared pointer to the display buffer
 	 */
 	virtual DisplayBufferPtr createDisplayBuffer(
-			domid_t domId, const std::vector<grant_ref_t>& refs,
-			uint32_t width, uint32_t height, uint32_t bpp) = 0;
+			uint32_t width, uint32_t height, uint32_t bpp,
+			domid_t domId, GrantRefs& refs) = 0;
 
 	/**
 	 * Creates frame buffer

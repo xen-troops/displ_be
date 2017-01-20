@@ -115,8 +115,8 @@ public:
 	 * @return shared pointer to the display buffer
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
-			domid_t domId, const std::vector<grant_ref_t>& refs,
-			uint32_t width, uint32_t height, uint32_t bpp) override;
+			uint32_t width, uint32_t height, uint32_t bpp,
+			domid_t domId, DisplayItf::GrantRefs& refs) override;
 
 	/**
 	 * Creates frame buffer

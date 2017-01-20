@@ -18,6 +18,8 @@
 
 #include "Exception.hpp"
 
+using DisplayItf::GrantRefs;
+
 namespace Drm {
 
 /*******************************************************************************
@@ -26,7 +28,7 @@ namespace Drm {
 
 DumbZeroCopy::DumbZeroCopy(int mapFd, int drmFd,
 						   uint32_t width, uint32_t height, uint32_t bpp,
-						   domid_t domId, const vector<grant_ref_t>& refs) :
+						   domid_t domId, const GrantRefs& refs) :
 	mDrmFd(drmFd),
 	mMappedFd(mapFd),
 	mHandle(0),
@@ -87,7 +89,7 @@ void DumbZeroCopy::copy()
  ******************************************************************************/
 
 void DumbZeroCopy::createDumb(uint32_t bpp, domid_t domId,
-							  const vector<grant_ref_t>& refs)
+							  const GrantRefs& refs)
 {
 	drm_xen_zcopy_create_dumb mapreq {0};
 
@@ -154,8 +156,7 @@ void DumbZeroCopy::mapDumb()
 	mBuffer = map;
 }
 
-void DumbZeroCopy::init(uint32_t bpp, domid_t domId,
-						const vector<grant_ref_t>& refs)
+void DumbZeroCopy::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
 {
 
 	createDumb(bpp, domId, refs);

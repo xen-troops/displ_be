@@ -14,8 +14,6 @@
 
 #include "DisplayItf.hpp"
 
-using std::vector;
-
 namespace Drm {
 
 class DumbZeroCopy : public DisplayItf::DisplayBuffer
@@ -30,7 +28,7 @@ public:
 	 */
 	DumbZeroCopy(int drmFd, int mapFd,
 				 uint32_t width, uint32_t height, uint32_t bpp,
-				 domid_t domId, const std::vector<grant_ref_t>& refs);
+				 domid_t domId, const DisplayItf::GrantRefs& refs);
 
 	~DumbZeroCopy();
 
@@ -81,12 +79,11 @@ private:
 	XenBackend::Log mLog;
 
 	void createDumb(uint32_t bpp, domid_t domId,
-					const std::vector<grant_ref_t>& refs);
+					const DisplayItf::GrantRefs& refs);
 	void createHandle();
 	void mapDumb();
 
-	void init(uint32_t bpp, domid_t domId,
-			  const std::vector<grant_ref_t>& refs);
+	void init(uint32_t bpp, domid_t domId, const DisplayItf::GrantRefs& refs);
 	void release();
 };
 

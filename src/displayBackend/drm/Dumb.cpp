@@ -30,9 +30,10 @@
 #include "Exception.hpp"
 
 using std::string;
-using std::vector;
 
 using XenBackend::XenGnttabBuffer;
+
+using DisplayItf::GrantRefs;
 
 namespace Drm {
 
@@ -41,7 +42,7 @@ namespace Drm {
  ******************************************************************************/
 
 Dumb::Dumb(int fd, uint32_t width, uint32_t height, uint32_t bpp,
-		   domid_t domId, const vector<grant_ref_t>& refs) :
+		   domid_t domId, const DisplayItf::GrantRefs& refs) :
 	mFd(fd),
 	mHandle(cInvalidId),
 	mStride(0),
@@ -146,7 +147,7 @@ void Dumb::mapDumb()
 	mBuffer = map;
 }
 
-void Dumb::init(uint32_t bpp, domid_t domId, const vector<grant_ref_t>& refs)
+void Dumb::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
 {
 	if (refs.size())
 	{

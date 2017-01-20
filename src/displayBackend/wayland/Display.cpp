@@ -37,6 +37,7 @@ using std::thread;
 
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
+using DisplayItf::GrantRefs;
 
 namespace Wayland {
 
@@ -182,12 +183,12 @@ DisplayBufferPtr Display::createDisplayBuffer(
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
-		domid_t domId, const std::vector<grant_ref_t>& refs,
-		uint32_t width, uint32_t height, uint32_t bpp)
+		uint32_t width, uint32_t height, uint32_t bpp,
+		domid_t domId, GrantRefs& refs)
 {
-	if (isZeroCopySupported())
+	if (mWaylandDrm)
 	{
-		return mWaylandDrm->createDumb(domId, refs, width, height, bpp);
+		return mWaylandDrm->createDumb(width, height, bpp, domId, refs);
 	}
 	else if (mSharedMemory)
 	{

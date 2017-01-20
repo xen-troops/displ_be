@@ -114,7 +114,7 @@ private:
 	DisplayItf::FrameBufferPtr getFrameBufferUnlocked(uint64_t fbCookie);
 
 	void getBufferRefs(grant_ref_t startDirectory, uint32_t size,
-					   std::vector<grant_ref_t>& refs);
+					   DisplayItf::GrantRefs& refs);
 };
 
 typedef std::shared_ptr<BuffersStorage> BuffersStoragePtr;

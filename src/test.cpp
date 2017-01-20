@@ -49,8 +49,8 @@ using DisplayItf::ConnectorPtr;
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
 
-#define BACK_WIDTH 640
-#define BACK_HEIGHT 480
+#define BACK_WIDTH (1920*2)
+#define BACK_HEIGHT 1080
 
 #define WIDTH (BACK_WIDTH/2)
 #define HEIGHT BACK_HEIGHT

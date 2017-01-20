@@ -37,12 +37,12 @@ using std::mutex;
 using std::string;
 using std::thread;
 using std::to_string;
-using std::vector;
 
 using XenBackend::PollFd;
 
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
+using DisplayItf::GrantRefs;
 
 namespace Drm {
 
@@ -222,8 +222,8 @@ DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
-		domid_t domId, const vector<grant_ref_t>& refs,
-		uint32_t width, uint32_t height, uint32_t bpp)
+		uint32_t width, uint32_t height, uint32_t bpp,
+		domid_t domId, GrantRefs& refs)
 {
 	lock_guard<mutex> lock(mMutex);
 
