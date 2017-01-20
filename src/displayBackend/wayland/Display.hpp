@@ -116,7 +116,8 @@ public:
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
 			uint32_t width, uint32_t height, uint32_t bpp,
-			domid_t domId, DisplayItf::GrantRefs& refs) override;
+			domid_t domId, DisplayItf::GrantRefs& refs,
+			bool allocRefs) override;
 
 	/**
 	 * Creates frame buffer

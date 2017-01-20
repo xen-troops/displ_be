@@ -74,11 +74,10 @@ private:
 	void* mBuffer;
 	XenBackend::Log mLog;
 
-	void createDumb(uint32_t bpp, domid_t domId,
-					const DisplayItf::GrantRefs& refs);
-
-	void createHandle();
+	void createDumb(uint32_t bpp);
 	void mapDumb();
+
+	void getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs);
 
 	void init(uint32_t bpp, domid_t domId, DisplayItf::GrantRefs& refs);
 	void release();

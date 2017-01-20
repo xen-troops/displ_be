@@ -88,52 +88,25 @@ void DumbZCopyBack::copy()
  * Private
  ******************************************************************************/
 
-void DumbZCopyBack::createDumb(uint32_t bpp, domid_t domId, GrantRefs& refs)
+void DumbZCopyBack::createDumb(uint32_t bpp)
 {
-	drm_xen_zcopy_create_dumb mapreq {0};
+	drm_mode_create_dumb creq {0};
 
-	mapreq.otherend_id = domId;
-	mapreq.grefs = const_cast<grant_ref_t*>(refs.data());
-	mapreq.num_grefs = refs.size();
+	creq.width = mWidth;
+	creq.height = mHeight;
+	creq.bpp = bpp;
 
-	mapreq.dumb.width = mWidth;
-	mapreq.dumb.height = mHeight;
-	mapreq.dumb.bpp = bpp;
-
-	if (drmIoctl(mMappedFd, DRM_IOCTL_XEN_ZCOPY_CREATE_DUMB, &mapreq) < 0)
+	if (drmIoctl(mDrmFd, DRM_IOCTL_MODE_CREATE_DUMB, &creq) < 0)
 	{
-		throw Exception("Cannot create mapped dumb buffer");
+		throw Exception("Cannot create dumb buffer");
 	}
 
-	mStride = mapreq.dumb.pitch;
-	mSize = mapreq.dumb.size;
-	mMappedHandle = mapreq.dumb.handle;
+	mStride = creq.pitch;
+	mSize = creq.size;
+	mHandle = creq.handle;
 }
 
-void DumbZCopyFront::createHandle()
-{
-	drm_prime_handle prime {0};
-
-	prime.handle = mMappedHandle;
-
-	prime.flags = DRM_CLOEXEC;
-
-	if (drmIoctl(mMappedFd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &prime) < 0)
-	{
-		throw Exception("Cannot export prime buffer.");
-	}
-
-	prime.flags = DRM_CLOEXEC;
-
-	if (drmIoctl(mDrmFd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime) < 0)
-	{
-		throw Exception("Cannot import prime buffer.");
-	}
-
-	mHandle = prime.handle;
-}
-
-void DumbZCopyFront::mapDumb()
+void DumbZCopyBack::mapDumb()
 {
 	drm_mode_map_dumb mreq {0};
 
@@ -155,18 +128,24 @@ void DumbZCopyFront::mapDumb()
 	mBuffer = map;
 }
 
-void DumbZCopyFront::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
+void DumbZCopyBack::getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs)
+{
+	// Put here getting refs
+	// refs.assign() or refs.push_back();
+}
+
+void DumbZCopyBack::init(uint32_t bpp, domid_t domId,  GrantRefs& refs)
 {
 
-	createDumb(bpp, domId, refs);
-	createHandle();
+	createDumb(bpp);
 	mapDumb();
+	getGrantRefs(domId, refs);
 
 	DLOG(mLog, DEBUG) << "Create dumb, handle: " << mHandle << ", size: "
 					  << mSize << ", stride: " << mStride;
 }
 
-void DumbZCopyFront::release()
+void DumbZCopyBack::release()
 {
 	if (mBuffer)
 	{

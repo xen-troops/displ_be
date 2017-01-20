@@ -41,9 +41,11 @@ using DisplayItf::GrantRefs;
  * BuffersStorage
  ******************************************************************************/
 
-BuffersStorage::BuffersStorage(domid_t domId, DisplayPtr display) :
+BuffersStorage::BuffersStorage(domid_t domId, DisplayPtr display,
+							   bool allocRefs) :
 	mDomId(domId),
 	mDisplay(display),
+	mAllocRefs(allocRefs),
 	mLog("BuffersStorage")
 {
 
@@ -70,11 +72,21 @@ void BuffersStorage::createDisplayBuffer(uint64_t dbCookie,
 
 	GrantRefs refs;
 
-	getBufferRefs(startDirectory, size, refs);
+	if (!mAllocRefs)
+	{
+		getBufferRefs(startDirectory, size, refs);
+	}
 
-	mDisplayBuffers.emplace(dbCookie,
-							mDisplay->createDisplayBuffer(width, height, bpp,
-														  mDomId, refs));
+	auto displayBuffer = mDisplay->createDisplayBuffer(width, height, bpp,
+													   mDomId, refs,
+													   mAllocRefs);
+
+	if (mAllocRefs)
+	{
+		setBufferRefs(startDirectory, size, refs);
+	}
+
+	mDisplayBuffers.emplace(dbCookie, displayBuffer);
 }
 
 void BuffersStorage::createFrameBuffer(uint64_t dbCookie, uint64_t fbCookie,
@@ -208,3 +220,8 @@ void BuffersStorage::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 	DLOG(mLog, DEBUG) << "Get buffer refs, num refs: " << refs.size();
 }
 
+void BuffersStorage::setBufferRefs(grant_ref_t startDirectory, uint32_t size,
+								   GrantRefs& refs)
+{
+	// TODO: set refs for frontend
+}

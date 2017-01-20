@@ -90,7 +90,6 @@ public:
 		FrontendHandlerBase("DisplFrontend", backend, domId, id),
 		mCurrentConId(0),
 		mDisplay(display),
-		mBuffersStorage(new BuffersStorage(domId, display)),
 		mLog("DisplayFrontend") {}
 
 protected:
@@ -104,10 +103,10 @@ private:
 
 	uint32_t mCurrentConId;
 	DisplayItf::DisplayPtr mDisplay;
-	BuffersStoragePtr mBuffersStorage;
 	XenBackend::Log mLog;
 
-	void createConnector(const std::string& streamPath, int conId);
+	void createConnector(const std::string& streamPath, int conId,
+						 BuffersStoragePtr bufferStorage);
 };
 
 /***************************************************************************//**

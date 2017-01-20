@@ -245,16 +245,18 @@ public:
 
 	/**
 	 * Creates display buffer with associated grant table buffer
-	 * @param domId  domain ID
-	 * @param refs   vector of grant table reference
-	 * @param width  width
-	 * @param height height
-	 * @param bpp    bits per pixel
+	 * @param width     width
+	 * @param height    height
+	 * @param bpp       bits per pixel
+	 * @param domId     domain ID
+	 * @param refs      vector of grant table reference
+	 * @param allocRefs indicates that grant refs should be allocated on
+	 * backend side
 	 * @return shared pointer to the display buffer
 	 */
 	virtual DisplayBufferPtr createDisplayBuffer(
 			uint32_t width, uint32_t height, uint32_t bpp,
-			domid_t domId, GrantRefs& refs) = 0;
+			domid_t domId, GrantRefs& refs, bool allocRefs) = 0;
 
 	/**
 	 * Creates frame buffer

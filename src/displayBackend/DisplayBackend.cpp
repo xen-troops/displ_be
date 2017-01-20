@@ -81,6 +81,9 @@ void CtrlRingBuffer::processRequest(const xendispl_req& req)
  * DisplayFrontendHandler
  ******************************************************************************/
 
+// TODO: remove it
+#define XENDISPL_PATH_ALLOCATE_REFS           "allocate-refs"
+
 void DisplayFrontendHandler::onBind()
 {
 	string conBasePath = getXsFrontendPath() + "/" + XENDISPL_PATH_CONNECTOR;
@@ -94,15 +97,24 @@ void DisplayFrontendHandler::onBind()
 		LOG(mLog, WARNING) << "No display connectors found : " << getDomId();
 	}
 
+	// TODO: Read xen store if backend should allocate buffer
+	// change XENDISPL_PATH_ALLOCATE_REFS to needed define
+	bool allocRefs = getXenStore().readInt(getXsFrontendPath() + "/" +
+										   XENDISPL_PATH_ALLOCATE_REFS);
+
+	BuffersStoragePtr buffersStorage(
+			new BuffersStorage(getDomId(), mDisplay, allocRefs));
+
 	for(auto conId : cons)
 	{
 		LOG(mLog, DEBUG) << "Found connector: " << conId;
 
-		createConnector(conBasePath + "/" + conId, stoi(conId));
+		createConnector(conBasePath + "/" + conId, stoi(conId), buffersStorage);
 	}
 }
 
-void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
+void DisplayFrontendHandler::createConnector(const string& conPath, int conId,
+											 BuffersStoragePtr bufferStorage)
 {
 	evtchn_port_t port = getXenStore().readInt(conPath + "/" +
 											   XENDISPL_FIELD_EVT_CHANNEL);
@@ -124,7 +136,7 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId)
 
 	CtrlRingBufferPtr ctrlRingBuffer(
 			new CtrlRingBuffer(mDisplay->getConnectorById(conId),
-							   mBuffersStorage,
+							   bufferStorage,
 							   eventRingBuffer,
 							   getDomId(), port, ref));
 

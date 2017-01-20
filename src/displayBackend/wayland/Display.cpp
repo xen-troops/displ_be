@@ -180,11 +180,12 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 DisplayBufferPtr Display::createDisplayBuffer(
 		uint32_t width, uint32_t height, uint32_t bpp,
-		domid_t domId, GrantRefs& refs)
+		domid_t domId, GrantRefs& refs, bool allocRefs)
 {
 	if (mWaylandDrm)
 	{
-		return mWaylandDrm->createDumb(width, height, bpp, domId, refs);
+		return mWaylandDrm->createDumb(width, height, bpp,
+									   domId, refs, allocRefs);
 	}
 	else if (mSharedMemory)
 	{

@@ -48,7 +48,8 @@ public:
 	 * @param domId   domain id
 	 * @param display display object
 	 */
-	BuffersStorage(domid_t domId, DisplayItf::DisplayPtr display);
+	BuffersStorage(domid_t domId, DisplayItf::DisplayPtr display,
+				   bool allocRefs);
 
 	/**
 	 * Creates display buffer
@@ -103,6 +104,7 @@ private:
 
 	domid_t mDomId;
 	DisplayItf::DisplayPtr mDisplay;
+	bool mAllocRefs;
 	XenBackend::Log mLog;
 
 	std::mutex mMutex;
@@ -114,6 +116,9 @@ private:
 	DisplayItf::FrameBufferPtr getFrameBufferUnlocked(uint64_t fbCookie);
 
 	void getBufferRefs(grant_ref_t startDirectory, uint32_t size,
+					   DisplayItf::GrantRefs& refs);
+
+	void setBufferRefs(grant_ref_t startDirectory, uint32_t size,
 					   DisplayItf::GrantRefs& refs);
 };
 

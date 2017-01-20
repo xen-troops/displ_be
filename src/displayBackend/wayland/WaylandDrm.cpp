@@ -80,13 +80,14 @@ bool WaylandDrm::isZeroCopySupported()
 
 DisplayBufferPtr
 WaylandDrm::createDumb(uint32_t width, uint32_t height, uint32_t bpp,
-					   domid_t domId, GrantRefs& refs)
+					   domid_t domId, GrantRefs& refs, bool allocRefs)
 {
 	lock_guard<mutex> lock(mMutex);
 
 	if (mDrmDevice)
 	{
-		return mDrmDevice->createDisplayBuffer(width, height, bpp, domId, refs);
+		return mDrmDevice->createDisplayBuffer(width, height, bpp,
+											   domId, refs, allocRefs);
 	}
 
 	throw Exception("Can't create dumb: no DRM device");
