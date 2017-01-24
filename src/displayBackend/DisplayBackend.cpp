@@ -81,9 +81,6 @@ void CtrlRingBuffer::processRequest(const xendispl_req& req)
  * DisplayFrontendHandler
  ******************************************************************************/
 
-// TODO: remove it
-#define XENDISPL_PATH_ALLOCATE_REFS           "allocate-refs"
-
 void DisplayFrontendHandler::onBind()
 {
 	string conBasePath = getXsFrontendPath() + "/" + XENDISPL_PATH_CONNECTOR;
@@ -97,10 +94,8 @@ void DisplayFrontendHandler::onBind()
 		LOG(mLog, WARNING) << "No display connectors found : " << getDomId();
 	}
 
-	// TODO: Read xen store if backend should allocate buffer
-	// change XENDISPL_PATH_ALLOCATE_REFS to needed define
-	bool allocRefs = getXenStore().readInt(getXsFrontendPath() + "/" +
-										   XENDISPL_PATH_ALLOCATE_REFS);
+	bool allocRefs = getXenStore().readInt(getXsBackendPath() + "/" +
+			XENDISPL_FEATURE_BE_ALLOC);
 
 	BuffersStoragePtr buffersStorage(
 			new BuffersStorage(getDomId(), mDisplay, allocRefs));

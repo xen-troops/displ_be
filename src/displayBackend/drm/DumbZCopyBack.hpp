@@ -75,6 +75,7 @@ private:
 	XenBackend::Log mLog;
 
 	void createDumb(uint32_t bpp);
+	void createHandle();
 	void mapDumb();
 
 	void getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs);
