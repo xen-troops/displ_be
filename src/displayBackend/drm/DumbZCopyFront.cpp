@@ -124,6 +124,8 @@ void DumbZCopyFront::createHandle()
 		throw Exception("Cannot export prime buffer.");
 	}
 
+	mMappedHandleFd = prime.fd;
+
 	prime.flags = DRM_CLOEXEC;
 
 	if (drmIoctl(mDrmFd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime) < 0)
@@ -189,6 +191,8 @@ void DumbZCopyFront::release()
 		closeReq.handle = mMappedHandle;
 
 		drmIoctl(mMappedFd, DRM_IOCTL_GEM_CLOSE, &closeReq);
+
+		close(mMappedHandleFd);
 	}
 
 	DLOG(mLog, DEBUG) << "Delete dumb, handle: " << mHandle;
