@@ -65,6 +65,7 @@ private:
 	int mDrmFd;
 	int mMappedFd;
 	uint32_t mHandle;
+	uint32_t mHandleFd;
 	uint32_t mMappedHandle;
 	uint32_t mStride;
 	uint32_t mWidth;
