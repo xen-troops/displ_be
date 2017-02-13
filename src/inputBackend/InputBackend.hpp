@@ -65,11 +65,11 @@ private:
 
 	std::unique_ptr<KeyboardHandler> mKeyboardHandler;
 	std::unique_ptr<PointerHandler> mPointerHandler;
-	std::vector<std::unique_ptr<TouchHandler>> mTouchHandlers;
+	std::unique_ptr<TouchHandler> mTouchHandler;
 
 	void createKeyboardHandler(InputRingBufferPtr ringBuffer);
 	void createPointerHandler(InputRingBufferPtr ringBuffer);
-	void createTouchHandlers();
+	void createTouchHandler(InputRingBufferPtr ringBuffer);
 };
 
 /***************************************************************************//**

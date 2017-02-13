@@ -68,8 +68,7 @@ void InputFrontendHandler::onBind()
 
 	createKeyboardHandler(eventRingBuffer);
 	createPointerHandler(eventRingBuffer);
-
-	createTouchHandlers();
+	createTouchHandler(eventRingBuffer);
 }
 
 void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer)
@@ -77,7 +76,8 @@ void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer)
 	try
 	{
 		mKeyboardHandler.reset(
-			new KeyboardHandler(mInputManager->getKeyboard(0), ringBuffer));
+			new KeyboardHandler(mInputManager->getKeyboard(getId()),
+														   ringBuffer));
 	}
 	catch(const InputItf::Exception& e)
 	{
@@ -90,7 +90,7 @@ void InputFrontendHandler::createPointerHandler(InputRingBufferPtr ringBuffer)
 	try
 	{
 		mPointerHandler.reset(
-			new PointerHandler(mInputManager->getPointer(0), ringBuffer));
+			new PointerHandler(mInputManager->getPointer(getId()), ringBuffer));
 	}
 	catch(const InputItf::Exception& e)
 	{
@@ -98,35 +98,12 @@ void InputFrontendHandler::createPointerHandler(InputRingBufferPtr ringBuffer)
 	}
 }
 
-void InputFrontendHandler::createTouchHandlers()
+void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer)
 {
 	try
 	{
-		const vector<string> touches = getXenStore().readDirectory(
-				getXsFrontendPath() + "/" XENKBD_PATH_MTOUCH);
-
-		for(auto touch : touches)
-		{
-			string path = getXsFrontendPath() + "/" XENKBD_PATH_MTOUCH "/" +
-						  touch;
-
-			int id = stoi(touch);
-
-			evtchn_port_t port = getXenStore().readUint(
-					path + "/" XENKBD_FIELD_EVT_CHANNEL);
-			grant_ref_t ref = getXenStore().readUint(
-					path + "/" XENKBD_FIELD_RING_GREF);
-
-			InputRingBufferPtr ringBuffer(
-					new InputRingBuffer(getDomId(), port, ref,
-										XENKBD_IN_RING_OFFS,
-										XENKBD_IN_RING_SIZE));
-
-			addRingBuffer(ringBuffer);
-
-			mTouchHandlers.emplace_back(
-				new TouchHandler(mInputManager->getTouch(id), ringBuffer));
-		}
+		mTouchHandler.reset(
+			new TouchHandler(mInputManager->getTouch(getId()), ringBuffer));
 	}
 	catch(const InputItf::Exception& e)
 	{
