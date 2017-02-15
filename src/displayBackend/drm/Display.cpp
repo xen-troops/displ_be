@@ -232,9 +232,6 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 	if (isZeroCopySupported())
 	{
-		DLOG(mLog, DEBUG) << "mFd: " << mFd;
-		DLOG(mLog, DEBUG) << "mZeroCopyFd: " << mZeroCopyFd;
-
 		if (allocRefs)
 		{
 			return DisplayBufferPtr(new DumbZCopyBack(mFd, mZeroCopyFd,
@@ -307,7 +304,8 @@ void Display::init()
 						   << "Zero copy functionality will be disabled.";
 	}
 
-	LOG(mLog, DEBUG) << "Create Drm card: " << mName;
+	LOG(mLog, DEBUG) << "Create Drm card: " << mName << ", FD: " << mFd
+					 << ", ZCopyFD: " << mZeroCopyFd;
 }
 
 void Display::release()
