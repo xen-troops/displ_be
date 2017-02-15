@@ -77,9 +77,9 @@ public:
 	/**
 	 * Processes commands received from the frontend.
 	 * @param req frontend request
-	 * @return
+	 * @return status
 	 */
-	uint8_t processCommand(const xendispl_req& req);
+	int processCommand(const xendispl_req& req);
 
 private:
 	typedef void(DisplayCommandHandler::*CommandFn)(const xendispl_req& req);

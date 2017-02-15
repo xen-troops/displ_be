@@ -38,6 +38,7 @@
  ******************************************************************************/
 
 using std::string;
+using std::to_string;
 using std::vector;
 
 using XenBackend::FrontendHandlerPtr;
@@ -86,16 +87,7 @@ void CtrlRingBuffer::processRequest(const xendispl_req& req)
 
 void DisplayFrontendHandler::onBind()
 {
-	string conBasePath = getXsFrontendPath() + "/" + XENDISPL_PATH_CONNECTOR;
-
-	const vector<string> cons = getXenStore().readDirectory(conBasePath);
-
 	LOG(mLog, DEBUG) << "On frontend bind : " << getDomId();
-
-	if (cons.size() == 0)
-	{
-		LOG(mLog, WARNING) << "No display connectors found : " << getDomId();
-	}
 
 	// TODO: Read xen store if backend should allocate buffer
 	// change XENDISPL_PATH_ALLOCATE_REFS to needed define
@@ -105,21 +97,27 @@ void DisplayFrontendHandler::onBind()
 	BuffersStoragePtr buffersStorage(
 			new BuffersStorage(getDomId(), mDisplay, allocRefs));
 
-	for(auto conId : cons)
-	{
-		LOG(mLog, DEBUG) << "Found connector: " << conId;
+	string conBasePath = getXsFrontendPath() + "/";
+	int conIndex = 0;
 
-		createConnector(conBasePath + "/" + conId, stoi(conId), buffersStorage);
+	while(getXenStore().checkIfExist(conBasePath + to_string(conIndex)))
+	{
+		LOG(mLog, DEBUG) << "Found connector: " << conIndex;
+
+		createConnector(conBasePath + to_string(conIndex) + "/",
+						conIndex, buffersStorage);
+
+		conIndex++;
 	}
 }
 
 void DisplayFrontendHandler::createConnector(const string& conPath, int conId,
 											 BuffersStoragePtr bufferStorage)
 {
-	evtchn_port_t port = getXenStore().readInt(conPath + "/" +
+	evtchn_port_t port = getXenStore().readInt(conPath +
 											   XENDISPL_FIELD_EVT_CHANNEL);
 
-	uint32_t ref = getXenStore().readInt(conPath + "/" +
+	uint32_t ref = getXenStore().readInt(conPath +
 										 XENDISPL_FIELD_EVT_RING_REF);
 
 	EventRingBufferPtr eventRingBuffer(new EventRingBuffer(conId, getDomId(),
@@ -128,11 +126,9 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId,
 	addRingBuffer(eventRingBuffer);
 
 
-	port = getXenStore().readInt(conPath + "/" +
-								 XENDISPL_FIELD_CTRL_CHANNEL);
+	port = getXenStore().readInt(conPath + XENDISPL_FIELD_CTRL_CHANNEL);
 
-	ref = getXenStore().readInt(conPath + "/" +
-								XENDISPL_FIELD_CTRL_RING_REF);
+	ref = getXenStore().readInt(conPath + XENDISPL_FIELD_CTRL_RING_REF);
 
 	CtrlRingBufferPtr ctrlRingBuffer(
 			new CtrlRingBuffer(mDisplay->getConnectorById(conId),

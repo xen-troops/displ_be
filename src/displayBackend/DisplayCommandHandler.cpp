@@ -29,6 +29,8 @@
 #include <wayland-client.h>
 #include <drm_fourcc.h>
 
+#include <xen/errno.h>
+
 using std::hex;
 using std::out_of_range;
 using std::setfill;
@@ -94,9 +96,9 @@ DisplayCommandHandler::~DisplayCommandHandler()
  * Public
  ******************************************************************************/
 
-uint8_t DisplayCommandHandler::processCommand(const xendispl_req& req)
+int DisplayCommandHandler::processCommand(const xendispl_req& req)
 {
-	uint8_t status = XENDISPL_RSP_OKAY;
+	int status = 0;
 
 	try
 	{
@@ -106,13 +108,13 @@ uint8_t DisplayCommandHandler::processCommand(const xendispl_req& req)
 	{
 		LOG(mLog, ERROR) << e.what();
 
-		status = XENDISPL_RSP_NOTSUPP;
+		status = XEN_EINVAL;
 	}
 	catch(const std::exception& e)
 	{
 		LOG(mLog, ERROR) << e.what();
 
-		status = XENDISPL_RSP_ERROR;
+		status = XEN_EIO;
 	}
 
 	DLOG(mLog, DEBUG) << "Return status: ["
@@ -148,7 +150,7 @@ void DisplayCommandHandler::createDisplayBuffer(const xendispl_req& req)
 					  << dbufReq->dbuf_cookie;
 
 	mBuffersStorage->createDisplayBuffer(dbufReq->dbuf_cookie,
-										 dbufReq->gref_directory_start,
+										 dbufReq->gref_directory,
 										 dbufReq->buffer_sz,
 										 dbufReq->width, dbufReq->height,
 										 dbufReq->bpp);
