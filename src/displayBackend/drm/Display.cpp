@@ -316,10 +316,6 @@ void Display::release()
 
 	mConnectors.clear();
 
-	/* TODO: ordering depending on which mode for zero copy allocations:
-	 * if backend allocates then zero first
-	 * otherwise HW and then zero
-	 */
 	if (mZeroCopyFd >= 0)
 	{
 		drmClose(mZeroCopyFd);
@@ -329,7 +325,6 @@ void Display::release()
 	{
 		drmClose(mFd);
 	}
-
 }
 
 void Display::eventThread()
