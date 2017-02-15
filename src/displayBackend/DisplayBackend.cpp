@@ -86,15 +86,7 @@ void DisplayFrontendHandler::onBind()
 {
 	LOG(mLog, DEBUG) << "On frontend bind : " << getDomId();
 
-	bool allocRefs = getXenStore().readInt(getXsBackendPath() + "/" +
-			XENDISPL_FEATURE_BE_ALLOC);
-
-	/* TODO: if bzcopy xenstore entry set it doesn't mean front will
-	 * request buffer allocation: if the corresponding flag in create dumb
-	 * command is set then only
-	 */
-	BuffersStoragePtr buffersStorage(
-			new BuffersStorage(getDomId(), mDisplay, allocRefs));
+	BuffersStoragePtr buffersStorage(new BuffersStorage(getDomId(), mDisplay));
 
 	string conBasePath = getXsFrontendPath() + "/";
 	int conIndex = 0;

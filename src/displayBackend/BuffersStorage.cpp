@@ -41,11 +41,9 @@ using DisplayItf::GrantRefs;
  * BuffersStorage
  ******************************************************************************/
 
-BuffersStorage::BuffersStorage(domid_t domId, DisplayPtr display,
-							   bool allocRefs) :
+BuffersStorage::BuffersStorage(domid_t domId, DisplayPtr display) :
 	mDomId(domId),
 	mDisplay(display),
-	mAllocRefs(allocRefs),
 	mLog("BuffersStorage")
 {
 
@@ -55,7 +53,7 @@ BuffersStorage::BuffersStorage(domid_t domId, DisplayPtr display,
  * Public
  ******************************************************************************/
 
-void BuffersStorage::createDisplayBuffer(uint64_t dbCookie,
+void BuffersStorage::createDisplayBuffer(uint64_t dbCookie, bool beAllocRefs,
 										 grant_ref_t startDirectory,
 										 uint32_t size,
 										 uint32_t width, uint32_t height,
@@ -72,16 +70,16 @@ void BuffersStorage::createDisplayBuffer(uint64_t dbCookie,
 
 	GrantRefs refs;
 
-	if (!mAllocRefs)
+	if (!beAllocRefs)
 	{
 		getBufferRefs(startDirectory, size, refs);
 	}
 
 	auto displayBuffer = mDisplay->createDisplayBuffer(width, height, bpp,
 													   mDomId, refs,
-													   mAllocRefs);
+													   beAllocRefs);
 
-	if (mAllocRefs)
+	if (beAllocRefs)
 	{
 		setBufferRefs(startDirectory, size, refs);
 	}

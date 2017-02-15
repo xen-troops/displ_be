@@ -149,7 +149,10 @@ void DisplayCommandHandler::createDisplayBuffer(const xendispl_req& req)
 					  << hex << setfill('0') << setw(16)
 					  << dbufReq->dbuf_cookie;
 
+	bool beAllocRefs = dbufReq->flags & XENDISPL_DBUF_FLG_REQ_ALLOC;
+
 	mBuffersStorage->createDisplayBuffer(dbufReq->dbuf_cookie,
+										 beAllocRefs,
 										 dbufReq->gref_directory,
 										 dbufReq->buffer_sz,
 										 dbufReq->width, dbufReq->height,

@@ -48,19 +48,19 @@ public:
 	 * @param domId   domain id
 	 * @param display display object
 	 */
-	BuffersStorage(domid_t domId, DisplayItf::DisplayPtr display,
-				   bool allocRefs);
+	BuffersStorage(domid_t domId, DisplayItf::DisplayPtr display);
 
 	/**
 	 * Creates display buffer
 	 * @param dbCookie       display buffer cookie
+	 * @param beAllocRefs    indicates that backend shall allocate refs
 	 * @param startDirectory grant table reference to the buffer start directory
 	 * @param size           buffer size
 	 * @param width          width in pixels
 	 * @param height         height in pixels
 	 * @param bpp            bits per pixel
 	 */
-	void createDisplayBuffer(uint64_t dbCookie,
+	void createDisplayBuffer(uint64_t dbCookie, bool beAllocRefs,
 							 grant_ref_t startDirectory, uint32_t size,
 							 uint32_t width, uint32_t height, uint32_t bpp);
 
@@ -104,7 +104,6 @@ private:
 
 	domid_t mDomId;
 	DisplayItf::DisplayPtr mDisplay;
-	bool mAllocRefs;
 	XenBackend::Log mLog;
 
 	std::mutex mMutex;
