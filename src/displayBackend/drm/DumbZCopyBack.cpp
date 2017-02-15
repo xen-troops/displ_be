@@ -154,28 +154,18 @@ void DumbZCopyBack::mapDumb()
 
 void DumbZCopyBack::getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs)
 {
-	// Put here getting refs
-	// refs.assign() or refs.push_back();
 	drm_xen_zcopy_dumb_to_refs mapreq {0};
 
-	size_t requestNumGrefs = (mSize + XC_PAGE_SIZE - 1) / XC_PAGE_SIZE;
-
-	refs.resize(requestNumGrefs);
+	refs.resize((mSize + XC_PAGE_SIZE - 1) / XC_PAGE_SIZE);
 
 	mapreq.otherend_id = domId;
 	mapreq.handle = mMappedHandle;
-	mapreq.grefs = const_cast<grant_ref_t*>(refs.data());
+	mapreq.grefs = refs.data();
 	mapreq.num_grefs = refs.size();
-
-	DLOG(mLog, DEBUG) << "mapreq.num_grefs "<< mapreq.num_grefs;
 
 	if (drmIoctl(mZeroCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_TO_REFS, &mapreq) < 0)
 	{
 		throw Exception("Cannot convert dumb buffer to refs");
-	}
-
-	for (int i = 0; i < 10; i++) {
-		DLOG(mLog, DEBUG) << "gref["<< i << "] = " << mapreq.grefs[i];
 	}
 }
 
@@ -214,6 +204,7 @@ void DumbZCopyBack::release()
 		closeReq.handle = mHandle;
 
 		drmIoctl(mDrmFd, DRM_IOCTL_GEM_CLOSE, &closeReq);
+
 		close(mHandleFd);
 	}
 
