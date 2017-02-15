@@ -26,11 +26,11 @@ namespace Drm {
  * DumbZCopyFront
  ******************************************************************************/
 
-DumbZCopyFront::DumbZCopyFront(int mapFd, int drmFd,
-						   uint32_t width, uint32_t height, uint32_t bpp,
-						   domid_t domId, const GrantRefs& refs) :
+DumbZCopyFront::DumbZCopyFront(int drmFd, int zeroCopyFd,
+							   uint32_t width, uint32_t height, uint32_t bpp,
+							   domid_t domId, const GrantRefs& refs) :
 	mDrmFd(drmFd),
-	mMappedFd(mapFd),
+	mZeroCopyFd(zeroCopyFd),
 	mHandle(0),
 	mMappedHandle(0),
 	mStride(0),
@@ -101,7 +101,7 @@ void DumbZCopyFront::createDumb(uint32_t bpp, domid_t domId,
 	mapreq.dumb.height = mHeight;
 	mapreq.dumb.bpp = bpp;
 
-	if (drmIoctl(mMappedFd, DRM_IOCTL_XEN_ZCOPY_DUMB_FROM_REFS, &mapreq) < 0)
+	if (drmIoctl(mZeroCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_FROM_REFS, &mapreq) < 0)
 	{
 		throw Exception("Cannot create mapped dumb buffer");
 	}
@@ -119,7 +119,7 @@ void DumbZCopyFront::createHandle()
 
 	prime.flags = DRM_CLOEXEC;
 
-	if (drmIoctl(mMappedFd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &prime) < 0)
+	if (drmIoctl(mZeroCopyFd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &prime) < 0)
 	{
 		throw Exception("Cannot export prime buffer.");
 	}
@@ -165,8 +165,9 @@ void DumbZCopyFront::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
 	createHandle();
 	mapDumb();
 
-	DLOG(mLog, DEBUG) << "Create dumb, handle: " << mHandle << ", size: "
-					  << mSize << ", stride: " << mStride;
+	DLOG(mLog, DEBUG) << "Create dumb, domId: " << domId
+					  << ", handle: " << mHandle
+					  << ", size: " << mSize << ", stride: " << mStride;
 }
 
 void DumbZCopyFront::release()
@@ -190,7 +191,7 @@ void DumbZCopyFront::release()
 
 		closeReq.handle = mMappedHandle;
 
-		drmIoctl(mMappedFd, DRM_IOCTL_GEM_CLOSE, &closeReq);
+		drmIoctl(mZeroCopyFd, DRM_IOCTL_GEM_CLOSE, &closeReq);
 
 		close(mMappedHandleFd);
 	}

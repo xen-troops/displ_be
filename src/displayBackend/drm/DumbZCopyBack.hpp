@@ -24,7 +24,7 @@ public:
 	 * @param height dumb height
 	 * @param bpp    bits per pixel
 	 */
-	DumbZCopyBack(int drmFd, int mapFd,
+	DumbZCopyBack(int drmFd, int zeroCopyFd,
 				  uint32_t width, uint32_t height, uint32_t bpp,
 				  domid_t domId, DisplayItf::GrantRefs& refs);
 
@@ -63,7 +63,7 @@ public:
 private:
 
 	int mDrmFd;
-	int mMappedFd;
+	int mZeroCopyFd;
 	uint32_t mHandle;
 	uint32_t mHandleFd;
 	uint32_t mMappedHandle;

@@ -26,11 +26,11 @@ namespace Drm {
  * DumbZCopyBack
  ******************************************************************************/
 
-DumbZCopyBack::DumbZCopyBack(int drmFd, int mapFd,
+DumbZCopyBack::DumbZCopyBack(int drmFd, int zeroCopyFd,
 							 uint32_t width, uint32_t height, uint32_t bpp,
-							  domid_t domId, GrantRefs& refs) :
+							 domid_t domId, GrantRefs& refs) :
 	mDrmFd(drmFd),
-	mMappedFd(mapFd),
+	mZeroCopyFd(zeroCopyFd),
 	mHandle(0),
 	mMappedHandle(0),
 	mStride(0),
@@ -96,9 +96,6 @@ void DumbZCopyBack::createDumb(uint32_t bpp)
 	creq.height = mHeight;
 	creq.bpp = bpp;
 
-	DLOG(mLog, DEBUG) << "mDrmFd: " << mDrmFd;
-	DLOG(mLog, DEBUG) << "mMappedFd: " << mMappedFd;
-
 	if (drmIoctl(mDrmFd, DRM_IOCTL_MODE_CREATE_DUMB, &creq) < 0)
 	{
 		throw Exception("Cannot create dumb buffer");
@@ -125,7 +122,7 @@ void DumbZCopyBack::createHandle()
 	mHandleFd = prime.fd;
 	prime.flags = DRM_CLOEXEC;
 
-	if (drmIoctl(mMappedFd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime) < 0)
+	if (drmIoctl(mZeroCopyFd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime) < 0)
 	{
 		throw Exception("Cannot import prime buffer.");
 	}
@@ -172,7 +169,7 @@ void DumbZCopyBack::getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs)
 
 	DLOG(mLog, DEBUG) << "mapreq.num_grefs "<< mapreq.num_grefs;
 
-	if (drmIoctl(mMappedFd, DRM_IOCTL_XEN_ZCOPY_DUMB_TO_REFS, &mapreq) < 0)
+	if (drmIoctl(mZeroCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_TO_REFS, &mapreq) < 0)
 	{
 		throw Exception("Cannot convert dumb buffer to refs");
 	}
@@ -184,16 +181,14 @@ void DumbZCopyBack::getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs)
 
 void DumbZCopyBack::init(uint32_t bpp, domid_t domId,  GrantRefs& refs)
 {
-
-	DLOG(mLog, DEBUG) << "Create dumb: domId "<< domId;
-
 	createDumb(bpp);
 	createHandle();
 	mapDumb();
 	getGrantRefs(domId, refs);
 
-	DLOG(mLog, DEBUG) << "Create dumb, handle: " << mHandle << ", size: "
-					  << mSize << ", stride: " << mStride;
+	DLOG(mLog, DEBUG) << "Create dumb, domId: " << domId
+					  << ", handle: " << mHandle
+					  << ", size: " << mSize << ", stride: " << mStride;
 }
 
 void DumbZCopyBack::release()
@@ -209,7 +204,7 @@ void DumbZCopyBack::release()
 
 		closeReq.handle = mMappedHandle;
 
-		drmIoctl(mMappedFd, DRM_IOCTL_GEM_CLOSE, &closeReq);
+		drmIoctl(mZeroCopyFd, DRM_IOCTL_GEM_CLOSE, &closeReq);
 	}
 
 	if (mHandle != 0)
