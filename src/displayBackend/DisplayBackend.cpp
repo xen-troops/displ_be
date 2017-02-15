@@ -82,18 +82,17 @@ void CtrlRingBuffer::processRequest(const xendispl_req& req)
  * DisplayFrontendHandler
  ******************************************************************************/
 
-// TODO: remove it
-#define XENDISPL_PATH_ALLOCATE_REFS           "allocate-refs"
-
 void DisplayFrontendHandler::onBind()
 {
 	LOG(mLog, DEBUG) << "On frontend bind : " << getDomId();
 
-	// TODO: Read xen store if backend should allocate buffer
-	// change XENDISPL_PATH_ALLOCATE_REFS to needed define
-	bool allocRefs = getXenStore().readInt(getXsFrontendPath() + "/" +
-										   XENDISPL_PATH_ALLOCATE_REFS);
+	bool allocRefs = getXenStore().readInt(getXsBackendPath() + "/" +
+			XENDISPL_FEATURE_BE_ALLOC);
 
+	/* TODO: if bzcopy xenstore entry set it doesn't mean front will
+	 * request buffer allocation: if the corresponding flag in create dumb
+	 * command is set then only
+	 */
 	BuffersStoragePtr buffersStorage(
 			new BuffersStorage(getDomId(), mDisplay, allocRefs));
 

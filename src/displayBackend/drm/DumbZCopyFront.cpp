@@ -91,7 +91,7 @@ void DumbZCopyFront::copy()
 void DumbZCopyFront::createDumb(uint32_t bpp, domid_t domId,
 							  const GrantRefs& refs)
 {
-	drm_xen_zcopy_create_dumb mapreq {0};
+	drm_xen_zcopy_dumb_from_refs mapreq {0};
 
 	mapreq.otherend_id = domId;
 	mapreq.grefs = const_cast<grant_ref_t*>(refs.data());
@@ -101,7 +101,7 @@ void DumbZCopyFront::createDumb(uint32_t bpp, domid_t domId,
 	mapreq.dumb.height = mHeight;
 	mapreq.dumb.bpp = bpp;
 
-	if (drmIoctl(mMappedFd, DRM_IOCTL_XEN_ZCOPY_CREATE_DUMB, &mapreq) < 0)
+	if (drmIoctl(mMappedFd, DRM_IOCTL_XEN_ZCOPY_DUMB_FROM_REFS, &mapreq) < 0)
 	{
 		throw Exception("Cannot create mapped dumb buffer");
 	}
@@ -123,6 +123,8 @@ void DumbZCopyFront::createHandle()
 	{
 		throw Exception("Cannot export prime buffer.");
 	}
+
+	mMappedHandleFd = prime.fd;
 
 	prime.flags = DRM_CLOEXEC;
 
@@ -189,6 +191,8 @@ void DumbZCopyFront::release()
 		closeReq.handle = mMappedHandle;
 
 		drmIoctl(mMappedFd, DRM_IOCTL_GEM_CLOSE, &closeReq);
+
+		close(mMappedHandleFd);
 	}
 
 	DLOG(mLog, DEBUG) << "Delete dumb, handle: " << mHandle;

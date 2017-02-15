@@ -207,7 +207,7 @@ void BuffersStorage::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 							  offsetof(xendispl_page_directory, gref)) /
 							  sizeof(uint32_t));
 
-		DLOG(mLog, DEBUG) << "Gref address: " << pageDirectory->gref;
+		DLOG(mLog, DEBUG) << "Gref address: " << pageDirectory->gref << " numGrefs " << numGrefs;
 
 		refs.insert(refs.end(), pageDirectory->gref,
 					pageDirectory->gref + numGrefs);
@@ -215,6 +215,7 @@ void BuffersStorage::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 		requestedNumGrefs -= numGrefs;
 
 		startDirectory = pageDirectory->gref_dir_next_page;
+		DLOG(mLog, DEBUG) << "startDirectory: " << startDirectory;
 	}
 
 	DLOG(mLog, DEBUG) << "Get buffer refs, num refs: " << refs.size();
@@ -223,5 +224,48 @@ void BuffersStorage::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 void BuffersStorage::setBufferRefs(grant_ref_t startDirectory, uint32_t size,
 								   GrantRefs& refs)
 {
-	// TODO: set refs for frontend
+	size_t requestedNumGrefs = (size + XC_PAGE_SIZE - 1) / XC_PAGE_SIZE;
+
+	DLOG(mLog, DEBUG) << "Set buffer refs, directory: " << startDirectory
+					  << ", size: " << size
+					  << ", in grefs: " << requestedNumGrefs;
+
+	grant_ref_t *grefs = const_cast<grant_ref_t*>(refs.data());
+
+	for (int i = 0; i < 10; i++) {
+		DLOG(mLog, DEBUG) << "grefs["<< i << "] = " << grefs[i];
+	}
+
+	while(startDirectory != 0)
+	{
+
+		XenGnttabBuffer pageBuffer(mDomId, startDirectory);
+
+		xendispl_page_directory* pageDirectory =
+				static_cast<xendispl_page_directory*>(pageBuffer.get());
+
+		size_t numGrefs = min(requestedNumGrefs, (XC_PAGE_SIZE -
+							  offsetof(xendispl_page_directory, gref)) /
+							  sizeof(uint32_t));
+
+		DLOG(mLog, DEBUG) << "Gref address: " << pageDirectory->gref;
+
+		memcpy(pageDirectory->gref, grefs, numGrefs * sizeof(grant_ref_t));
+		
+
+		requestedNumGrefs -= numGrefs;
+		grefs += numGrefs;
+
+		for (int i = 0; i < 10; i++) {
+			DLOG(mLog, DEBUG) << "pageDirectory->gref["<< i << "] = " << pageDirectory->gref[i];
+		}
+
+		DLOG(mLog, DEBUG) << "requestedNumGrefs left: " << requestedNumGrefs;
+
+		startDirectory = pageDirectory->gref_dir_next_page;
+
+		DLOG(mLog, DEBUG) << "startDirectory: " << startDirectory;
+	}
+
+	DLOG(mLog, DEBUG) << "Get buffer refs, num refs: " << refs.size();
 }
