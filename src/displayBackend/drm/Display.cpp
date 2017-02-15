@@ -228,10 +228,10 @@ DisplayBufferPtr Display::createDisplayBuffer(
 {
 	lock_guard<mutex> lock(mMutex);
 
-	LOG(mLog, DEBUG) << "Create display buffer w/ zero copy " << isZeroCopySupported();
-
 	if (isZeroCopySupported())
 	{
+		LOG(mLog, DEBUG) << "Create display buffer with zero copy" << isZeroCopySupported();
+
 		if (allocRefs)
 		{
 			return DisplayBufferPtr(new DumbZCopyBack(mFd, mZeroCopyFd,
@@ -247,6 +247,8 @@ DisplayBufferPtr Display::createDisplayBuffer(
 	}
 	else
 	{
+		LOG(mLog, DEBUG) << "Create display buffer" << isZeroCopySupported();
+
 		return DisplayBufferPtr(new Dumb(mFd, width, height, bpp, domId, refs));
 	}
 }
