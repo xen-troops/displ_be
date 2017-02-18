@@ -28,6 +28,7 @@
 
 #include <xen/be/Log.hpp>
 
+#include "Config.hpp"
 #include "drm/Display.hpp"
 #include "DisplayBackend.hpp"
 #include "input/InputManager.hpp"
@@ -183,6 +184,7 @@ int main(int argc, char *argv[])
 			Wayland::DisplayPtr wlDisplay;
 			InputItf::InputManagerPtr inputManager;
 
+			Config config("displ_be.cfg");
 
 			if (gDisplayMode == DisplayMode::DRM)
 			{

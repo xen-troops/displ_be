@@ -42,6 +42,7 @@ set(WL_INPUT_SOURCES
 
 set(BE_SOURCES
 	src/main.cpp
+	src/Config.cpp
 	src/displayBackend/BuffersStorage.cpp
 	src/displayBackend/DisplayBackend.cpp
 	src/displayBackend/DisplayCommandHandler.cpp
@@ -89,6 +90,7 @@ target_link_libraries(${PROJECT_NAME}
 	wayland-client
 	ilmClient
 	pthread
+	config++
 )
 
 add_executable(displ_test ${TEST_SOURCES})
