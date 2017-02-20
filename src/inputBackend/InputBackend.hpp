@@ -43,13 +43,14 @@ class InputFrontendHandler : public XenBackend::FrontendHandlerBase
 public:
 
 	/**
-	 * @param domId     frontend domain id
-	 * @param backend   backend instance
-	 * @param id        frontend instance id
+	 * @param inputManager input manager instance
+	 * @param backend      backend instance
+	 * @param domId        frontend domain id
+	 * @param devId        frontend device id
 	 */
 	InputFrontendHandler(InputItf::InputManagerPtr inputManager,
 						 XenBackend::BackendBase& backend,
-						 domid_t domId, int id);
+						 domid_t domId, uint16_t devId);
 
 protected:
 
@@ -80,13 +81,14 @@ class InputBackend : public XenBackend::BackendBase
 {
 public:
 	/**
-	 * @param domId         domain id
-	 * @param deviceName    device name
-	 * @param id            instance id
+	 * @param inputManager input manager instance
+	 * @param deviceName   device name
+	 * @param domId        domain id
+	 * @param devId        device id
 	 */
 	InputBackend(InputItf::InputManagerPtr inputManager,
-				 const std::string& deviceName, domid_t domId, int id) :
-		BackendBase("VkbdBackend", deviceName, domId, id),
+				 const std::string& deviceName, domid_t domId, uint16_t devId) :
+		BackendBase("VkbdBackend", deviceName, domId, devId),
 		mInputManager(inputManager)
 		{}
 
@@ -95,9 +97,9 @@ protected:
 	/**
 	 * Is called when new input frontend appears.
 	 * @param domId domain id
-	 * @param id    instance id
+	 * @param devId device id
 	 */
-	void onNewFrontend(domid_t domId, int id);
+	void onNewFrontend(domid_t domId, uint16_t devId);
 
 private:
 

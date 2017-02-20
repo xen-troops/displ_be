@@ -43,8 +43,8 @@ using InputItf::InputManagerPtr;
 
 InputFrontendHandler::InputFrontendHandler(
 		InputManagerPtr inputManager, BackendBase& backend,
-		domid_t domId, int id) :
-	FrontendHandlerBase("VkbdFrontend", backend, domId, id),
+		domid_t domId, uint16_t devId) :
+	FrontendHandlerBase("VkbdFrontend", backend, domId, devId),
 	mInputManager(inputManager),
 	mLog("InputFrontend")
 {
@@ -76,7 +76,7 @@ void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer)
 	try
 	{
 		mKeyboardHandler.reset(
-			new KeyboardHandler(mInputManager->getKeyboard(getId()),
+			new KeyboardHandler(mInputManager->getKeyboard(getDevId()),
 														   ringBuffer));
 	}
 	catch(const InputItf::Exception& e)
@@ -90,7 +90,8 @@ void InputFrontendHandler::createPointerHandler(InputRingBufferPtr ringBuffer)
 	try
 	{
 		mPointerHandler.reset(
-			new PointerHandler(mInputManager->getPointer(getId()), ringBuffer));
+			new PointerHandler(mInputManager->getPointer(getDevId()),
+														 ringBuffer));
 	}
 	catch(const InputItf::Exception& e)
 	{
@@ -103,7 +104,7 @@ void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer)
 	try
 	{
 		mTouchHandler.reset(
-			new TouchHandler(mInputManager->getTouch(getId()), ringBuffer));
+			new TouchHandler(mInputManager->getTouch(getDevId()), ringBuffer));
 	}
 	catch(const InputItf::Exception& e)
 	{
@@ -115,8 +116,8 @@ void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer)
  * DisplayBackend
  ******************************************************************************/
 
-void InputBackend::onNewFrontend(domid_t domId, int id)
+void InputBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
 	addFrontendHandler(FrontendHandlerPtr(
-			new InputFrontendHandler(mInputManager, *this, domId, id)));
+			new InputFrontendHandler(mInputManager, *this, domId, devId)));
 }

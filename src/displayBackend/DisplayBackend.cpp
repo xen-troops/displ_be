@@ -136,15 +136,15 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId,
 
 DisplayBackend::DisplayBackend(DisplayPtr display,
 							   const string& deviceName,
-							   domid_t domId, int id) :
-	BackendBase("DisplBackend", deviceName, domId, id),
+							   domid_t domId, uint16_t devId) :
+	BackendBase("DisplBackend", deviceName, domId, devId),
 	mDisplay(display)
 {
 	mDisplay->start();
 }
 
-void DisplayBackend::onNewFrontend(domid_t domId, int id)
+void DisplayBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
 	addFrontendHandler(FrontendHandlerPtr(
-			new DisplayFrontendHandler(mDisplay, *this, domId, id)));
+			new DisplayFrontendHandler(mDisplay, *this, domId, devId)));
 }

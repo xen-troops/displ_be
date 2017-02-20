@@ -80,14 +80,14 @@ public:
 
 	/**
 	 * @param display   display
-	 * @param domId     frontend domain id
 	 * @param backend   backend instance
-	 * @param id        frontend instance id
+	 * @param domId     frontend domain id
+	 * @param devId     frontend device id
 	 */
 	DisplayFrontendHandler(DisplayItf::DisplayPtr display,
 						   XenBackend::BackendBase& backend,
-						   domid_t domId, int id) :
-		FrontendHandlerBase("DisplFrontend", backend, domId, id),
+						   domid_t domId, uint16_t devId) :
+		FrontendHandlerBase("DisplFrontend", backend, domId, devId),
 		mCurrentConId(0),
 		mDisplay(display),
 		mLog("DisplayFrontend") {}
@@ -117,21 +117,23 @@ class DisplayBackend : public XenBackend::BackendBase
 {
 public:
 	/**
-	 * @param domId         domain id
+	 * @param display       display
 	 * @param deviceName    device name
-	 * @param id            instance id
+	 * @param domId         domain id
+	 * @param devId         device id
 	 */
 	DisplayBackend(DisplayItf::DisplayPtr display,
-				   const std::string& deviceName, domid_t domId, int id);
+				   const std::string& deviceName,
+				   domid_t domId, uint16_t devId);
 
 protected:
 
 	/**
 	 * Is called when new display frontend appears.
 	 * @param domId domain id
-	 * @param id    instance id
+	 * @param devId device id
 	 */
-	void onNewFrontend(domid_t domId, int id);
+	void onNewFrontend(domid_t domId, uint16_t devId);
 
 private:
 
