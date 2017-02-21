@@ -40,18 +40,18 @@ class EventRingBuffer : public XenBackend::RingBufferOutBase<
 {
 public:
 	/**
-	 * @param id        connector id
+	 * @param conIndex  connector index
 	 * @param domId     frontend domain id
 	 * @param port      event channel port number
 	 * @param ref       grant table reference
 	 * @param offset    start of the ring buffer inside the page
 	 * @param size      size of the ring buffer
 	 */
-	EventRingBuffer(int id, domid_t domId, evtchn_port_t port,
+	EventRingBuffer(int conIndex, domid_t domId, evtchn_port_t port,
 					grant_ref_t ref, int offset, size_t size);
 
 private:
-	int mId;
+	int mConIndex;
 	XenBackend::Log mLog;
 };
 

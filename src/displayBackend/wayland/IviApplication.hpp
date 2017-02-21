@@ -28,7 +28,7 @@ public:
 	 * Creates IVI surface
 	 * @param surface surface
 	 */
-	IviSurfacePtr createIviSurface(int id, SurfacePtr surface, uint32_t width,
+	IviSurfacePtr createIviSurface(SurfacePtr surface, uint32_t width,
 								   uint32_t height, uint32_t pixelFormat);
 
 private:

@@ -53,13 +53,13 @@ InputManager::~InputManager()
  * Public
  ******************************************************************************/
 
-KeyboardPtr InputManager::createWlKeyboard(int id, uint32_t connectorId)
+KeyboardPtr InputManager::createWlKeyboard(int id, const string& conName)
 {
 	LOG(mLog, DEBUG) << "Create WL keyboard id: " << id
-					 << ", connector: " << connectorId;
+					 << ", connector: " << conName;
 
 	auto surface = dynamic_pointer_cast<Connector>(
-			mDisplay->getConnectorById(connectorId))->getSurface();
+			mDisplay->getConnectorByName(conName))->getSurface();
 
 	KeyboardPtr keyboard(
 			new WlKeyboard(mDisplay->getSeat()->getKeyboard(), surface));
@@ -69,13 +69,13 @@ KeyboardPtr InputManager::createWlKeyboard(int id, uint32_t connectorId)
 	return keyboard;
 }
 
-PointerPtr InputManager::createWlPointer(int id, uint32_t connectorId)
+PointerPtr InputManager::createWlPointer(int id, const string& conName)
 {
 	LOG(mLog, DEBUG) << "Create WL pointer id: " << id
-					 << ", connector: " << connectorId;
+					 << ", connector: " << conName;
 
 	auto surface = dynamic_pointer_cast<Connector>(
-			mDisplay->getConnectorById(connectorId))->getSurface();
+			mDisplay->getConnectorByName(conName))->getSurface();
 
 	PointerPtr pointer(
 			new WlPointer(mDisplay->getSeat()->getPointer(), surface));
@@ -85,13 +85,13 @@ PointerPtr InputManager::createWlPointer(int id, uint32_t connectorId)
 	return pointer;
 }
 
-TouchPtr InputManager::createWlTouch(int id, uint32_t connectorId)
+TouchPtr InputManager::createWlTouch(int id, const string& conName)
 {
 	LOG(mLog, DEBUG) << "Create WL touch id: " << id
-					 << ", connector: " << connectorId;
+					 << ", connector: " << conName;
 
 	auto surface = dynamic_pointer_cast<Connector>(
-			mDisplay->getConnectorById(connectorId))->getSurface();
+			mDisplay->getConnectorByName(conName))->getSurface();
 
 	TouchPtr touch(
 			new WlTouch(mDisplay->getSeat()->getTouch(), surface));

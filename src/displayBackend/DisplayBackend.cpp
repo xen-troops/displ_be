@@ -102,7 +102,8 @@ void DisplayFrontendHandler::onBind()
 	}
 }
 
-void DisplayFrontendHandler::createConnector(const string& conPath, int conId,
+void DisplayFrontendHandler::createConnector(const string& conPath,
+											 int conIndex,
 											 BuffersStoragePtr bufferStorage)
 {
 	evtchn_port_t port = getXenStore().readInt(conPath +
@@ -111,7 +112,7 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId,
 	uint32_t ref = getXenStore().readInt(conPath +
 										 XENDISPL_FIELD_EVT_RING_REF);
 
-	EventRingBufferPtr eventRingBuffer(new EventRingBuffer(conId, getDomId(),
+	EventRingBufferPtr eventRingBuffer(new EventRingBuffer(conIndex, getDomId(),
 			port, ref, XENDISPL_IN_RING_OFFS, XENDISPL_IN_RING_SIZE));
 
 	addRingBuffer(eventRingBuffer);
@@ -122,7 +123,7 @@ void DisplayFrontendHandler::createConnector(const string& conPath, int conId,
 	ref = getXenStore().readInt(conPath + XENDISPL_FIELD_CTRL_RING_REF);
 
 	CtrlRingBufferPtr ctrlRingBuffer(
-			new CtrlRingBuffer(mDisplay->getConnectorById(conId),
+			new CtrlRingBuffer(mDisplay->getConnectorByName(""),
 							   bufferStorage,
 							   eventRingBuffer,
 							   getDomId(), port, ref));

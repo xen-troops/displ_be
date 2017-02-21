@@ -147,16 +147,12 @@ public:
 	 */
 	typedef std::function<void()> FlipCallback;
 
-	/**
-	 * @param conId connector id
-	 */
-	Connector(int conId) : mConId(conId) {}
 	virtual ~Connector() {};
 
 	/**
-	 * Returns connector id
+	 * Returns connector name
 	 */
-	uint32_t getId() const { return mConId; }
+	virtual std::string getName() const = 0;
 
 	/**
 	 * Checks if the connector is connected
@@ -192,10 +188,6 @@ public:
 	 * @param cbk         callback
 	 */
 	virtual void pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk) = 0;
-
-private:
-
-	uint32_t mConId;
 };
 
 typedef std::shared_ptr<Connector> ConnectorPtr;
@@ -228,10 +220,10 @@ public:
 	virtual bool isZeroCopySupported() const = 0;
 
 	/**
-	 * Returns connector by id
-	 * @param id connector id
+	 * Returns connector by name
+	 * @param name connector name
 	 */
-	virtual ConnectorPtr getConnectorById(uint32_t id) = 0;
+	virtual ConnectorPtr getConnectorByName(const std::string& name) = 0;
 
 	/**
 	 * Creates display buffer

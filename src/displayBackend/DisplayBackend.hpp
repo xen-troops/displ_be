@@ -105,7 +105,7 @@ private:
 	DisplayItf::DisplayPtr mDisplay;
 	XenBackend::Log mLog;
 
-	void createConnector(const std::string& streamPath, int conId,
+	void createConnector(const std::string& streamPath, int conIndex,
 						 BuffersStoragePtr bufferStorage);
 };
 

@@ -57,15 +57,15 @@ unordered_map<int, DisplayCommandHandler::CommandFn>
  * ConEventRingBuffer
  ******************************************************************************/
 
-EventRingBuffer::EventRingBuffer(int id, domid_t domId,
+EventRingBuffer::EventRingBuffer(int conIndex, domid_t domId,
 								 evtchn_port_t port, grant_ref_t ref,
 								 int offset, size_t size) :
 	RingBufferOutBase<xendispl_event_page, xendispl_evt>(domId, port, ref,
 														 offset, size),
-	mId(id),
+	mConIndex(conIndex),
 	mLog("ConEventRing")
 {
-	LOG(mLog, DEBUG) << "Create event ring buffer: id = " << mId;
+	LOG(mLog, DEBUG) << "Create event ring buffer, index: " << mConIndex;
 }
 
 /*******************************************************************************
@@ -82,14 +82,14 @@ DisplayCommandHandler::DisplayCommandHandler(
 	mEventId(0),
 	mLog("CommandHandler")
 {
-	LOG(mLog, DEBUG) << "Create command handler, con ID: "
-					 << mConnector->getId();
+	LOG(mLog, DEBUG) << "Create command handler, connector name: "
+					 << mConnector->getName();
 }
 
 DisplayCommandHandler::~DisplayCommandHandler()
 {
-	LOG(mLog, DEBUG) << "Delete command handler, con ID: "
-					 << mConnector->getId();
+	LOG(mLog, DEBUG) << "Delete command handler, connector name: "
+					 << mConnector->getName();
 }
 
 /*******************************************************************************
@@ -218,8 +218,8 @@ void DisplayCommandHandler::setConfig(const xendispl_req& req)
 
 void DisplayCommandHandler::sendFlipEvent(uint64_t fbCookie)
 {
-	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], conn ID: "
-					  << mConnector->getId() << ", fb ID: "
+	DLOG(mLog, DEBUG) << "Event [PAGE FLIP], conn name: "
+					  << mConnector->getName() << ", fb ID: "
 					  << hex << setfill('0') << setw(16) << fbCookie;
 
 	xendispl_evt event {};

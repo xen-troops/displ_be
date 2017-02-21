@@ -23,13 +23,14 @@ public:
 	InputManager(Wayland::DisplayPtr wlDisplay);
 	~InputManager();
 
-	InputItf::KeyboardPtr createWlKeyboard(int id, uint32_t connectorId);
-	InputItf::PointerPtr createWlPointer(int id, uint32_t connectorId);
-	InputItf::TouchPtr createWlTouch(int id, uint32_t connectorId);
+	InputItf::KeyboardPtr createWlKeyboard(int id, const std::string& conName);
+	InputItf::PointerPtr createWlPointer(int id, const std::string& conName);
+	InputItf::TouchPtr createWlTouch(int id, const std::string& conName);
 
-	InputItf::KeyboardPtr createInputKeyboard(int id, const std::string& name);
-	InputItf::PointerPtr createInputPointer(int id, const std::string& name);
-	InputItf::TouchPtr createInputTouch(int id, const std::string& name);
+	InputItf::KeyboardPtr createInputKeyboard(
+			int id, const std::string& devName);
+	InputItf::PointerPtr createInputPointer(int id, const std::string& devName);
+	InputItf::TouchPtr createInputTouch(int id, const std::string& devName);
 
 	InputItf::KeyboardPtr getKeyboard(int id) override;
 	InputItf::PointerPtr getPointer(int id) override;

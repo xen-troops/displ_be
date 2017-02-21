@@ -47,6 +47,11 @@ public:
 	SurfacePtr getSurface() const { return mSurface; }
 
 	/**
+	 * Returns connector name
+	 */
+	std::string getName() const override { return mName; }
+
+	/**
 	 * Checks if the connector is connected
 	 * @return <i>true</i> if connected
 	 */
@@ -87,8 +92,9 @@ private:
 	friend class Display;
 	template<class T> friend class ConnectorType;
 
-	Connector(uint32_t id, SurfacePtr surface);
+	Connector(const std::string& name, SurfacePtr surface);
 
+	std::string mName;
 	SurfacePtr mSurface;
 	std::atomic_bool mInitialized;
 	XenBackend::Log mLog;
@@ -105,8 +111,8 @@ private:
 
 	friend class Display;
 
-	ConnectorType(uint32_t id, std::shared_ptr<T> type) :
-		Connector(id, type->getSurface()),
+	ConnectorType(const std::string& name, std::shared_ptr<T> type) :
+		Connector(name, type->getSurface()),
 		mType(type) {}
 
 	std::shared_ptr<T> mType;

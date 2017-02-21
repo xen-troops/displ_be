@@ -31,18 +31,18 @@ namespace Wayland {
  * Connector
  ******************************************************************************/
 
-Connector::Connector(uint32_t id, SurfacePtr surface) :
-	DisplayItf::Connector(id),
+Connector::Connector(const std::string& name, SurfacePtr surface) :
+	mName(name),
 	mSurface(surface),
 	mInitialized(false),
 	mLog("Connector")
 {
-	LOG(mLog, DEBUG) << "Create, id: "  << getId();
+	LOG(mLog, DEBUG) << "Create, name: "  << mName;
 }
 
 Connector::~Connector()
 {
-	LOG(mLog, DEBUG) << "Delete, id: " << getId();
+	LOG(mLog, DEBUG) << "Delete, name: " << mName;
 }
 
 /*******************************************************************************
@@ -52,7 +52,7 @@ Connector::~Connector()
 void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 					 FrameBufferPtr frameBuffer)
 {
-	LOG(mLog, DEBUG) << "Init, id: " << getId() << ", x: " << x << ", y: " << y
+	LOG(mLog, DEBUG) << "Init, name: " << mName << ", x: " << x << ", y: " << y
 					 << ", w: " << width << ", height: " << height;
 
 	mSurface->draw(frameBuffer);
@@ -62,14 +62,14 @@ void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
 
 void Connector::release()
 {
-	LOG(mLog, DEBUG) << "Release, id: " << getId();
+	LOG(mLog, DEBUG) << "Release, name: " << mName;
 
 	mInitialized = false;
 }
 
 void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 {
-	DLOG(mLog, DEBUG) << "Page flip, id: " << getId();
+	DLOG(mLog, DEBUG) << "Page flip, name: " << mName;
 
 	mSurface->draw(frameBuffer, cbk);
 }

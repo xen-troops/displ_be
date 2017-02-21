@@ -24,19 +24,41 @@
 #include "Display.hpp"
 
 using std::chrono::milliseconds;
+using std::string;
 using std::this_thread::sleep_for;
 using std::to_string;
+using std::unordered_map;
 
 using DisplayItf::FrameBufferPtr;
 
 namespace Drm {
+
+unordered_map<int, string> Connector::sConnectorNames =
+{
+	{ DRM_MODE_CONNECTOR_Unknown,		"unknown" },
+	{ DRM_MODE_CONNECTOR_VGA,			"VGA" },
+	{ DRM_MODE_CONNECTOR_DVII,			"DVI-I" },
+	{ DRM_MODE_CONNECTOR_DVID,			"DVI-D" },
+	{ DRM_MODE_CONNECTOR_DVIA,			"DVI-A" },
+	{ DRM_MODE_CONNECTOR_Composite,		"composite" },
+	{ DRM_MODE_CONNECTOR_SVIDEO,		"s-video" },
+	{ DRM_MODE_CONNECTOR_LVDS,			"LVDS" },
+	{ DRM_MODE_CONNECTOR_Component,		"component" },
+	{ DRM_MODE_CONNECTOR_9PinDIN,		"9-pin DIN" },
+	{ DRM_MODE_CONNECTOR_DisplayPort,	"DP" },
+	{ DRM_MODE_CONNECTOR_HDMIA,			"HDMI-A" },
+	{ DRM_MODE_CONNECTOR_HDMIB,			"HDMI-B" },
+	{ DRM_MODE_CONNECTOR_TV,			"TV" },
+	{ DRM_MODE_CONNECTOR_eDP,			"eDP" },
+	{ DRM_MODE_CONNECTOR_VIRTUAL,		"Virtual" },
+	{ DRM_MODE_CONNECTOR_DSI,			"DSI" },
+};
 
 /*******************************************************************************
  * Connector
  ******************************************************************************/
 
 Connector::Connector(Display& device, int conId) :
-	DisplayItf::Connector(conId),
 	mDev(device),
 	mFd(device.getFd()),
 	mCrtcId(cInvalidId),
@@ -46,7 +68,20 @@ Connector::Connector(Display& device, int conId) :
 	mFlipCallback(nullptr),
 	mLog("Connector")
 {
-	LOG(mLog, DEBUG) << "Create, id: " << mConnector->connector_id;
+	mName = sConnectorNames.at(DRM_MODE_CONNECTOR_Unknown) + "-" +
+			to_string(mConnector->connector_type_id);
+
+	auto connectorIt = sConnectorNames.find(mConnector->connector_type);
+
+	if (connectorIt != sConnectorNames.end())
+	{
+		mName = connectorIt->second  + "-" +
+				to_string(mConnector->connector_type_id);;
+	}
+
+	LOG(mLog, DEBUG) << "Create, name: " << mName
+					 << ", id: " << mConnector->connector_id
+					 << ", connected: " << isConnected();
 }
 
 Connector::~Connector()

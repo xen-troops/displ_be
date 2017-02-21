@@ -22,6 +22,8 @@
 #ifndef SRC_DRM_CONNECTOR_HPP_
 #define SRC_DRM_CONNECTOR_HPP_
 
+#include <unordered_map>
+
 #include <xen/be/Log.hpp>
 
 #include "DisplayItf.hpp"
@@ -54,6 +56,11 @@ public:
 	 * Returns assigned CRTC id
 	 */
 	uint32_t getCrtcId() const { return mCrtcId; }
+
+	/**
+	 * Returns connector name
+	 */
+	std::string getName() const override { return mName; }
 
 	/**
 	 * Checks if the connector is connected
@@ -94,6 +101,8 @@ public:
 
 private:
 
+	static std::unordered_map<int, std::string> sConnectorNames;
+
 	Display& mDev;
 	int mFd;
 	uint32_t mCrtcId;
@@ -102,6 +111,7 @@ private:
 	std::atomic_bool mFlipPending;
 	FlipCallback mFlipCallback;
 	XenBackend::Log mLog;
+	std::string mName;
 
 	uint32_t findCrtcId();
 	uint32_t getAssignedCrtcId();

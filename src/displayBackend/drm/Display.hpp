@@ -87,20 +87,6 @@ public:
 	size_t getConnectorsCount();
 
 	/**
-	 * Automatically creates virtual connectors.
-	 * First available and connected becomes virtual index 0 etc.
-	 */
-	void autoCreateConnectors();
-
-	/**
-	 * Creates virtual connector
-	 * @param id       connector id
-	 * @param drmId    DRM connector id
-	 * @return created connector
-	 */
-	DisplayItf::ConnectorPtr createConnector(uint32_t id, uint32_t drmId);
-
-	/**
 	 * Starts events handling
 	 */
 	void start() override;
@@ -116,10 +102,11 @@ public:
 	bool isZeroCopySupported() const override { return (mZeroCopyFd >= 0); }
 
 	/**
-	 * Returns connector by id
-	 * @param id connector id
+	 * Returns connector by name
+	 * @param name connector name
 	 */
-	DisplayItf::ConnectorPtr getConnectorById(uint32_t id) override;
+	DisplayItf::ConnectorPtr getConnectorByName(
+			const std::string& name) override;
 
 	/**
 	 * Creates display buffer
@@ -165,7 +152,7 @@ private:
 
 	std::unique_ptr<ModeResource> mRes;
 
-	std::unordered_map<uint32_t, Drm::ConnectorPtr> mConnectors;
+	std::unordered_map<std::string, Drm::ConnectorPtr> mConnectors;
 
 	std::mutex mMutex;
 	std::thread mThread;
@@ -174,6 +161,7 @@ private:
 
 	void init();
 	void release();
+	void createConnectors();
 	void eventThread();
 
 	static void handleFlipEvent(int fd, unsigned int sequence,

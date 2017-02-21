@@ -65,16 +65,16 @@ public:
 
 	/**
 	 * Creates virtual connector
-	 * @param id         connector id
+	 * @param name       connector name
 	 * @param x          horizontal offset
 	 * @param y          vertical offset
 	 * @param width      width
 	 * @param height     height
 	 * @return created connector
 	 */
-	DisplayItf::ConnectorPtr createConnector(uint32_t id, uint32_t x,
-											 uint32_t y, uint32_t width,
-											 uint32_t height);
+	DisplayItf::ConnectorPtr createConnector(const std::string& name,
+											 uint32_t x, uint32_t y,
+											 uint32_t width, uint32_t height);
 
 	/**
 	 * Starts events handling
@@ -92,10 +92,11 @@ public:
 	bool isZeroCopySupported() const override;
 
 	/**
-	 * Returns connector by id
-	 * @param id connector id
+	 * Returns connector by name
+	 * @param name connector name
 	 */
-	DisplayItf::ConnectorPtr getConnectorById(uint32_t id) override;
+	DisplayItf::ConnectorPtr getConnectorByName(
+			const std::string& name) override;
 
 	/**
 	 * Creates display buffer
@@ -140,7 +141,7 @@ private:
 	wl_registry_listener mWlRegistryListener;
 	XenBackend::Log mLog;
 
-	std::unordered_map<uint32_t, Wayland::ConnectorPtr> mConnectors;
+	std::unordered_map<std::string, Wayland::ConnectorPtr> mConnectors;
 
 	CompositorPtr mCompositor;
 	ShellPtr mShell;
@@ -156,7 +157,7 @@ private:
 	std::unique_ptr<XenBackend::PollFd> mPollFd;
 
 	ShellSurfacePtr createShellSurface(uint32_t x, uint32_t y);
-	IviSurfacePtr createIviSurface(int id, uint32_t x, uint32_t y,
+	IviSurfacePtr createIviSurface(uint32_t x, uint32_t y,
 								   uint32_t width, uint32_t height);
 
 	static void sRegistryHandler(void *data, wl_registry *registry,

@@ -32,7 +32,6 @@
 #include "DumbZCopyBack.hpp"
 #include "DumbZCopyFront.hpp"
 
-using std::dynamic_pointer_cast;
 using std::lock_guard;
 using std::mutex;
 using std::string;
@@ -124,48 +123,6 @@ size_t Display::getConnectorsCount()
 	return mConnectors.size();
 }
 
-void Display::autoCreateConnectors()
-{
-	lock_guard<mutex> lock(mMutex);
-
-	int id = 0;
-
-	for (int i = 0; i < (*mRes)->count_connectors; i++)
-	{
-		ModeConnector connector(mFd, (*mRes)->connectors[i]);
-
-		if (connector->connection == DRM_MODE_CONNECTED)
-		{
-			Drm::ConnectorPtr connector(
-					new Connector(*this, (*mRes)->connectors[i]));
-
-			mConnectors.emplace(id++, connector);
-		}
-	}
-
-	LOG(mLog, DEBUG) << "Created connectors: " << id;
-}
-
-DisplayItf::ConnectorPtr Display::createConnector(uint32_t id, uint32_t drmId)
-{
-	lock_guard<mutex> lock(mMutex);
-
-	for (int i = 0; i < (*mRes)->count_connectors; i++)
-	{
-		if (drmId == (*mRes)->connectors[i])
-		{
-			Drm::ConnectorPtr connector(
-					new Connector(*this, (*mRes)->connectors[i]));
-
-			mConnectors.emplace(id, connector);
-
-			return connector;
-		}
-	}
-
-	throw Exception("No DRM connector id found: " + to_string(drmId));
-}
-
 void Display::start()
 {
 	lock_guard<mutex> lock(mMutex);
@@ -198,18 +155,18 @@ void Display::stop()
 	}
 }
 
-DisplayItf::ConnectorPtr Display::getConnectorById(uint32_t id)
+DisplayItf::ConnectorPtr Display::getConnectorByName(const string& name)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	auto iter = mConnectors.find(id);
+	auto iter = mConnectors.find(name);
 
 	if (iter == mConnectors.end())
 	{
-		throw Exception("Wrong connector id " + to_string(id));
+		throw Exception("Wrong connector name: " + name);
 	}
 
-	return dynamic_pointer_cast<Connector>(iter->second);
+	return iter->second;
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
@@ -289,15 +246,6 @@ void Display::init()
 
 	mRes.reset(new ModeResource(mFd));
 
-	for (int i = 0; i < (*mRes)->count_connectors; i++)
-	{
-		ModeConnector connector(mFd, (*mRes)->connectors[i]);
-
-		LOG(mLog, DEBUG) << "Available connector: " << connector->connector_id
-						 << ", connected: "
-						 << (connector->connection == DRM_MODE_CONNECTED);
-	}
-
 	mZeroCopyFd = drmOpen(XENDRM_ZCOPY_DRIVER_NAME, NULL);
 
 	if (mZeroCopyFd < 0)
@@ -305,6 +253,8 @@ void Display::init()
 		LOG(mLog, WARNING) << "Can't open zero copy driver. "
 						   << "Zero copy functionality will be disabled.";
 	}
+
+	createConnectors();
 
 	LOG(mLog, DEBUG) << "Create Drm card: " << mName << ", FD: " << mFd
 					 << ", ZCopyFD: " << mZeroCopyFd;
@@ -324,6 +274,17 @@ void Display::release()
 	if (mFd >= 0)
 	{
 		drmClose(mFd);
+	}
+}
+
+void Display::createConnectors()
+{
+	for (int i = 0; i < (*mRes)->count_connectors; i++)
+	{
+		Drm::ConnectorPtr connector(
+				new Connector(*this, (*mRes)->connectors[i]));
+
+		mConnectors.emplace(connector->getName(), connector);
 	}
 }
 

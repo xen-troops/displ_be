@@ -28,9 +28,8 @@
 using namespace std::placeholders;
 
 using std::bind;
-using std::dynamic_pointer_cast;
 using std::exception;
-using std::to_string;
+using std::string;
 using std::thread;
 
 using DisplayItf::DisplayBufferPtr;
@@ -97,33 +96,37 @@ void Display::createBackgroundSurface(uint32_t width, uint32_t height)
 	}
 }
 
-DisplayItf::ConnectorPtr Display::createConnector(uint32_t id, uint32_t x,
-												  uint32_t y, uint32_t width,
+DisplayItf::ConnectorPtr Display::createConnector(const string& name,
+												  uint32_t x, uint32_t y,
+												  uint32_t width,
 												  uint32_t height)
 {
 	Connector* connector = nullptr;
 
 	if (mShell)
 	{
-		connector = new ConnectorType<ShellSurface>(id,
+		connector = new ConnectorType<ShellSurface>(name,
 													createShellSurface(x, y));
 	}
 	else if (mIviApplication)
 	{
-		connector = new ConnectorType<IviSurface>(id,
-												  createIviSurface(id, x, y,
+		connector = new ConnectorType<IviSurface>(name,
+												  createIviSurface(x, y,
 												  width, height));
 	}
 	else
 	{
-		connector = new Connector(id, mCompositor->createSurface());
+		connector = new Connector(name, mCompositor->createSurface());
 	}
 
-	LOG(mLog, DEBUG) << "Create connector, id: " << id;
+	LOG(mLog, DEBUG) << "Create connector, name: " << name;
 
-	mConnectors.emplace(id, Wayland::ConnectorPtr(connector));
 
-	return getConnectorById(id);
+	Wayland::ConnectorPtr connectorPtr(connector);
+
+	mConnectors.emplace(name, connectorPtr);
+
+	return connectorPtr;
 }
 
 void Display::start()
@@ -155,16 +158,16 @@ bool Display::isZeroCopySupported() const
 	return false;
 }
 
-DisplayItf::ConnectorPtr Display::getConnectorById(uint32_t id)
+DisplayItf::ConnectorPtr Display::getConnectorByName(const string& name)
 {
-	auto iter = mConnectors.find(id);
+	auto iter = mConnectors.find(name);
 
 	if (iter == mConnectors.end())
 	{
-		throw Exception("Wrong connector id " + to_string(id));
+		throw Exception("Wrong connector name: " + name);
 	}
 
-	return dynamic_pointer_cast<Connector>(iter->second);
+	return iter->second;
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
@@ -240,10 +243,10 @@ ShellSurfacePtr Display::createShellSurface(uint32_t x, uint32_t y)
 	return shellSurface;
 }
 
-IviSurfacePtr Display::createIviSurface(int id, uint32_t x, uint32_t y,
+IviSurfacePtr Display::createIviSurface(uint32_t x, uint32_t y,
 										uint32_t width, uint32_t height)
 {
-	return mIviApplication->createIviSurface(id, mCompositor->createSurface(),
+	return mIviApplication->createIviSurface(mCompositor->createSurface(),
 											 width, height, 0);
 }
 
