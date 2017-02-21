@@ -34,9 +34,10 @@
 #include "input/InputManager.hpp"
 #include "InputBackend.hpp"
 
-using std::chrono::milliseconds;
 using std::atomic_bool;
+using std::chrono::milliseconds;
 using std::cout;
+using std::dynamic_pointer_cast;
 using std::endl;
 using std::string;
 using std::this_thread::sleep_for;
@@ -45,10 +46,10 @@ using std::transform;
 
 using XenBackend::Log;
 
-DisplayMode gDisplayMode = DisplayMode::WAYLAND;
-
 const uint32_t cWlBackgroundWidth = 1920;
 const uint32_t cWlBackgroundHeight = 1080;
+
+string gCfgFileName;
 
 /*******************************************************************************
  *
@@ -91,11 +92,12 @@ bool commandLineOptions(int argc, char *argv[])
 
 	int opt = -1;
 
-	while((opt = getopt(argc, argv, "m:v:fh?")) != -1)
+	while((opt = getopt(argc, argv, "c:v:fh?")) != -1)
 	{
 		switch(opt)
 		{
 		case 'v':
+
 			if (!Log::setLogLevel(string(optarg)))
 			{
 				return false;
@@ -103,22 +105,16 @@ bool commandLineOptions(int argc, char *argv[])
 
 			break;
 
-		case 'm':
-		{
-			string strMode(optarg);
+		case 'c':
 
-			transform(strMode.begin(), strMode.end(), strMode.begin(),
-					  (int (*)(int))toupper);
-
-			if (strMode == "DRM")
-			{
-				gDisplayMode = DisplayMode::DRM;
-			}
+			gCfgFileName = optarg;
 
 			break;
-		}
+
 		case 'f':
+
 			Log::setShowFileAndLine(true);
+
 			break;
 
 		default:
@@ -129,46 +125,117 @@ bool commandLineOptions(int argc, char *argv[])
 	return true;
 }
 
-Drm::DisplayPtr getDrmDisplay()
+DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
 {
-	Drm::DisplayPtr device(new Drm::Display("/dev/dri/card0"));
+	// DRM
 
-	device->autoCreateConnectors();
+	if (config->displayMode() == Config::DisplayMode::DRM)
+	{
+		return Drm::DisplayPtr(new Drm::Display("/dev/dri/card0"));
+	}
 
-	return device;
+	// Wayland
+
+	Wayland::DisplayPtr wlDisplay(new Wayland::Display());
+
+	string name;
+	uint32_t displ, x, y, w, h, z;
+
+	if (config->wlBackground(w, h))
+	{
+		wlDisplay->createBackgroundSurface(w, h);
+	}
+
+	for (int i = 0; i < config->wlConnectorsCount(); i++)
+	{
+		config->wlConnector(i, name, displ, x, y, w, h, z);
+
+		wlDisplay->createConnector(name, x, y, w, h);
+	}
+
+	return wlDisplay;
 }
 
-Wayland::DisplayPtr getWaylandDisplay()
+InputItf::InputManagerPtr getInputManager(DisplayItf::DisplayPtr display,
+										  ConfigPtr config)
 {
-	Wayland::DisplayPtr display(new Wayland::Display());
+	Input::InputManagerPtr inputManager;
 
-	display->createBackgroundSurface(cWlBackgroundWidth,
-									 cWlBackgroundHeight);
+	if (config->displayMode() == Config::DisplayMode::WAYLAND)
+	{
+		inputManager.reset(new Input::InputManager(
+				dynamic_pointer_cast<Wayland::Display>(display)));
+	}
+	else
+	{
+		inputManager.reset(new Input::InputManager());
+	}
 
-	display->createConnector(0, 0, 0, cWlBackgroundWidth/2, cWlBackgroundHeight);
-	display->createConnector(1, cWlBackgroundWidth/2, 0,
-							 cWlBackgroundWidth/2, cWlBackgroundHeight);
+	int id;
+	bool wayland;
+	string name;
 
-	return display;
-}
+	for(int i = 0; i < config->inputKeyboardsCount(); i++)
+	{
+		config->inputKeyboard(i, id, wayland, name);
 
-Input::InputManagerPtr getWlInputManager(Wayland::DisplayPtr display)
-{
-	Input::InputManagerPtr inputManager(new Input::InputManager(display));
+		if (wayland)
+		{
+			if (config->displayMode() != Config::DisplayMode::WAYLAND)
+			{
+				throw InputItf::Exception(
+						"Can't create wayland keyboard. Wayland is disabled.");
+			}
 
-	inputManager->createWlKeyboard(0, 0);
-	inputManager->createWlPointer(0, 0);
-//	inputManager->createWlTouch(0, 0);
-//	inputManager->createWlTouch(0, 1);
+			inputManager->createWlKeyboard(id, name);
+		}
+		else
+		{
+			inputManager->createInputKeyboard(id, name);
+		}
+	}
+
+	for(int i = 0; i < config->inputPointersCount(); i++)
+	{
+		config->inputPointer(i, id, wayland, name);
+
+		if (wayland)
+		{
+			if (config->displayMode() != Config::DisplayMode::WAYLAND)
+			{
+				throw InputItf::Exception(
+						"Can't create wayland pointer. Wayland is disabled.");
+			}
+
+			inputManager->createWlPointer(id, name);
+		}
+		else
+		{
+			inputManager->createInputPointer(id, name);
+		}
+	}
+
+	for(int i = 0; i < config->inputTouchesCount(); i++)
+	{
+		config->inputTouch(i, id, wayland, name);
+
+		if (wayland)
+		{
+			if (config->displayMode() != Config::DisplayMode::WAYLAND)
+			{
+				throw InputItf::Exception(
+						"Can't create wayland touch. Wayland is disabled.");
+			}
+
+			inputManager->createWlTouch(id, name);
+		}
+		else
+		{
+			inputManager->createInputTouch(id, name);
+		}
+	}
 
 	return inputManager;
-}
-
-Input::InputManagerPtr getInputManager()
-{
-	auto inputManager = new Input::InputManager();
-
-	return Input::InputManagerPtr(inputManager);
 }
 
 int main(int argc, char *argv[])
@@ -179,29 +246,11 @@ int main(int argc, char *argv[])
 
 		if (commandLineOptions(argc, argv))
 		{
+			ConfigPtr config(new Config(gCfgFileName));
 
-			DisplayItf::DisplayPtr display;
-			Wayland::DisplayPtr wlDisplay;
-			InputItf::InputManagerPtr inputManager;
-
-			Config config("displ_be.cfg");
-
-			if (gDisplayMode == DisplayMode::DRM)
-			{
-				auto drmDisplay = getDrmDisplay();
-
-				inputManager = getInputManager();
-
-				display = drmDisplay;
-			}
-			else
-			{
-				wlDisplay = getWaylandDisplay();
-
-				inputManager = getWlInputManager(wlDisplay);
-
-				display = wlDisplay;
-			}
+			DisplayItf::DisplayPtr display = getDisplay(config);
+			InputItf::InputManagerPtr inputManager = getInputManager(display,
+																	 config);
 
 			DisplayBackend displayBackend(display, XENDISPL_DRIVER_NAME, 0, 0);
 			InputBackend inputBackend(inputManager, XENKBD_DRIVER_NAME, 0, 0);
@@ -216,8 +265,7 @@ int main(int argc, char *argv[])
 			cout << "Usage: " << argv[0] << " [-m <mode>] [-v <level>]" << endl;
 			cout << "\t-v -- verbose level "
 				 << "(disable, error, warning, info, debug)" << endl;
-			cout << "\t-m -- mode "
-				 << "(drm, wayland)" << endl;
+			cout << "\t-c -- config file" << endl;
 		}
 	}
 	catch(const std::exception& e)

@@ -33,12 +33,6 @@
  * Backend related classes.
  ******************************************************************************/
 
-enum class DisplayMode
-{
-	DRM,
-	WAYLAND
-};
-
 /***************************************************************************//**
  * Ring buffer used for the connector control.
  * @ingroup displ_be

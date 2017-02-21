@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
 		Wayland::Display display;
 //		display.createBackgroundSurface(BACK_WIDTH, BACK_HEIGHT);
 
-		auto connector1 = display.createConnector(37, 0, 0, WIDTH, HEIGHT);
+		auto connector1 = display.createConnector("Main", 0, 0, WIDTH, HEIGHT);
 //		auto connector2 = display.createConnector(38, WIDTH, 0, WIDTH, HEIGHT);
 
 		display.start();
