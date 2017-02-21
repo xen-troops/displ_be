@@ -147,7 +147,10 @@ void Display::stop()
 
 	DLOG(mLog, DEBUG) << "Stop";
 
-	mPollFd->stop();
+	if (mPollFd)
+	{
+		mPollFd->stop();
+	}
 
 	if (mThread.joinable())
 	{

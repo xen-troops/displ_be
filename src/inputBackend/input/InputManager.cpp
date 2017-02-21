@@ -58,6 +58,11 @@ KeyboardPtr InputManager::createWlKeyboard(int id, const string& conName)
 	LOG(mLog, DEBUG) << "Create WL keyboard id: " << id
 					 << ", connector: " << conName;
 
+	if (!mDisplay)
+	{
+		throw Exception("Display is not set.");
+	}
+
 	auto surface = dynamic_pointer_cast<Connector>(
 			mDisplay->getConnectorByName(conName))->getSurface();
 
@@ -74,6 +79,11 @@ PointerPtr InputManager::createWlPointer(int id, const string& conName)
 	LOG(mLog, DEBUG) << "Create WL pointer id: " << id
 					 << ", connector: " << conName;
 
+	if (!mDisplay)
+	{
+		throw Exception("Display is not set.");
+	}
+
 	auto surface = dynamic_pointer_cast<Connector>(
 			mDisplay->getConnectorByName(conName))->getSurface();
 
@@ -89,6 +99,11 @@ TouchPtr InputManager::createWlTouch(int id, const string& conName)
 {
 	LOG(mLog, DEBUG) << "Create WL touch id: " << id
 					 << ", connector: " << conName;
+
+	if (!mDisplay)
+	{
+		throw Exception("Display is not set.");
+	}
 
 	auto surface = dynamic_pointer_cast<Connector>(
 			mDisplay->getConnectorByName(conName))->getSurface();

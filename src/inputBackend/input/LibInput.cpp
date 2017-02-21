@@ -81,7 +81,10 @@ void InputBase::init()
 
 void InputBase::release()
 {
-	mPollFd->stop();
+	if (mPollFd)
+	{
+		mPollFd->stop();
+	}
 
 	if (mThread.joinable())
 	{
