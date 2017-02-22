@@ -129,6 +129,10 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name,
 	return connectorPtr;
 }
 
+void Display::showConnectors()
+{
+}
+
 void Display::start()
 {
 	LOG(mLog, DEBUG) << "Start";
@@ -343,6 +347,15 @@ void Display::init()
 	if (!mSharedMemory)
 	{
 		throw Exception("Can't get shared memory");
+	}
+
+	try
+	{
+		mIlmControl.reset(new IlmControl());
+	}
+	catch(const Exception& e)
+	{
+		LOG(mLog, WARNING) << e.what() << ". ILM capability will be disabled.";
 	}
 }
 

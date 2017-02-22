@@ -20,6 +20,7 @@ set(WL_SOURCES
 	src/displayBackend/wayland/Connector.cpp
 	src/displayBackend/wayland/DrmBuffer.cpp
 	src/displayBackend/wayland/Display.cpp
+	src/displayBackend/wayland/IlmControl.cpp
 	src/displayBackend/wayland/IviApplication.cpp
 	src/displayBackend/wayland/IviSurface.cpp
 	src/displayBackend/wayland/SharedBuffer.cpp
@@ -52,6 +53,7 @@ set(BE_SOURCES
 
 set(TEST_SOURCES
 	src/test.cpp
+	src/Config.cpp
 )
 
 include_directories(
@@ -88,7 +90,9 @@ target_link_libraries(${PROJECT_NAME}
 	xengnttab
 	drm
 	wayland-client
+	ilmCommon
 	ilmClient
+	ilmControl
 	pthread
 	config++
 )
@@ -106,8 +110,11 @@ target_link_libraries(displ_test
 	xengnttab
 	drm
 	wayland-client
+	ilmCommon
 	ilmClient
+	ilmControl
 	pthread
+	config++
 )
 
 find_package(Doxygen)

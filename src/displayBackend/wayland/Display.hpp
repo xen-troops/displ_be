@@ -32,6 +32,7 @@
 
 #include "Compositor.hpp"
 #include "Connector.hpp"
+#include "IlmControl.hpp"
 #include "IviApplication.hpp"
 #include "Seat.hpp"
 #include "SharedMemory.hpp"
@@ -75,6 +76,12 @@ public:
 	DisplayItf::ConnectorPtr createConnector(const std::string& name,
 											 uint32_t x, uint32_t y,
 											 uint32_t width, uint32_t height);
+
+	/**
+	 * Applies ILM changes if applicable
+	 * Should be called after all connectors are created.
+	 */
+	void showConnectors();
 
 	/**
 	 * Starts events handling
@@ -149,6 +156,7 @@ private:
 	IviApplicationPtr mIviApplication;
 	SeatPtr mSeat;
 	WaylandDrmPtr mWaylandDrm;
+	IlmControlPtr mIlmControl;
 
 	ShellSurfacePtr mBackgroundSurface;
 
