@@ -92,7 +92,7 @@ bool Config::wlBackground(uint32_t& w, uint32_t& h)
 	return false;
 }
 
-void Config::wlConnector(int idx, string& name, uint32_t& displ,
+void Config::wlConnector(int idx, string& name, uint32_t& screen,
 						 uint32_t& x, uint32_t& y,
 						 uint32_t& w, uint32_t& h, uint32_t& z)
 {
@@ -104,9 +104,9 @@ void Config::wlConnector(int idx, string& name, uint32_t& displ,
 
 		name = static_cast<const char*>(conSetting.lookup("name"));
 
-		if (!conSetting.lookupValue("display", displ))
+		if (!conSetting.lookupValue("screen", screen))
 		{
-			displ = 0;
+			screen = 0;
 		}
 
 		x = conSetting.lookup("x");
@@ -120,7 +120,7 @@ void Config::wlConnector(int idx, string& name, uint32_t& displ,
 		}
 
 		LOG(mLog, DEBUG) << sectionName << "[" << idx << "] name: " << name
-						 << ", display: " << displ
+						 << ", screen: " << screen
 						 << ", x: " << x << ", y: " << y
 						 << ", w: " << w << ", h: " << h << ", z: " << z;
 	}

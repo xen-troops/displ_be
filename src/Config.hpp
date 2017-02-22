@@ -98,14 +98,14 @@ public:
 	 * Returns parameters of virtual wayland connector
 	 * @param[in]  idx    index of connector
 	 * @param[out] name   connector name
-	 * @param[out] displ  display index
+	 * @param[out] screen screen id
 	 * @param[out] x      horizontal offset
 	 * @param[out] y      vertical offset
 	 * @param[out] w      width
 	 * @param[out] h      height
 	 * @param[out] z      Z order
 	 */
-	void wlConnector(int idx, std::string& name, uint32_t& displ,
+	void wlConnector(int idx, std::string& name, uint32_t& screen,
 					 uint32_t& x, uint32_t& y,
 					 uint32_t& w, uint32_t& h, uint32_t& z);
 
