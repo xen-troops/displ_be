@@ -42,9 +42,10 @@ using InputItf::InputManagerPtr;
  ******************************************************************************/
 
 InputFrontendHandler::InputFrontendHandler(
-		InputManagerPtr inputManager, BackendBase& backend,
+		ConfigPtr config, InputManagerPtr inputManager, BackendBase& backend,
 		domid_t domId, uint16_t devId) :
 	FrontendHandlerBase("VkbdFrontend", backend, domId, devId),
+	mConfig(config),
 	mInputManager(inputManager),
 	mLog("InputFrontend")
 {
@@ -75,9 +76,14 @@ void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer)
 {
 	try
 	{
-		mKeyboardHandler.reset(
-			new KeyboardHandler(mInputManager->getKeyboard(getDevId()),
-														   ringBuffer));
+		int id;
+
+		if (mConfig->domKeyboardId(getDomName(), getDevId(), id))
+		{
+			mKeyboardHandler.reset(
+					new KeyboardHandler(mInputManager->getKeyboard(id),
+										ringBuffer));
+		}
 	}
 	catch(const InputItf::Exception& e)
 	{
@@ -89,9 +95,14 @@ void InputFrontendHandler::createPointerHandler(InputRingBufferPtr ringBuffer)
 {
 	try
 	{
-		mPointerHandler.reset(
-			new PointerHandler(mInputManager->getPointer(getDevId()),
-														 ringBuffer));
+		int id;
+
+		if (mConfig->domPointerId(getDomName(), getDevId(), id))
+		{
+			mPointerHandler.reset(
+					new PointerHandler(mInputManager->getPointer(id),
+									   ringBuffer));
+		}
 	}
 	catch(const InputItf::Exception& e)
 	{
@@ -103,8 +114,14 @@ void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer)
 {
 	try
 	{
-		mTouchHandler.reset(
-			new TouchHandler(mInputManager->getTouch(getDevId()), ringBuffer));
+		int id;
+
+		if (mConfig->domPointerId(getDomName(), getDevId(), id))
+		{
+			mTouchHandler.reset(
+					new TouchHandler(mInputManager->getTouch(id),
+									 ringBuffer));
+		}
 	}
 	catch(const InputItf::Exception& e)
 	{
@@ -119,5 +136,6 @@ void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer)
 void InputBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
 	addFrontendHandler(FrontendHandlerPtr(
-			new InputFrontendHandler(mInputManager, *this, domId, devId)));
+			new InputFrontendHandler(mConfig, mInputManager, *this,
+									 domId, devId)));
 }

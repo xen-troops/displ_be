@@ -117,13 +117,15 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
 
 	addRingBuffer(eventRingBuffer);
 
-
 	port = getXenStore().readInt(conPath + XENDISPL_FIELD_CTRL_CHANNEL);
 
 	ref = getXenStore().readInt(conPath + XENDISPL_FIELD_CTRL_RING_REF);
 
+	auto connectorName = mConfig->domConnectorName(getDomName(), getDevId(),
+												   conIndex);
+
 	CtrlRingBufferPtr ctrlRingBuffer(
-			new CtrlRingBuffer(mDisplay->getConnectorByName(""),
+			new CtrlRingBuffer(mDisplay->getConnectorByName(connectorName),
 							   bufferStorage,
 							   eventRingBuffer,
 							   getDomId(), port, ref));
@@ -135,10 +137,12 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
  * DisplayBackend
  ******************************************************************************/
 
-DisplayBackend::DisplayBackend(DisplayPtr display,
+DisplayBackend::DisplayBackend(ConfigPtr config,
+							   DisplayPtr display,
 							   const string& deviceName,
 							   domid_t domId, uint16_t devId) :
 	BackendBase("DisplBackend", deviceName, domId, devId),
+	mConfig(config),
 	mDisplay(display)
 {
 	mDisplay->start();
@@ -147,5 +151,6 @@ DisplayBackend::DisplayBackend(DisplayPtr display,
 void DisplayBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
 	addFrontendHandler(FrontendHandlerPtr(
-			new DisplayFrontendHandler(mDisplay, *this, domId, devId)));
+			new DisplayFrontendHandler(mConfig, mDisplay, *this,
+									   domId, devId)));
 }

@@ -252,8 +252,10 @@ int main(int argc, char *argv[])
 			InputItf::InputManagerPtr inputManager = getInputManager(display,
 																	 config);
 
-			DisplayBackend displayBackend(display, XENDISPL_DRIVER_NAME, 0, 0);
-			InputBackend inputBackend(inputManager, XENKBD_DRIVER_NAME, 0, 0);
+			DisplayBackend displayBackend(config, display,
+										  XENDISPL_DRIVER_NAME, 0, 0);
+			InputBackend inputBackend(config, inputManager,
+									  XENKBD_DRIVER_NAME, 0, 0);
 
 			displayBackend.start();
 			inputBackend.start();

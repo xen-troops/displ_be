@@ -25,6 +25,7 @@
 #include <xen/be/FrontendHandlerBase.hpp>
 #include <xen/be/Log.hpp>
 
+#include "Config.hpp"
 #include "DisplayItf.hpp"
 #include "wayland/Display.hpp"
 #include "InputHandlers.hpp"
@@ -48,7 +49,8 @@ public:
 	 * @param domId        frontend domain id
 	 * @param devId        frontend device id
 	 */
-	InputFrontendHandler(InputItf::InputManagerPtr inputManager,
+	InputFrontendHandler(ConfigPtr config,
+						 InputItf::InputManagerPtr inputManager,
 						 XenBackend::BackendBase& backend,
 						 domid_t domId, uint16_t devId);
 
@@ -61,6 +63,7 @@ protected:
 
 private:
 
+	ConfigPtr mConfig;
 	InputItf::InputManagerPtr mInputManager;
 	XenBackend::Log mLog;
 
@@ -86,9 +89,10 @@ public:
 	 * @param domId        domain id
 	 * @param devId        device id
 	 */
-	InputBackend(InputItf::InputManagerPtr inputManager,
+	InputBackend(ConfigPtr config, InputItf::InputManagerPtr inputManager,
 				 const std::string& deviceName, domid_t domId, uint16_t devId) :
 		BackendBase("VkbdBackend", deviceName, domId, devId),
+		mConfig(config),
 		mInputManager(inputManager)
 		{}
 
@@ -103,6 +107,7 @@ protected:
 
 private:
 
+	ConfigPtr mConfig;
 	InputItf::InputManagerPtr mInputManager;
 };
 
