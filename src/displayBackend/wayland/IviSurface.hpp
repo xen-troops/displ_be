@@ -35,6 +35,11 @@ public:
 	 */
 	SurfacePtr getSurface() const { return mSurface; }
 
+	/**
+	 * Returns IVI surface ID
+	 */
+	t_ilm_surface getIlmId() const { return mIlmSurface; }
+
 private:
 
 	friend class Display;

@@ -49,11 +49,11 @@ using DisplayItf::ConnectorPtr;
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
 
-#define BACK_WIDTH (1920*2)
-#define BACK_HEIGHT 1080
+#define BACK_WIDTH 1024
+#define BACK_HEIGHT 640
 
 #define WIDTH (BACK_WIDTH/2)
-#define HEIGHT BACK_HEIGHT
+#define HEIGHT 320
 #define BPP 32
 #define BUFFER_SIZE (WIDTH*HEIGHT*BPP/4)
 
@@ -210,8 +210,11 @@ int main(int argc, char *argv[])
 		Wayland::Display display;
 //		display.createBackgroundSurface(BACK_WIDTH, BACK_HEIGHT);
 
-		auto connector1 = display.createConnector("Main", 0, 0, WIDTH, HEIGHT);
-//		auto connector2 = display.createConnector(38, WIDTH, 0, WIDTH, HEIGHT);
+
+		auto connector1 = display.createConnector("First", 0, 100, 100,
+												  WIDTH, HEIGHT, 20);
+		auto connector2 = display.createConnector("Second", 0, 150, 150,
+												  WIDTH, HEIGHT, 60);
 
 		display.start();
 
@@ -247,8 +250,9 @@ int main(int argc, char *argv[])
 			data2[i].b = 0xFF;
 		}
 
+
 		connector1->init(0, 0, WIDTH, HEIGHT, frameBuffer1);
-		// connector2->init(0, 0, WIDTH, HEIGHT, frameBuffer2);
+		connector2->init(0, 0, WIDTH, HEIGHT, frameBuffer2);
 
 		gTerminate = false;
 

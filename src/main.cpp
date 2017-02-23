@@ -139,7 +139,7 @@ DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
 	Wayland::DisplayPtr wlDisplay(new Wayland::Display());
 
 	string name;
-	uint32_t displ, x, y, w, h, z;
+	uint32_t screen, x, y, w, h, z;
 
 	if (config->wlBackground(w, h))
 	{
@@ -148,9 +148,9 @@ DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
 
 	for (int i = 0; i < config->wlConnectorsCount(); i++)
 	{
-		config->wlConnector(i, name, displ, x, y, w, h, z);
+		config->wlConnector(i, name, screen, x, y, w, h, z);
 
-		wlDisplay->createConnector(name, x, y, w, h);
+		wlDisplay->createConnector(name, screen, x, y, w, h, z);
 	}
 
 	return wlDisplay;

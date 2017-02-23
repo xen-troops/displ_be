@@ -27,6 +27,8 @@
 #include <xen/be/Log.hpp>
 
 #include "DisplayItf.hpp"
+#include "IlmControl.hpp"
+#include "IviSurface.hpp"
 #include "ShellSurface.hpp"
 
 namespace Wayland {
@@ -90,7 +92,8 @@ public:
 private:
 
 	friend class Display;
-	template<class T> friend class ConnectorType;
+	friend class ShellConnector;
+	friend class IviConnector;
 
 	Connector(const std::string& name, SurfacePtr surface);
 
@@ -101,21 +104,69 @@ private:
 };
 
 /***************************************************************************//**
- * Type specific connector class.
+ * Shell connector
  * @ingroup wayland
  ******************************************************************************/
-template<class T>
-class ConnectorType : public Connector
+class ShellConnector : public Connector
 {
 private:
 
 	friend class Display;
 
-	ConnectorType(const std::string& name, std::shared_ptr<T> type) :
-		Connector(name, type->getSurface()),
-		mType(type) {}
+	ShellConnector(const std::string& name, ShellSurfacePtr shellSurface) :
+		Connector(name, shellSurface->getSurface()),
+		mShellSurface(shellSurface) {}
 
-	std::shared_ptr<T> mType;
+	ShellSurfacePtr mShellSurface;
+};
+
+/***************************************************************************//**
+ * IVI connector
+ * @ingroup wayland
+ ******************************************************************************/
+class IviConnector : public Connector
+{
+private:
+
+	friend class Display;
+
+	IviConnector(const std::string& name, IviSurfacePtr iviSurface,
+				 IlmControlPtr ilmControl, uint32_t screen,
+				 uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t z) :
+		Connector(name, iviSurface->getSurface()),
+		mIviSurface(iviSurface),
+		mIlmControl(ilmControl)
+	{
+		if (mIlmControl)
+		{
+			mIlmControl->addSurface(
+					mIviSurface->getIlmId(), screen, x, y, w, h, z);
+		}
+	}
+
+	IviSurfacePtr mIviSurface;
+	IlmControlPtr mIlmControl;
+
+	void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
+			  DisplayItf::FrameBufferPtr frameBuffer) override
+	{
+		Connector::init(x, y, width, height, frameBuffer);
+
+		if (mIlmControl)
+		{
+			mIlmControl->showSurface(mIviSurface->getIlmId());
+		}
+	}
+
+	void release() override
+	{
+		if (mIlmControl)
+		{
+			mIlmControl->hideSurface(mIviSurface->getIlmId());
+		}
+
+		Connector::release();
+	}
 };
 
 typedef std::shared_ptr<Connector> ConnectorPtr;

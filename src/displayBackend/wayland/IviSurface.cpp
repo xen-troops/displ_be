@@ -61,7 +61,7 @@ IviSurface::~IviSurface()
 
 void IviSurface::init(uint32_t width, uint32_t height, uint32_t pixelFormat)
 {
-	static int sSurfaceId = 1;
+	static t_ilm_surface sSurfaceId = 1000;
 
 	mIlmSurface = sSurfaceId++;
 

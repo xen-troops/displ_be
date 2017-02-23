@@ -67,21 +67,19 @@ public:
 	/**
 	 * Creates virtual connector
 	 * @param name       connector name
+	 * @param screen     screen id
 	 * @param x          horizontal offset
 	 * @param y          vertical offset
 	 * @param width      width
 	 * @param height     height
+	 * @param zOrder     Z order
 	 * @return created connector
 	 */
 	DisplayItf::ConnectorPtr createConnector(const std::string& name,
+											 uint32_t screen,
 											 uint32_t x, uint32_t y,
-											 uint32_t width, uint32_t height);
-
-	/**
-	 * Applies ILM changes if applicable
-	 * Should be called after all connectors are created.
-	 */
-	void showConnectors();
+											 uint32_t width, uint32_t height,
+											 uint32_t zOrder);
 
 	/**
 	 * Starts events handling

@@ -97,40 +97,41 @@ void Display::createBackgroundSurface(uint32_t width, uint32_t height)
 }
 
 DisplayItf::ConnectorPtr Display::createConnector(const string& name,
+												  uint32_t screen,
 												  uint32_t x, uint32_t y,
 												  uint32_t width,
-												  uint32_t height)
+												  uint32_t height,
+												  uint32_t zOrder)
 {
 	Connector* connector = nullptr;
 
 	if (mShell)
 	{
-		connector = new ConnectorType<ShellSurface>(name,
-													createShellSurface(x, y));
+		connector = new ShellConnector(name, createShellSurface(x, y));
+
+		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
 	}
 	else if (mIviApplication)
 	{
-		connector = new ConnectorType<IviSurface>(name,
-												  createIviSurface(x, y,
-												  width, height));
+		auto iviSurface = createIviSurface(x, y, width, height);
+
+		connector = new IviConnector(name, iviSurface, mIlmControl,
+									 screen, x, y, width, height, zOrder);
+
+		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
 	}
 	else
 	{
 		connector = new Connector(name, mCompositor->createSurface());
+
+		LOG(mLog, DEBUG) << "Create connector, name: " << name;
 	}
-
-	LOG(mLog, DEBUG) << "Create connector, name: " << name;
-
 
 	Wayland::ConnectorPtr connectorPtr(connector);
 
 	mConnectors.emplace(name, connectorPtr);
 
 	return connectorPtr;
-}
-
-void Display::showConnectors()
-{
 }
 
 void Display::start()
