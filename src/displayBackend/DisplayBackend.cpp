@@ -151,6 +151,6 @@ DisplayBackend::DisplayBackend(ConfigPtr config,
 void DisplayBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
 	addFrontendHandler(FrontendHandlerPtr(
-			new DisplayFrontendHandler(mConfig, mDisplay, *this,
-									   domId, devId)));
+			new DisplayFrontendHandler(mConfig, mDisplay, getDeviceName(),
+									   getDomId(), domId, getDevId(), devId)));
 }

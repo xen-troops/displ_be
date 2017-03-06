@@ -82,9 +82,11 @@ public:
 	 */
 	DisplayFrontendHandler(ConfigPtr config,
 						   DisplayItf::DisplayPtr display,
-						   XenBackend::BackendBase& backend,
-						   domid_t domId, uint16_t devId) :
-		FrontendHandlerBase("DisplFrontend", backend, domId, devId),
+						   const std::string& devName,
+						   domid_t beDomId, domid_t feDomId,
+						   uint16_t beDevId, uint16_t feDevId) :
+		FrontendHandlerBase("DisplFrontend", devName,
+							beDomId, feDomId, beDevId, feDevId),
 		mConfig(config),
 		mDisplay(display),
 		mLog("DisplayFrontend") {}
