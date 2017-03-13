@@ -97,6 +97,8 @@ target_link_libraries(${PROJECT_NAME}
 	config++
 )
 
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+
 add_executable(displ_test ${TEST_SOURCES})
 
 target_link_libraries(displ_test
