@@ -26,7 +26,6 @@
 #include <xen/be/Log.hpp>
 
 #include "Config.hpp"
-#include "DisplayItf.hpp"
 #include "wayland/Display.hpp"
 #include "InputHandlers.hpp"
 

@@ -22,6 +22,7 @@
 #ifndef SRC_DRM_CONNECTOR_HPP_
 #define SRC_DRM_CONNECTOR_HPP_
 
+#include <atomic>
 #include <unordered_map>
 
 #include <xen/be/Log.hpp>

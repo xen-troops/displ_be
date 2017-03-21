@@ -22,7 +22,8 @@
 #ifndef SRC_DRM_DUMB_HPP_
 #define SRC_DRM_DUMB_HPP_
 
-#include <cstdint>
+#include <xen/be/Log.hpp>
+#include <xen/be/XenGnttab.hpp>
 
 #include "DisplayItf.hpp"
 

@@ -22,14 +22,14 @@
 #ifndef SRC_DRM_DEVICE_HPP_
 #define SRC_DRM_DEVICE_HPP_
 
-#include "DisplayItf.hpp"
-
+#include <atomic>
 #include <thread>
 #include <unordered_map>
 
 #include <xen/be/Utils.hpp>
 
 #include "Connector.hpp"
+#include "DisplayItf.hpp"
 #include "FrameBuffer.hpp"
 
 namespace Drm {

@@ -24,6 +24,8 @@
 
 #include <functional>
 
+#include <xen/be/Log.hpp>
+
 #include "DisplayItf.hpp"
 
 namespace Drm {

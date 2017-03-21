@@ -22,8 +22,6 @@
 #ifndef SRC_WAYLAND_DISPLAY_HPP_
 #define SRC_WAYLAND_DISPLAY_HPP_
 
-#include "DisplayItf.hpp"
-
 #include <thread>
 #include <unordered_map>
 
@@ -32,6 +30,7 @@
 
 #include "Compositor.hpp"
 #include "Connector.hpp"
+#include "DisplayItf.hpp"
 #include "IlmControl.hpp"
 #include "IviApplication.hpp"
 #include "Seat.hpp"

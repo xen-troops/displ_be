@@ -23,6 +23,7 @@
 #define SRC_WAYLAND_SHAREDFILE_HPP_
 
 #include <xen/be/Log.hpp>
+#include <xen/be/XenGnttab.hpp>
 
 #include "DisplayItf.hpp"
 

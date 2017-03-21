@@ -25,7 +25,10 @@
 #include <memory>
 #include <vector>
 
-#include <xen/be/XenGnttab.hpp>
+extern "C" {
+#include <xenctrl.h>
+#include <xengnttab.h>
+}
 
 namespace DisplayItf {
 
@@ -192,7 +195,7 @@ public:
 
 typedef std::shared_ptr<Connector> ConnectorPtr;
 
-typedef std::vector<grant_ref_t> GrantRefs;
+typedef std::vector<uint32_t> GrantRefs;
 
 /***************************************************************************//**
  * Display interface class.
@@ -248,7 +251,7 @@ public:
 	 */
 	virtual DisplayBufferPtr createDisplayBuffer(
 			uint32_t width, uint32_t height, uint32_t bpp,
-			domid_t domId, GrantRefs& refs, bool allocRefs) = 0;
+			uint16_t domId, GrantRefs& refs, bool allocRefs) = 0;
 
 	/**
 	 * Creates frame buffer
