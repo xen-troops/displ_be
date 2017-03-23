@@ -43,9 +43,8 @@ using InputItf::InputManagerPtr;
 
 InputFrontendHandler::InputFrontendHandler(
 		ConfigPtr config, InputManagerPtr inputManager, const string& devName,
-		domid_t beDomId, domid_t feDomId, uint16_t beDevId, uint16_t feDevId) :
-	FrontendHandlerBase("VkbdFrontend", devName, beDomId, feDomId,
-						beDevId, feDevId),
+		domid_t beDomId, domid_t feDomId, uint16_t devId) :
+	FrontendHandlerBase("VkbdFrontend", devName, beDomId, feDomId, devId),
 	mConfig(config),
 	mInputManager(inputManager),
 	mLog("InputFrontend")
@@ -138,5 +137,5 @@ void InputBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
 	addFrontendHandler(FrontendHandlerPtr(
 			new InputFrontendHandler(mConfig, mInputManager, getDeviceName(),
-									 getDomId(), domId, getDevId(), devId)));
+									 getDomId(), domId, devId)));
 }

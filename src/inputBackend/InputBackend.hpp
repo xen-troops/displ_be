@@ -51,8 +51,7 @@ public:
 	InputFrontendHandler(ConfigPtr config,
 						 InputItf::InputManagerPtr inputManager,
 						 const std::string& devName,
-						 domid_t beDomId, domid_t feDomId,
-						 uint16_t beDevId, uint16_t feDevId);
+						 domid_t beDomId, domid_t feDomId, uint16_t devId);
 
 protected:
 
@@ -90,8 +89,8 @@ public:
 	 * @param devId        device id
 	 */
 	InputBackend(ConfigPtr config, InputItf::InputManagerPtr inputManager,
-				 const std::string& deviceName, domid_t domId, uint16_t devId) :
-		BackendBase("VkbdBackend", deviceName, domId, devId),
+				 const std::string& deviceName, domid_t domId) :
+		BackendBase("VkbdBackend", deviceName, domId),
 		mConfig(config),
 		mInputManager(inputManager)
 		{}

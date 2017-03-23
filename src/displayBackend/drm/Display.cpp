@@ -190,7 +190,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 	if (isZeroCopySupported())
 	{
-		LOG(mLog, DEBUG) << "Create display buffer with zero copy" << isZeroCopySupported();
+		LOG(mLog, DEBUG) << "Create display buffer with zero copy";
 
 		if (allocRefs)
 		{
@@ -207,7 +207,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 	}
 	else
 	{
-		LOG(mLog, DEBUG) << "Create display buffer" << isZeroCopySupported();
+		LOG(mLog, DEBUG) << "Create display buffer";
 
 		return DisplayBufferPtr(new Dumb(mFd, width, height, bpp, domId, refs));
 	}

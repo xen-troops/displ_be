@@ -83,10 +83,9 @@ public:
 	DisplayFrontendHandler(ConfigPtr config,
 						   DisplayItf::DisplayPtr display,
 						   const std::string& devName,
-						   domid_t beDomId, domid_t feDomId,
-						   uint16_t beDevId, uint16_t feDevId) :
+						   domid_t beDomId, domid_t feDomId, uint16_t devId) :
 		FrontendHandlerBase("DisplFrontend", devName,
-							beDomId, feDomId, beDevId, feDevId),
+							beDomId, feDomId, devId),
 		mConfig(config),
 		mDisplay(display),
 		mLog("DisplayFrontend") {}
@@ -125,7 +124,7 @@ public:
 	DisplayBackend(ConfigPtr config,
 				   DisplayItf::DisplayPtr display,
 				   const std::string& deviceName,
-				   domid_t domId, uint16_t devId);
+				   domid_t domId);
 
 protected:
 

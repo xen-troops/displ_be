@@ -253,9 +253,9 @@ int main(int argc, char *argv[])
 																	 config);
 
 			DisplayBackend displayBackend(config, display,
-										  XENDISPL_DRIVER_NAME, 0, 0);
+										  XENDISPL_DRIVER_NAME, 0);
 			InputBackend inputBackend(config, inputManager,
-									  XENKBD_DRIVER_NAME, 0, 0);
+									  XENKBD_DRIVER_NAME, 0);
 
 			displayBackend.start();
 			inputBackend.start();
