@@ -261,6 +261,9 @@ int main(int argc, char *argv[])
 			inputBackend.start();
 
 			waitSignals();
+
+			displayBackend.stop();
+			inputBackend.stop();
 		}
 		else
 		{
