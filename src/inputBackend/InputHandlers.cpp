@@ -38,6 +38,8 @@ KeyboardHandler::KeyboardHandler(KeyboardPtr keyboard,
 	mRingBuffer(ringBuffer),
 	mLog("KeyboardHandler")
 {
+	LOG(mLog, DEBUG) << "Create";
+
 	mKeyboard->setCallbacks({bind(&KeyboardHandler::onKey, this, _1, _2)});
 }
 
@@ -64,23 +66,39 @@ PointerHandler::PointerHandler(PointerPtr pointer,
 	mRingBuffer(ringBuffer),
 	mLog("PointerHandler")
 {
+	LOG(mLog, DEBUG) << "Create";
+
 	mPointer->setCallbacks({
-		nullptr, // relative move
-		bind(&PointerHandler::onMove, this, _1, _2),
+		bind(&PointerHandler::onMoveRel, this, _1, _2, _3),
+		bind(&PointerHandler::onMoveAbs, this, _1, _2, _3),
 		bind(&PointerHandler::onButton, this, _1, _2),
-		bind(&PointerHandler::onAxis, this, _1, _2),
 	});
 }
 
-void PointerHandler::onMove(int32_t x, int32_t y)
+void PointerHandler::onMoveRel(int32_t x, int32_t y, int32_t z)
 {
-	DLOG(mLog, DEBUG) << "onMove x: " << x << ", y: " << y;
+	DLOG(mLog, DEBUG) << "onMoveRel x: " << x << ", y: " << y << ", z: " << z;
+
+	xenkbd_in_event event = {};
+
+	event.type = XENKBD_TYPE_MOTION;
+	event.motion.rel_x = x;
+	event.motion.rel_y = y;
+	event.motion.rel_z = z;
+
+	mRingBuffer->sendEvent(event);
+}
+
+void PointerHandler::onMoveAbs(int32_t x, int32_t y, int32_t z)
+{
+	DLOG(mLog, DEBUG) << "onMoveAbs x: " << x << ", y: " << y << ", z: " << z;
 
 	xenkbd_in_event event = {};
 
 	event.type = XENKBD_TYPE_POS;
 	event.pos.abs_x = x;
 	event.pos.abs_y = y;
+	event.pos.rel_z = z;
 
 	mRingBuffer->sendEvent(event);
 }
@@ -98,22 +116,6 @@ void PointerHandler::onButton(uint32_t button, uint32_t state)
 	mRingBuffer->sendEvent(event);
 }
 
-void PointerHandler::onAxis(uint32_t axis, int32_t value)
-{
-	DLOG(mLog, DEBUG) << "onAxis axis: " << axis << ", value: " << value;
-
-	// protocol supports only vertical axis
-	if (axis == 0)
-	{
-		xenkbd_in_event event = {};
-
-		event.type = XENKBD_TYPE_MOTION;
-		event.motion.rel_z = value;
-
-		mRingBuffer->sendEvent(event);
-	}
-}
-
 /*******************************************************************************
  * TouchHandler
  ******************************************************************************/
@@ -123,6 +125,8 @@ TouchHandler::TouchHandler(TouchPtr touch, InputRingBufferPtr ringBuffer) :
 	mRingBuffer(ringBuffer),
 	mLog("TouchHandler")
 {
+	LOG(mLog, DEBUG) << "Create";
+
 	mTouch->setCallbacks({
 		bind(&TouchHandler::onDown, this, _1, _2, _3),
 		bind(&TouchHandler::onUp, this, _1),
@@ -156,8 +160,6 @@ void TouchHandler::onUp(int32_t id)
 	event.mtouch.contact_id = id;
 
 	mRingBuffer->sendEvent(event);
-
-	onFrame();
 }
 
 void TouchHandler::onMotion(int32_t id, int32_t x, int32_t y)

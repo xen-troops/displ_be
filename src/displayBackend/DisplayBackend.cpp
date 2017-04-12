@@ -117,9 +117,9 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
 
 	addRingBuffer(eventRingBuffer);
 
-	port = getXenStore().readInt(conPath + XENDISPL_FIELD_CTRL_CHANNEL);
+	port = getXenStore().readInt(conPath + XENDISPL_FIELD_REQ_CHANNEL);
 
-	ref = getXenStore().readInt(conPath + XENDISPL_FIELD_CTRL_RING_REF);
+	ref = getXenStore().readInt(conPath + XENDISPL_FIELD_REQ_RING_REF);
 
 	auto connectorName = mConfig->domConnectorName(getDomName(), getDevId(),
 												   conIndex);

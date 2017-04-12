@@ -144,12 +144,12 @@ void SeatPointer::onMotion(uint32_t time, wl_fixed_t x, wl_fixed_t y)
 	{
 		if (mCurrentCallback->second.moveRelative)
 		{
-			mCurrentCallback->second.moveRelative(x - mLastX, y - mLastY);
+			mCurrentCallback->second.moveRelative(x - mLastX, y - mLastY, 0);
 		}
 
 		if (mCurrentCallback->second.moveAbsolute)
 		{
-			mCurrentCallback->second.moveAbsolute(x, y);
+			mCurrentCallback->second.moveAbsolute(x, y, 0);
 		}
 	}
 
@@ -182,9 +182,9 @@ void SeatPointer::onAxis(uint32_t time, uint32_t axis, wl_fixed_t value)
 					  << ", value: " << resValue;
 
 	if (mCurrentCallback != mCallbacks.end() &&
-		mCurrentCallback->second.axis)
+		mCurrentCallback->second.moveRelative)
 	{
-		mCurrentCallback->second.axis(axis, resValue);
+		mCurrentCallback->second.moveRelative(0, 0, resValue);
 	}
 }
 

@@ -47,7 +47,7 @@ InputFrontendHandler::InputFrontendHandler(
 	FrontendHandlerBase("VkbdFrontend", devName, beDomId, feDomId, devId),
 	mConfig(config),
 	mInputManager(inputManager),
-	mLog("InputFrontend")
+	mLog("VkbdFrontend")
 {
 	setBackendState(XenbusStateInitWait);
 }

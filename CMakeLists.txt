@@ -37,7 +37,7 @@ set(WL_SOURCES
 )
 
 set(WL_INPUT_SOURCES
-	src/inputBackend/input/LibInput.cpp
+	src/inputBackend/input/DevInput.cpp
 	src/inputBackend/input/InputManager.cpp
 )
 

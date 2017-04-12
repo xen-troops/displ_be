@@ -7,8 +7,8 @@
 
 #include "InputManager.hpp"
 
+#include "DevInput.hpp"
 #include "Exception.hpp"
-#include "LibInput.hpp"
 #include "WlInput.hpp"
 
 using std::dynamic_pointer_cast;

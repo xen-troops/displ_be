@@ -60,10 +60,9 @@ struct KeyboardCallbacks
 
 struct PointerCallbacks
 {
-	std::function<void(int32_t x, int32_t y)> moveRelative;
-	std::function<void(int32_t x, int32_t y)> moveAbsolute;
+	std::function<void(int32_t x, int32_t y, int32_t relZ)> moveRelative;
+	std::function<void(int32_t x, int32_t y, int32_t relZ)> moveAbsolute;
 	std::function<void(uint32_t button, uint32_t state)> button;
-	std::function<void(uint32_t axis, int32_t value)> axis;
 };
 
 struct TouchCallbacks

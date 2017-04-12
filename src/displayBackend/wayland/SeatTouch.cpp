@@ -110,6 +110,11 @@ void SeatTouch::onUp(uint32_t serial, uint32_t time, int32_t id)
 		mCurrentCallback->second.up)
 	{
 		mCurrentCallback->second.up(id);
+
+		if (mCurrentCallback->second.frame)
+		{
+			mCurrentCallback->second.frame();
+		}
 	}
 
 	mCurrentCallback == mCallbacks.end();

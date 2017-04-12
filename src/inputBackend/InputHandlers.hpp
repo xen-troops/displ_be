@@ -82,9 +82,9 @@ private:
 	InputRingBufferPtr mRingBuffer;
 	XenBackend::Log mLog;
 
-	void onMove(int32_t x, int32_t y);
+	void onMoveRel(int32_t x, int32_t y, int32_t z);
+	void onMoveAbs(int32_t x, int32_t y, int32_t z);
 	void onButton(uint32_t button, uint32_t state);
-	void onAxis(uint32_t axis, int32_t value);
 };
 
 class TouchHandler
