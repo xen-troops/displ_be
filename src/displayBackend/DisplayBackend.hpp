@@ -95,7 +95,12 @@ protected:
 	/**
 	 * Is called on connected state when ring buffers binding is required.
 	 */
-	void onBind();
+	void onBind() override;
+
+	/**
+	 * Is called on closing state when ring buffers releases are required.
+	 */
+	void onClosing() override;
 
 private:
 

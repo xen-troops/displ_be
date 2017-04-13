@@ -72,6 +72,15 @@ void InputFrontendHandler::onBind()
 	createTouchHandler(eventRingBuffer);
 }
 
+void InputFrontendHandler::onClosing()
+{
+	LOG(mLog, DEBUG) << "On frontend closing : " << getDomId();
+
+	mKeyboardHandler.reset();
+	mPointerHandler.reset();
+	mTouchHandler.reset();
+}
+
 void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer)
 {
 	try
