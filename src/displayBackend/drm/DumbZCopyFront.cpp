@@ -185,6 +185,7 @@ void DumbZCopyFront::release()
 
 		drmIoctl(mDrmFd, DRM_IOCTL_GEM_CLOSE, &closeReq);
 	}
+
 	if (mMappedHandle != 0)
 	{
 		drm_gem_close closeReq {};

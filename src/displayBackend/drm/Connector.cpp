@@ -186,7 +186,7 @@ void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 
 	if (ret)
 	{
-		throw Exception("Cannot flip CRTC: " + fbId);
+		throw Exception("Cannot flip CRTC: " + to_string(fbId));
 	}
 
 
