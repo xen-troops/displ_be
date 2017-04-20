@@ -209,6 +209,11 @@ DisplayBufferPtr Display::createDisplayBuffer(
 	{
 		LOG(mLog, DEBUG) << "Create display buffer";
 
+		if (allocRefs)
+		{
+			throw  Exception("Can't allocate refs. ZCopy disabled.");
+		}
+
 		return DisplayBufferPtr(new Dumb(mFd, width, height, bpp, domId, refs));
 	}
 }
