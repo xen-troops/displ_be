@@ -38,7 +38,6 @@ DumbZCopyFront::DumbZCopyFront(int drmFd, int zeroCopyFd,
 	mHeight(height),
 	mName(0),
 	mSize(0),
-	mBuffer(nullptr),
 	mLog("DumbZCopyFront")
 {
 	try
@@ -136,34 +135,11 @@ void DumbZCopyFront::createHandle()
 	mHandle = prime.handle;
 }
 
-void DumbZCopyFront::mapDumb()
-{
-	drm_mode_map_dumb mreq {0};
-
-	mreq.handle = mHandle;
-
-	if (drmIoctl(mDrmFd, DRM_IOCTL_MODE_MAP_DUMB, &mreq) < 0)
-	{
-		throw Exception("Cannot map dumb buffer.");
-	}
-
-	auto map = mmap(0, mSize, PROT_READ | PROT_WRITE, MAP_SHARED,
-					mDrmFd, mreq.offset);
-
-	if (map == MAP_FAILED)
-	{
-		throw Exception("Cannot mmap dumb buffer");
-	}
-
-	mBuffer = map;
-}
-
 void DumbZCopyFront::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
 {
 
 	createDumb(bpp, domId, refs);
 	createHandle();
-	mapDumb();
 
 	DLOG(mLog, DEBUG) << "Create dumb, domId: " << domId
 					  << ", handle: " << mHandle
@@ -172,11 +148,6 @@ void DumbZCopyFront::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
 
 void DumbZCopyFront::release()
 {
-	if (mBuffer)
-	{
-		munmap(mBuffer, mSize);
-	}
-
 	if (mHandle != 0)
 	{
 		drm_gem_close closeReq {};

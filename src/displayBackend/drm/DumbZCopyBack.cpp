@@ -38,7 +38,6 @@ DumbZCopyBack::DumbZCopyBack(int drmFd, int zeroCopyFd,
 	mHeight(height),
 	mName(0),
 	mSize(0),
-	mBuffer(nullptr),
 	mLog("DumbZCopyBack")
 {
 	try
@@ -130,28 +129,6 @@ void DumbZCopyBack::createHandle()
 	mMappedHandle = prime.handle;
 }
 
-void DumbZCopyBack::mapDumb()
-{
-	drm_mode_map_dumb mreq {0};
-
-	mreq.handle = mHandle;
-
-	if (drmIoctl(mDrmFd, DRM_IOCTL_MODE_MAP_DUMB, &mreq) < 0)
-	{
-		throw Exception("Cannot map dumb buffer.");
-	}
-
-	auto map = mmap(0, mSize, PROT_READ | PROT_WRITE, MAP_SHARED,
-					mDrmFd, mreq.offset);
-
-	if (map == MAP_FAILED)
-	{
-		throw Exception("Cannot mmap dumb buffer");
-	}
-
-	mBuffer = map;
-}
-
 void DumbZCopyBack::getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs)
 {
 	drm_xen_zcopy_dumb_to_refs mapreq {0};
@@ -173,7 +150,6 @@ void DumbZCopyBack::init(uint32_t bpp, domid_t domId,  GrantRefs& refs)
 {
 	createDumb(bpp);
 	createHandle();
-	mapDumb();
 	getGrantRefs(domId, refs);
 
 	DLOG(mLog, DEBUG) << "Create dumb, domId: " << domId
@@ -183,11 +159,6 @@ void DumbZCopyBack::init(uint32_t bpp, domid_t domId,  GrantRefs& refs)
 
 void DumbZCopyBack::release()
 {
-	if (mBuffer)
-	{
-		munmap(mBuffer, mSize);
-	}
-
 	if (mMappedHandle != 0)
 	{
 		drm_gem_close closeReq {};

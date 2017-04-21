@@ -38,7 +38,7 @@ public:
 	/**
 	 * Returns pointer to the dumb buffer
 	 */
-	void* getBuffer() const override { return mBuffer; }
+	void* getBuffer() const override { return nullptr; }
 
 	/**
 	 * Get stride
@@ -72,12 +72,10 @@ private:
 	uint32_t mHeight;
 	uint32_t mName;
 	size_t mSize;
-	void* mBuffer;
 	XenBackend::Log mLog;
 
 	void createDumb(uint32_t bpp);
 	void createHandle();
-	void mapDumb();
 
 	void getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs);
 
