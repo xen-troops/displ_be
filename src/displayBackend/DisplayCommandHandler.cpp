@@ -27,7 +27,6 @@
 #include <sys/mman.h>
 
 #include <wayland-client.h>
-#include <drm_fourcc.h>
 
 #include <xen/errno.h>
 

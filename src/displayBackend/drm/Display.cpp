@@ -24,8 +24,10 @@
 #include <fcntl.h>
 
 #include <xf86drm.h>
-
+#ifdef WITH_ZCOPY
 #include <drm/xen_zcopy_drm.h>
+#endif
+
 #include <xen/be/Log.hpp>
 
 #include "Dumb.hpp"
@@ -188,6 +190,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 {
 	lock_guard<mutex> lock(mMutex);
 
+#ifdef WITH_ZCOPY
 	if (isZeroCopySupported())
 	{
 		LOG(mLog, DEBUG) << "Create display buffer with zero copy";
@@ -206,6 +209,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		}
 	}
 	else
+#endif
 	{
 		LOG(mLog, DEBUG) << "Create display buffer";
 
@@ -254,6 +258,7 @@ void Display::init()
 
 	mRes.reset(new ModeResource(mFd));
 
+#ifdef WITH_ZCOPY
 	mZeroCopyFd = drmOpen(XENDRM_ZCOPY_DRIVER_NAME, NULL);
 
 	if (mZeroCopyFd < 0)
@@ -261,6 +266,7 @@ void Display::init()
 		LOG(mLog, WARNING) << "Can't open zero copy driver. "
 						   << "Zero copy functionality will be disabled.";
 	}
+#endif
 
 	createConnectors();
 

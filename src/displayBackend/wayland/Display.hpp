@@ -31,12 +31,18 @@
 #include "Compositor.hpp"
 #include "Connector.hpp"
 #include "DisplayItf.hpp"
+#ifdef WITH_IVI_EXTENSION
 #include "IlmControl.hpp"
 #include "IviApplication.hpp"
+#endif
+#ifdef WITH_INPUT
 #include "Seat.hpp"
+#endif
 #include "SharedMemory.hpp"
 #include "Shell.hpp"
+#ifdef WITH_DRM
 #include "WaylandDrm.hpp"
+#endif
 
 namespace Wayland {
 
@@ -136,7 +142,9 @@ public:
 			DisplayItf::DisplayBufferPtr displayBuffer,
 			uint32_t width,uint32_t height, uint32_t pixelFormat) override;
 
+#ifdef WITH_INPUT
 	SeatPtr getSeat() const { return mSeat; }
+#endif
 
 private:
 
@@ -150,10 +158,19 @@ private:
 	CompositorPtr mCompositor;
 	ShellPtr mShell;
 	SharedMemoryPtr mSharedMemory;
+
+#ifdef WITH_IVI_EXTENSION
 	IviApplicationPtr mIviApplication;
-	SeatPtr mSeat;
-	WaylandDrmPtr mWaylandDrm;
 	IlmControlPtr mIlmControl;
+#endif
+
+#ifdef WITH_INPUT
+	SeatPtr mSeat;
+#endif
+
+#ifdef WITH_DRM
+	WaylandDrmPtr mWaylandDrm;
+#endif
 
 	ShellSurfacePtr mBackgroundSurface;
 
@@ -162,9 +179,10 @@ private:
 	std::unique_ptr<XenBackend::PollFd> mPollFd;
 
 	ShellSurfacePtr createShellSurface(uint32_t x, uint32_t y);
+#ifdef WITH_IVI_EXTENSION
 	IviSurfacePtr createIviSurface(uint32_t x, uint32_t y,
 								   uint32_t width, uint32_t height);
-
+#endif
 	static void sRegistryHandler(void *data, wl_registry *registry,
 								 uint32_t id, const char *interface,
 								 uint32_t version);

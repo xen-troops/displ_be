@@ -21,8 +21,6 @@
 
 #include "Display.hpp"
 
-#include <drm_fourcc.h>
-
 #include "Exception.hpp"
 
 using namespace std::placeholders;
@@ -86,7 +84,7 @@ void Display::createBackgroundSurface(uint32_t width, uint32_t height)
 
 		auto sharedFile = mSharedMemory->createSharedFile(width, height, 32);
 		auto sharedBuffer = mSharedMemory->createSharedBuffer(
-							sharedFile, width, height, DRM_FORMAT_XRGB8888);
+							sharedFile, width, height, WL_SHM_FORMAT_XRGB8888);
 
 		mBackgroundSurface->mSurface->draw(sharedBuffer);
 	}
@@ -111,6 +109,7 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name,
 
 		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
 	}
+#ifdef WITH_IVI_EXTENSION
 	else if (mIviApplication)
 	{
 		auto iviSurface = createIviSurface(x, y, width, height);
@@ -120,6 +119,7 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name,
 
 		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
 	}
+#endif
 	else
 	{
 		connector = new Connector(name, mCompositor->createSurface());
@@ -158,11 +158,12 @@ void Display::stop()
 
 bool Display::isZeroCopySupported() const
 {
+#ifdef WITH_DRM
 	if (mWaylandDrm && mWaylandDrm->isZeroCopySupported())
 	{
 		return true;
 	}
-
+#endif
 	return false;
 }
 
@@ -193,12 +194,15 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		uint32_t width, uint32_t height, uint32_t bpp,
 		domid_t domId, GrantRefs& refs, bool allocRefs)
 {
+#ifdef WITH_DRM
 	if (mWaylandDrm)
 	{
 		return mWaylandDrm->createDumb(width, height, bpp,
 									   domId, refs, allocRefs);
 	}
-	else if (mSharedMemory)
+	else
+#endif
+	if (mSharedMemory)
 	{
 		return mSharedMemory->createSharedFile(width, height, bpp, domId, refs);
 	}
@@ -210,12 +214,15 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 										  uint32_t width, uint32_t height,
 										  uint32_t pixelFormat)
 {
+#ifdef WITH_DRM
 	if (mWaylandDrm)
 	{
 		return mWaylandDrm->createDrmBuffer(displayBuffer, width, height,
 											pixelFormat);
 	}
-	else if (mSharedMemory)
+	else
+#endif
+	if (mSharedMemory)
 	{
 		return mSharedMemory->createSharedBuffer(displayBuffer, width, height,
 												 pixelFormat);
@@ -251,12 +258,14 @@ ShellSurfacePtr Display::createShellSurface(uint32_t x, uint32_t y)
 	return shellSurface;
 }
 
+#ifdef WITH_IVI_EXTENSION
 IviSurfacePtr Display::createIviSurface(uint32_t x, uint32_t y,
 										uint32_t width, uint32_t height)
 {
 	return mIviApplication->createIviSurface(mCompositor->createSurface(),
 											 width, height, 0);
 }
+#endif
 
 void Display::sRegistryHandler(void *data, wl_registry *registry, uint32_t id,
 							   const char *interface, uint32_t version)
@@ -291,21 +300,24 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	{
 		mSharedMemory.reset(new SharedMemory(registry, id, version));
 	}
-
+#ifdef WITH_IVI_EXTENSION
 	if (interface == "ivi_application")
 	{
 		mIviApplication.reset(new IviApplication(mWlDisplay));
 	}
-
+#endif
+#ifdef WITH_INPUT
 	if (interface == "wl_seat")
 	{
 		mSeat.reset(new Seat(registry, id, version));
 	}
-
+#endif
+#ifdef WITH_DRM
 	if (interface == "wl_drm")
 	{
 		mWaylandDrm.reset(new WaylandDrm(registry, id, version));
 	}
+#endif
 }
 
 void Display::registryRemover(wl_registry *registry, uint32_t id)
@@ -350,6 +362,7 @@ void Display::init()
 		throw Exception("Can't get shared memory");
 	}
 
+#ifdef WITH_IVI_EXTENSION
 	try
 	{
 		mIlmControl.reset(new IlmControl());
@@ -358,6 +371,7 @@ void Display::init()
 	{
 		LOG(mLog, WARNING) << e.what() << ". ILM capability will be disabled.";
 	}
+#endif
 }
 
 void Display::release()
@@ -369,12 +383,18 @@ void Display::release()
 
 	mBackgroundSurface.reset();
 
+#ifdef WITH_IVI_EXTENSION
 	mIviApplication.reset();
+#endif
 	mShell.reset();
 	mSharedMemory.reset();
 	mCompositor.reset();
+#ifdef WITH_INPUT
 	mSeat.reset();
+#endif
+#ifdef WITH_DRM
 	mWaylandDrm.reset();
+#endif
 
 	if (mWlRegistry)
 	{

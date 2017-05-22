@@ -88,7 +88,7 @@ public:
 							beDomId, feDomId, devId),
 		mConfig(config),
 		mDisplay(display),
-		mLog("DisplayFrontend") {}
+		mLog("DisplFrontend") {}
 
 protected:
 

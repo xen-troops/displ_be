@@ -22,12 +22,7 @@
 
 #include <vector>
 
-#include <drm_fourcc.h>
-
 #include <xen/be/XenStore.hpp>
-
-#include "drm/Display.hpp"
-#include "wayland/Display.hpp"
 
 /***************************************************************************//**
  * @mainpage displ_be

@@ -7,11 +7,17 @@
 
 #include "SharedBuffer.hpp"
 
-#include <drm_fourcc.h>
-
 #include "Exception.hpp"
 
 using DisplayItf::DisplayBufferPtr;
+
+
+#ifndef DRM_FORMAT_ARGB8888
+#define DRM_FORMAT_ARGB8888           0x34325241
+#endif
+#ifndef DRM_FORMAT_XRGB8888
+#define DRM_FORMAT_XRGB8888           0x34325258
+#endif
 
 namespace Wayland {
 

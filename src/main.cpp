@@ -19,20 +19,34 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <exception>
 #include <iostream>
+#include <thread>
 
 #include <csignal>
 #include <execinfo.h>
 #include <getopt.h>
+#include <unistd.h>
 
 #include <xen/be/Log.hpp>
 
 #include "Config.hpp"
-#include "drm/Display.hpp"
+
+#ifdef WITH_DISPLAY
 #include "DisplayBackend.hpp"
-#include "input/InputManager.hpp"
+#ifdef WITH_DRM
+#include "drm/Display.hpp"
+#endif //WITH_DRM
+#ifdef WITH_WAYLAND
+#include "wayland/Display.hpp"
+#endif //WITH_WAYLAND
+#endif //WITH_DISPLAY
+
+#ifdef WITH_INPUT
 #include "InputBackend.hpp"
+#include "input/InputManager.hpp"
+#endif
 
 using std::atomic_bool;
 using std::chrono::milliseconds;
@@ -125,17 +139,19 @@ bool commandLineOptions(int argc, char *argv[])
 	return true;
 }
 
+#ifdef WITH_DISPLAY
 DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
 {
+#ifdef WITH_DRM
 	// DRM
-
 	if (config->displayMode() == Config::DisplayMode::DRM)
 	{
 		return Drm::DisplayPtr(new Drm::Display("/dev/dri/card0"));
 	}
+#endif
 
+#ifdef WITH_WAYLAND
 	// Wayland
-
 	Wayland::DisplayPtr wlDisplay(new Wayland::Display());
 
 	string name;
@@ -154,22 +170,73 @@ DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
 	}
 
 	return wlDisplay;
+#else
+	throw DisplayItf::Exception("Wayland is not supported");
+#endif
+}
+#endif
+
+#ifdef WITH_INPUT
+InputItf::InputManagerPtr getInputManager(ConfigPtr config)
+{
+	Input::InputManagerPtr inputManager(new Input::InputManager());
+	int id;
+	bool wayland;
+	string name;
+
+	for(int i = 0; i < config->inputKeyboardsCount(); i++)
+	{
+		config->inputKeyboard(i, id, wayland, name);
+
+		if (wayland)
+		{
+			throw InputItf::Exception(
+					"Can't create wayland keyboard. Wayland is not supported.");
+		}
+		else
+		{
+			inputManager->createInputKeyboard(id, name);
+		}
+	}
+
+	for(int i = 0; i < config->inputPointersCount(); i++)
+	{
+		config->inputPointer(i, id, wayland, name);
+
+		if (wayland)
+		{
+			throw InputItf::Exception(
+					"Can't create wayland pointer. Wayland is not supported.");
+		}
+		else
+		{
+			inputManager->createInputPointer(id, name);
+		}
+	}
+
+	for(int i = 0; i < config->inputTouchesCount(); i++)
+	{
+		config->inputTouch(i, id, wayland, name);
+
+		if (wayland)
+		{
+			throw InputItf::Exception(
+					"Can't create wayland touch. Wayland is not supported.");
+		}
+		else
+		{
+			inputManager->createInputTouch(id, name);
+		}
+	}
+
+	return inputManager;
 }
 
-InputItf::InputManagerPtr getInputManager(DisplayItf::DisplayPtr display,
+#ifdef WITH_WAYLAND
+InputItf::InputManagerPtr getInputManager(Wayland::DisplayPtr display,
 										  ConfigPtr config)
 {
-	Input::InputManagerPtr inputManager;
-
-	if (config->displayMode() == Config::DisplayMode::WAYLAND)
-	{
-		inputManager.reset(new Input::InputManager(
-				dynamic_pointer_cast<Wayland::Display>(display)));
-	}
-	else
-	{
-		inputManager.reset(new Input::InputManager());
-	}
+	Input::InputManagerPtr inputManager(new Input::InputManager(display));
 
 	int id;
 	bool wayland;
@@ -181,12 +248,6 @@ InputItf::InputManagerPtr getInputManager(DisplayItf::DisplayPtr display,
 
 		if (wayland)
 		{
-			if (config->displayMode() != Config::DisplayMode::WAYLAND)
-			{
-				throw InputItf::Exception(
-						"Can't create wayland keyboard. Wayland is disabled.");
-			}
-
 			inputManager->createWlKeyboard(id, name);
 		}
 		else
@@ -201,12 +262,6 @@ InputItf::InputManagerPtr getInputManager(DisplayItf::DisplayPtr display,
 
 		if (wayland)
 		{
-			if (config->displayMode() != Config::DisplayMode::WAYLAND)
-			{
-				throw InputItf::Exception(
-						"Can't create wayland pointer. Wayland is disabled.");
-			}
-
 			inputManager->createWlPointer(id, name);
 		}
 		else
@@ -221,12 +276,6 @@ InputItf::InputManagerPtr getInputManager(DisplayItf::DisplayPtr display,
 
 		if (wayland)
 		{
-			if (config->displayMode() != Config::DisplayMode::WAYLAND)
-			{
-				throw InputItf::Exception(
-						"Can't create wayland touch. Wayland is disabled.");
-			}
-
 			inputManager->createWlTouch(id, name);
 		}
 		else
@@ -237,6 +286,8 @@ InputItf::InputManagerPtr getInputManager(DisplayItf::DisplayPtr display,
 
 	return inputManager;
 }
+#endif //WITH_WAYLAND
+#endif //WITH_INPUT
 
 int main(int argc, char *argv[])
 {
@@ -248,22 +299,46 @@ int main(int argc, char *argv[])
 		{
 			ConfigPtr config(new Config(gCfgFileName));
 
+#ifdef WITH_DISPLAY
 			DisplayItf::DisplayPtr display = getDisplay(config);
-			InputItf::InputManagerPtr inputManager = getInputManager(display,
-																	 config);
-
 			DisplayBackend displayBackend(config, display,
 										  XENDISPL_DRIVER_NAME, 0);
+			displayBackend.start();
+#endif
+
+#ifdef WITH_INPUT
+			InputItf::InputManagerPtr inputManager;
+
+			if (config->displayMode() == Config::DisplayMode::WAYLAND)
+			{
+#ifdef WITH_WAYLAND
+				inputManager = getInputManager(
+						dynamic_pointer_cast<Wayland::Display>(display),
+						config);
+#else
+				throw InputItf::Exception("Wayland is not supported");
+#endif
+			}
+			else
+			{
+				inputManager = getInputManager(config);
+			}
+
 			InputBackend inputBackend(config, inputManager,
 									  XENKBD_DRIVER_NAME, 0);
 
-			displayBackend.start();
 			inputBackend.start();
+#endif //WITH_INPUT
 
 			waitSignals();
 
+#ifdef WITH_DISPLAY
 			displayBackend.stop();
+#endif
+
+#ifdef WITH_INPUT
 			inputBackend.stop();
+#endif
 		}
 		else
 		{

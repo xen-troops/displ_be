@@ -10,7 +10,11 @@
 
 #include <unordered_map>
 
+#include <xen/be/Log.hpp>
+
+#ifdef WITH_WAYLAND
 #include "wayland/Display.hpp"
+#endif
 #include "InputItf.hpp"
 
 namespace Input {
@@ -20,12 +24,18 @@ class InputManager : public InputItf::InputManager
 public:
 
 	InputManager();
+
+#ifdef WITH_WAYLAND
 	InputManager(Wayland::DisplayPtr wlDisplay);
+#endif
+
 	~InputManager();
 
+#ifdef WITH_WAYLAND
 	InputItf::KeyboardPtr createWlKeyboard(int id, const std::string& conName);
 	InputItf::PointerPtr createWlPointer(int id, const std::string& conName);
 	InputItf::TouchPtr createWlTouch(int id, const std::string& conName);
+#endif
 
 	InputItf::KeyboardPtr createInputKeyboard(
 			int id, const std::string& devName);
@@ -38,7 +48,9 @@ public:
 
 private:
 
+#ifdef WITH_WAYLAND
 	Wayland::DisplayPtr mDisplay;
+#endif
 
 	XenBackend::Log mLog;
 

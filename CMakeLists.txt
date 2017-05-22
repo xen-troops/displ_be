@@ -4,123 +4,110 @@ set(PROJECT_NAME "displ_be")
 
 project(${PROJECT_NAME})
 
-set(DRM_SOURCES
-	src/displayBackend/drm/Connector.cpp
-	src/displayBackend/drm/Display.cpp
-	src/displayBackend/drm/Dumb.cpp
-	src/displayBackend/drm/DumbZCopyBack.cpp
-	src/displayBackend/drm/DumbZCopyFront.cpp
-	src/displayBackend/drm/FrameBuffer.cpp
-	src/displayBackend/drm/Modes.cpp
-)
+################################################################################
+# Options
+################################################################################
 
-set(WL_SOURCES
-	src/displayBackend/wayland/wayland-drm/wayland-drm-protocol.c
-	src/displayBackend/wayland/Compositor.cpp
-	src/displayBackend/wayland/Connector.cpp
-	src/displayBackend/wayland/DrmBuffer.cpp
-	src/displayBackend/wayland/Display.cpp
-	src/displayBackend/wayland/IlmControl.cpp
-	src/displayBackend/wayland/IviApplication.cpp
-	src/displayBackend/wayland/IviSurface.cpp
-	src/displayBackend/wayland/SharedBuffer.cpp
-	src/displayBackend/wayland/Seat.cpp
-	src/displayBackend/wayland/SeatKeyboard.cpp
-	src/displayBackend/wayland/SeatPointer.cpp
-	src/displayBackend/wayland/SeatTouch.cpp
-	src/displayBackend/wayland/SharedFile.cpp
-	src/displayBackend/wayland/SharedMemory.cpp
-	src/displayBackend/wayland/Shell.cpp
-	src/displayBackend/wayland/ShellSurface.cpp
-	src/displayBackend/wayland/Surface.cpp
-	src/displayBackend/wayland/WaylandDrm.cpp
-)
+OPTION(WITH_DRM "build with DRM backend" ON)
+OPTION(WITH_ZCOPY "build with zero copy support" ON)
+OPTION(WITH_WAYLAND "build with wayland backend" ON)
+OPTION(WITH_IVI_EXTENSION "build with wayland IVI Extension" ON)
+OPTION(WITH_INPUT "build with input backend" ON)
+OPTION(WITH_DOC "build with documenation" OFF)
 
-set(WL_INPUT_SOURCES
-	src/inputBackend/input/DevInput.cpp
-	src/inputBackend/input/InputManager.cpp
-)
+message(STATUS)
+message(STATUS "${PROJECT_NAME} Configuration:")
+message(STATUS "CMAKE_BUILD_TYPE              = ${CMAKE_BUILD_TYPE}")
+message(STATUS "CMAKE_INSTALL_PREFIX          = ${CMAKE_INSTALL_PREFIX}")
+message(STATUS)
+message(STATUS "WITH_DOC                      = ${WITH_DOC}")
+message(STATUS "WITH_DRM                      = ${WITH_DRM}")
+message(STATUS "WITH_ZCOPY                    = ${WITH_ZCOPY}")
+message(STATUS "WITH_WAYLAND                  = ${WITH_WAYLAND}")
+message(STATUS "WITH_IVI_EXTENSION            = ${WITH_IVI_EXTENSION}")
+message(STATUS "WITH_INPUT                    = ${WITH_INPUT}")
+message(STATUS)
+message(STATUS "XEN_INCLUDE_PATH              = ${XEN_INCLUDE_PATH}")
+message(STATUS "XENBE_INCLUDE_PATH            = ${XENBE_INCLUDE_PATH}")
+message(STATUS "IF_INCLUDE_PATH               = ${IF_INCLUDE_PATH}")
+message(STATUS "DRMZCOPY_INCLUDE_PATH         = ${DRMZCOPY_INCLUDE_PATH}")
+message(STATUS)
+message(STATUS "XEN_LIB_PATH                  = ${XEN_LIB_PATH}")
+message(STATUS "XENBE_LIB_PATH                = ${XENBE_LIB_PATH}")
+message(STATUS)
 
-set(BE_SOURCES
-	src/main.cpp
-	src/Config.cpp
-	src/displayBackend/BuffersStorage.cpp
-	src/displayBackend/DisplayBackend.cpp
-	src/displayBackend/DisplayCommandHandler.cpp
-	src/inputBackend/InputBackend.cpp
-	src/inputBackend/InputHandlers.cpp
-)
+if(NOT WITH_WAYLAND AND NOT WITH_DRM AND NOT WITH_INPUT)
+	message(FATAL_ERROR "At least one backend should be specified: WITH_DRM, WITH_WAYLAND, WITH_INPUT")
+endif()
 
-set(TEST_SOURCES
-	src/test.cpp
-	src/Config.cpp
-)
-
-include_directories(
-	src
-	src/displayBackend
-	src/inputBackend
-	${XEN_INCLUDE_PATH}
-	${XENBE_INCLUDE_PATH}
-	${IF_INCLUDE_PATH}
-	${DRMMAP_INCLUDE_PATH}
-	/usr/include/libdrm
-)
+################################################################################
+# Compiler flags
+################################################################################
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 
-link_directories(${XEN_LIB_PATH} ${XENBE_LIB_PATH})
+################################################################################
+# Definitions
+################################################################################
 
-add_library(be_drm STATIC ${DRM_SOURCES})
+if(WITH_DRM OR WITH_WAYLAND)
+	add_definitions(-DWITH_DISPLAY)
+endif()
 
-add_library(be_wl STATIC ${WL_SOURCES})
+if(WITH_DRM)
+	add_definitions(-DWITH_DRM)
+	if(WITH_ZCOPY)
+		add_definitions(-DWITH_ZCOPY)
+	endif()
+endif()
 
-add_library(be_wl_input STATIC ${WL_INPUT_SOURCES})
+if(WITH_WAYLAND)
+	add_definitions(-DWITH_WAYLAND)
+	if(WITH_IVI_EXTENSION)
+		add_definitions(-DWITH_IVI_EXTENSION)
+	endif()
+endif()
 
-add_executable(${PROJECT_NAME} ${BE_SOURCES})
+if(WITH_INPUT)
+	add_definitions(-DWITH_INPUT)
+endif()
 
-target_link_libraries(${PROJECT_NAME}
-	be_wl_input
-	be_wl
-	be_drm
-	xenbe
-	xenctrl
-	xenstore
-	xenevtchn
-	xengnttab
-	drm
-	wayland-client
-	ilmCommon
-	ilmClient
-	ilmControl
-	pthread
-	config++
+################################################################################
+# Includes
+################################################################################
+
+include_directories(
+	${XEN_INCLUDE_PATH}
+	${XENBE_INCLUDE_PATH}
+	${DRMZCOPY_INCLUDE_PATH}
+	.
 )
 
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+################################################################################
+# Link directories
+################################################################################
 
-add_executable(displ_test ${TEST_SOURCES})
-
-target_link_libraries(displ_test
-	be_wl_input
-	be_wl
-	be_drm
-	xenbe
-	xenctrl
-	xenstore
-	xenevtchn
-	xengnttab
-	drm
-	wayland-client
-	ilmCommon
-	ilmClient
-	ilmControl
-	pthread
-	config++
+link_directories(
+	${XEN_LIB_PATH}
+	${XENBE_LIB_PATH}
 )
+
+################################################################################
+# Sources
+################################################################################
+
+add_subdirectory(src)
+
+################################################################################
+# Docs
+################################################################################
 
 find_package(Doxygen)
-if(DOXYGEN_FOUND)
+
+if(WITH_DOC AND NOT DOXYGEN_FOUND)
+	message(FATAL_ERROR "Doxygen not found. Required to generate docs.")
+else()
 	configure_file(
 		${CMAKE_CURRENT_SOURCE_DIR}/doxygen.cfg
 		${CMAKE_CURRENT_BINARY_DIR}/doxygen.cfg
@@ -132,4 +119,4 @@ if(DOXYGEN_FOUND)
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 		COMMENT "Generating API documentation with Doxygen" VERBATIM
 	)
-endif(DOXYGEN_FOUND)
+endif()
