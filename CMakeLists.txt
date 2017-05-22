@@ -4,6 +4,16 @@ set(PROJECT_NAME "displ_be")
 
 project(${PROJECT_NAME})
 
+OPTION (WITH_DRM "build with DRM backend" ON)
+OPTION (WITH_WAYLAND "build with wayland backend" ON)
+OPTION (WITH_IVI_EXTENSION "build with wayland IVI Extension" ON)
+OPTION (WITH_INPUT "build with input backend" ON)
+OPTION (WITH_TEST "build with test" ON)
+
+if(NOT WITH_DRM AND NOT WITH_WAYLAND AND NOT WITH_INPUT)
+	message (FATAL_ERROR "At least one backend should be specified: WITH_DRM, WITH_WAYLAND, WITH_INPUT")
+endif()
+
 set(DRM_SOURCES
 	src/displayBackend/drm/Connector.cpp
 	src/displayBackend/drm/Display.cpp
@@ -20,9 +30,6 @@ set(WL_SOURCES
 	src/displayBackend/wayland/Connector.cpp
 	src/displayBackend/wayland/DrmBuffer.cpp
 	src/displayBackend/wayland/Display.cpp
-	src/displayBackend/wayland/IlmControl.cpp
-	src/displayBackend/wayland/IviApplication.cpp
-	src/displayBackend/wayland/IviSurface.cpp
 	src/displayBackend/wayland/SharedBuffer.cpp
 	src/displayBackend/wayland/Seat.cpp
 	src/displayBackend/wayland/SeatKeyboard.cpp
@@ -34,6 +41,12 @@ set(WL_SOURCES
 	src/displayBackend/wayland/ShellSurface.cpp
 	src/displayBackend/wayland/Surface.cpp
 	src/displayBackend/wayland/WaylandDrm.cpp
+)
+
+set(WL_IVI_SOURCES
+	src/displayBackend/wayland/IlmControl.cpp
+	src/displayBackend/wayland/IviApplication.cpp
+	src/displayBackend/wayland/IviSurface.cpp
 )
 
 set(WL_INPUT_SOURCES
@@ -71,11 +84,21 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -Wall")
 
 link_directories(${XEN_LIB_PATH} ${XENBE_LIB_PATH})
 
-add_library(be_drm STATIC ${DRM_SOURCES})
+if(WITH_DRM)
+	add_library(be_drm STATIC ${DRM_SOURCES})
+endif()
 
-add_library(be_wl STATIC ${WL_SOURCES})
+if (WITH_WAYLAND)
+	add_library(be_wl STATIC ${WL_SOURCES})
+endif()
 
-add_library(be_wl_input STATIC ${WL_INPUT_SOURCES})
+if (WITH_IVI_EXTENSION)
+	add_library(be_wl_ivi STATIC ${WL_IVI_SOURCES})
+endif()
+
+if (WITH_INPUT)
+	add_library(be_wl_input STATIC ${WL_INPUT_SOURCES})
+endif()
 
 add_executable(${PROJECT_NAME} ${BE_SOURCES})
 

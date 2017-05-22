@@ -111,6 +111,7 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name,
 
 		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
 	}
+#ifdef WITH_IVI_EXTENSION
 	else if (mIviApplication)
 	{
 		auto iviSurface = createIviSurface(x, y, width, height);
@@ -120,6 +121,7 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name,
 
 		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
 	}
+#endif
 	else
 	{
 		connector = new Connector(name, mCompositor->createSurface());
@@ -251,12 +253,14 @@ ShellSurfacePtr Display::createShellSurface(uint32_t x, uint32_t y)
 	return shellSurface;
 }
 
+#ifdef WITH_IVI_EXTENSION
 IviSurfacePtr Display::createIviSurface(uint32_t x, uint32_t y,
 										uint32_t width, uint32_t height)
 {
 	return mIviApplication->createIviSurface(mCompositor->createSurface(),
 											 width, height, 0);
 }
+#endif
 
 void Display::sRegistryHandler(void *data, wl_registry *registry, uint32_t id,
 							   const char *interface, uint32_t version)
@@ -291,12 +295,12 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	{
 		mSharedMemory.reset(new SharedMemory(registry, id, version));
 	}
-
+#ifdef WITH_IVI_EXTENSION
 	if (interface == "ivi_application")
 	{
 		mIviApplication.reset(new IviApplication(mWlDisplay));
 	}
-
+#endif
 	if (interface == "wl_seat")
 	{
 		mSeat.reset(new Seat(registry, id, version));
@@ -350,6 +354,7 @@ void Display::init()
 		throw Exception("Can't get shared memory");
 	}
 
+#ifdef WITH_IVI_EXTENSION
 	try
 	{
 		mIlmControl.reset(new IlmControl());
@@ -358,6 +363,7 @@ void Display::init()
 	{
 		LOG(mLog, WARNING) << e.what() << ". ILM capability will be disabled.";
 	}
+#endif
 }
 
 void Display::release()
@@ -369,7 +375,9 @@ void Display::release()
 
 	mBackgroundSurface.reset();
 
+#ifdef WITH_IVI_EXTENSION
 	mIviApplication.reset();
+#endif
 	mShell.reset();
 	mSharedMemory.reset();
 	mCompositor.reset();
