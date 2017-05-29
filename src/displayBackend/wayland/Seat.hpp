@@ -18,9 +18,6 @@
 #include "SeatKeyboard.hpp"
 #include "SeatPointer.hpp"
 #include "SeatTouch.hpp"
-#include "InputItf.hpp"
-
-
 namespace Wayland {
 
 /***************************************************************************//**

@@ -33,8 +33,6 @@ using XenBackend::FrontendHandlerPtr;
 using XenBackend::Log;
 using XenBackend::RingBufferPtr;
 
-using Wayland::Display;
-
 using InputItf::InputManagerPtr;
 
 /*******************************************************************************

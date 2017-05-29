@@ -35,10 +35,14 @@
 #include "IlmControl.hpp"
 #include "IviApplication.hpp"
 #endif
+#ifdef WITH_INPUT
 #include "Seat.hpp"
+#endif
 #include "SharedMemory.hpp"
 #include "Shell.hpp"
+#ifdef WITH_DRM
 #include "WaylandDrm.hpp"
+#endif
 
 namespace Wayland {
 
@@ -138,7 +142,9 @@ public:
 			DisplayItf::DisplayBufferPtr displayBuffer,
 			uint32_t width,uint32_t height, uint32_t pixelFormat) override;
 
+#ifdef WITH_INPUT
 	SeatPtr getSeat() const { return mSeat; }
+#endif
 
 private:
 
@@ -152,12 +158,19 @@ private:
 	CompositorPtr mCompositor;
 	ShellPtr mShell;
 	SharedMemoryPtr mSharedMemory;
+
 #ifdef WITH_IVI_EXTENSION
 	IviApplicationPtr mIviApplication;
 	IlmControlPtr mIlmControl;
 #endif
+
+#ifdef WITH_INPUT
 	SeatPtr mSeat;
+#endif
+
+#ifdef WITH_DRM
 	WaylandDrmPtr mWaylandDrm;
+#endif
 
 	ShellSurfacePtr mBackgroundSurface;
 

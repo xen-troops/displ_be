@@ -9,14 +9,18 @@
 
 #include "DevInput.hpp"
 #include "Exception.hpp"
+#ifdef WITH_WAYLAND
 #include "WlInput.hpp"
+#endif
 
 using std::dynamic_pointer_cast;
 using std::string;
 using std::to_string;
 
+#ifdef WITH_WAYLAND
 using Wayland::Connector;
 using Wayland::DisplayPtr;
+#endif
 
 using InputItf::KeyboardPtr;
 using InputItf::PointerPtr;
@@ -28,11 +32,13 @@ namespace Input {
  * InputManager
  ******************************************************************************/
 
+#ifdef WITH_WAYLAND
 InputManager::InputManager(DisplayPtr wlDisplay) :
 	InputManager()
 {
 	mDisplay = wlDisplay;
 }
+#endif
 
 InputManager::InputManager() :
 	mLog("InputManager")
@@ -53,6 +59,7 @@ InputManager::~InputManager()
  * Public
  ******************************************************************************/
 
+#ifdef WITH_WAYLAND
 KeyboardPtr InputManager::createWlKeyboard(int id, const string& conName)
 {
 	LOG(mLog, DEBUG) << "Create WL keyboard id: " << id
@@ -115,6 +122,7 @@ TouchPtr InputManager::createWlTouch(int id, const string& conName)
 
 	return touch;
 }
+#endif
 
 KeyboardPtr InputManager::createInputKeyboard(int id, const string& name)
 {
@@ -189,4 +197,3 @@ TouchPtr InputManager::getTouch(int id)
 }
 
 }
-
