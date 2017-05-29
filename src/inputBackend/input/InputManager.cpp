@@ -197,4 +197,3 @@ TouchPtr InputManager::getTouch(int id)
 }
 
 }
-

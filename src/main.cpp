@@ -237,7 +237,6 @@ InputItf::InputManagerPtr getInputManager(Wayland::DisplayPtr display,
 										  ConfigPtr config)
 {
 	Input::InputManagerPtr inputManager(new Input::InputManager(display));
-
 	int id;
 	bool wayland;
 	string name;
