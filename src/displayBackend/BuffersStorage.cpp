@@ -192,8 +192,7 @@ void BuffersStorage::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
 					  << ", size: " << size
 					  << ", in grefs: " << requestedNumGrefs;
 
-
-	while(startDirectory != 0)
+	while(startDirectory != 0 && requestedNumGrefs)
 	{
 		DLOG(mLog, DEBUG) << "startDirectory: " << startDirectory;
 
@@ -231,7 +230,7 @@ void BuffersStorage::setBufferRefs(grant_ref_t startDirectory, uint32_t size,
 
 	grant_ref_t *grefs = refs.data();
 
-	while(startDirectory != 0)
+	while(startDirectory != 0 && requestedNumGrefs)
 	{
 		DLOG(mLog, DEBUG) << "startDirectory: " << startDirectory;
 
