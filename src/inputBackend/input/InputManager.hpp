@@ -15,6 +15,7 @@
 #ifdef WITH_WAYLAND
 #include "wayland/Display.hpp"
 #endif
+
 #include "InputItf.hpp"
 
 namespace Input {
