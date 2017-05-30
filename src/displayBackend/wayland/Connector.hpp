@@ -27,8 +27,10 @@
 #include <xen/be/Log.hpp>
 
 #include "DisplayItf.hpp"
+#ifdef WITH_IVI_EXTENSION
 #include "IlmControl.hpp"
 #include "IviSurface.hpp"
+#endif
 #include "ShellSurface.hpp"
 
 namespace Wayland {
@@ -120,6 +122,7 @@ private:
 	ShellSurfacePtr mShellSurface;
 };
 
+#ifdef WITH_IVI_EXTENSION
 /***************************************************************************//**
  * IVI connector
  * @ingroup wayland
@@ -168,6 +171,7 @@ private:
 		Connector::release();
 	}
 };
+#endif
 
 typedef std::shared_ptr<Connector> ConnectorPtr;
 
