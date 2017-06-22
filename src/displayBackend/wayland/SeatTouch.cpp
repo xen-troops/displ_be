@@ -117,7 +117,7 @@ void SeatTouch::onUp(uint32_t serial, uint32_t time, int32_t id)
 		}
 	}
 
-	mCurrentCallback == mCallbacks.end();
+	mCurrentCallback = mCallbacks.end();
 }
 
 void SeatTouch::onMotion(uint32_t time, int32_t id, wl_fixed_t x, wl_fixed_t y)
