@@ -123,7 +123,7 @@ void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer)
 	{
 		int id;
 
-		if (mConfig->domPointerId(getDomName(), getDevId(), id))
+		if (mConfig->domTouchId(getDomName(), getDevId(), id))
 		{
 			mTouchHandler.reset(
 					new TouchHandler(mInputManager->getTouch(id),
