@@ -50,9 +50,11 @@ public:
 
 protected:
 
+	typedef typename std::unordered_map<wl_surface*, T>::iterator CallbackIt;
+
 	std::mutex mMutex;
 	std::unordered_map<wl_surface*, T> mCallbacks;
-	typename std::unordered_map<wl_surface*, T>::iterator mCurrentCallback;
+	CallbackIt mCurrentCallback;
 };
 
 }

@@ -90,12 +90,16 @@ void SeatTouch::onDown(uint32_t serial, uint32_t time, wl_surface* surface,
 					  << ", serial: " << serial << ", time: " << time
 					  << ", id: " << id << ", X: " << resX << ", Y: " << resY;
 
-	mCurrentCallback = mCallbacks.find(surface);
+	mCallbackIdMap[id] = mCallbacks.find(surface);
 
-	if (mCurrentCallback != mCallbacks.end() &&
-		mCurrentCallback->second.down)
+	if (mCallbackIdMap[id] != mCallbacks.end() &&
+		mCallbackIdMap[id]->second.down)
 	{
-		mCurrentCallback->second.down(id, resX, resY);
+		mCallbackIdMap[id]->second.down(id, resX, resY);
+	}
+	else
+	{
+		LOG(mLog, WARNING) << "No callbacks for this surface found";
 	}
 }
 
@@ -106,18 +110,25 @@ void SeatTouch::onUp(uint32_t serial, uint32_t time, int32_t id)
 	DLOG(mLog, DEBUG) << "onUp serial: " << serial << ", time: " << time
 					  << ", id: " << id;
 
-	if (mCurrentCallback != mCallbacks.end() &&
-		mCurrentCallback->second.up)
+	if (mCallbackIdMap.find(id) == mCallbackIdMap.end())
 	{
-		mCurrentCallback->second.up(id);
+		LOG(mLog, WARNING) << "No callbacks for this surface found";
 
-		if (mCurrentCallback->second.frame)
+		return;
+	}
+
+	if (mCallbackIdMap[id] != mCallbacks.end() &&
+		mCallbackIdMap[id]->second.up)
+	{
+		mCallbackIdMap[id]->second.up(id);
+
+		if (mCallbackIdMap[id]->second.frame)
 		{
-			mCurrentCallback->second.frame();
+			mCallbackIdMap[id]->second.frame();
 		}
 	}
 
-	mCurrentCallback = mCallbacks.end();
+	mCallbackIdMap[id] = mCallbacks.end();
 }
 
 void SeatTouch::onMotion(uint32_t time, int32_t id, wl_fixed_t x, wl_fixed_t y)
@@ -130,10 +141,17 @@ void SeatTouch::onMotion(uint32_t time, int32_t id, wl_fixed_t x, wl_fixed_t y)
 	DLOG(mLog, DEBUG) << "onMotion time: " << time << ", id: " << id
 					  << ", X: " << resX << ", Y: " << resY;
 
-	if (mCurrentCallback != mCallbacks.end() &&
-		mCurrentCallback->second.motion)
+	if (mCallbackIdMap.find(id) == mCallbackIdMap.end())
 	{
-		mCurrentCallback->second.motion(id, resX, resY);
+		LOG(mLog, WARNING) << "No callbacks for this surface found";
+
+		return;
+	}
+
+	if (mCallbackIdMap[id] != mCallbacks.end() &&
+			mCallbackIdMap[id]->second.motion)
+	{
+		mCallbackIdMap[id]->second.motion(id, resX, resY);
 	}
 }
 
@@ -142,12 +160,6 @@ void SeatTouch::onFrame()
 	lock_guard<mutex> lock(mMutex);
 
 	DLOG(mLog, DEBUG) << "onFrame";
-
-	if (mCurrentCallback != mCallbacks.end() &&
-		mCurrentCallback->second.frame)
-	{
-		mCurrentCallback->second.frame();
-	}
 }
 
 void SeatTouch::onCancel()
