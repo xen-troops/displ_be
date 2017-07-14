@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <atomic>
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <thread>
 
@@ -48,11 +49,10 @@
 #include "input/InputManager.hpp"
 #endif
 
-using std::atomic_bool;
-using std::chrono::milliseconds;
 using std::cout;
 using std::dynamic_pointer_cast;
 using std::endl;
+using std::ofstream;
 using std::string;
 using std::this_thread::sleep_for;
 using std::toupper;
@@ -64,6 +64,7 @@ const uint32_t cWlBackgroundWidth = 1920;
 const uint32_t cWlBackgroundHeight = 1080;
 
 string gCfgFileName;
+string gLogFileName;
 
 /*******************************************************************************
  *
@@ -106,7 +107,7 @@ bool commandLineOptions(int argc, char *argv[])
 
 	int opt = -1;
 
-	while((opt = getopt(argc, argv, "c:v:fh?")) != -1)
+	while((opt = getopt(argc, argv, "c:v:l:fh?")) != -1)
 	{
 		switch(opt)
 		{
@@ -122,6 +123,12 @@ bool commandLineOptions(int argc, char *argv[])
 		case 'c':
 
 			gCfgFileName = optarg;
+
+			break;
+
+		case 'l':
+
+			gLogFileName = optarg;
 
 			break;
 
@@ -297,6 +304,14 @@ int main(int argc, char *argv[])
 
 		if (commandLineOptions(argc, argv))
 		{
+			ofstream logFile;
+
+			if (!gLogFileName.empty())
+			{
+				logFile.open(gLogFileName);
+				Log::setStreamBuffer(logFile.rdbuf());
+			}
+
 			ConfigPtr config(new Config(gCfgFileName));
 
 #ifdef WITH_DISPLAY
@@ -339,17 +354,23 @@ int main(int argc, char *argv[])
 #ifdef WITH_INPUT
 			inputBackend.stop();
 #endif
+			logFile.close();
 		}
 		else
 		{
-			cout << "Usage: " << argv[0] << " [-m <mode>] [-v <level>]" << endl;
+			cout << "Usage: " << argv[0]
+				 << " [-c <file>] [-l <file>] [-v <level>]"
+				 << endl;
+			cout << "\t-c -- config file" << endl;
+			cout << "\t-l -- log file" << endl;
 			cout << "\t-v -- verbose level "
 				 << "(disable, error, warning, info, debug)" << endl;
-			cout << "\t-c -- config file" << endl;
 		}
 	}
 	catch(const std::exception& e)
 	{
+		Log::setStreamBuffer(cout.rdbuf());
+
 		LOG("Main", ERROR) << e.what();
 	}
 
