@@ -113,7 +113,7 @@ bool commandLineOptions(int argc, char *argv[])
 		{
 		case 'v':
 
-			if (!Log::setLogLevel(string(optarg)))
+			if (!Log::setLogMask(string(optarg)))
 			{
 				return false;
 			}
@@ -363,8 +363,10 @@ int main(int argc, char *argv[])
 				 << endl;
 			cout << "\t-c -- config file" << endl;
 			cout << "\t-l -- log file" << endl;
-			cout << "\t-v -- verbose level "
-				 << "(disable, error, warning, info, debug)" << endl;
+			cout << "\t-v -- verbose level in format: "
+				 << "<module>:<level>;<module:<level>" << endl;
+			cout << "\t      use * for mask selection:"
+				 << " *:Debug,Mod*:Info" << endl;
 		}
 	}
 	catch(const std::exception& e)

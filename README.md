@@ -63,12 +63,12 @@ make DESTDIR=${PATH_TO_INSTALL} install //to other location
 ```
 ## How to run:
 ```
-disple_be -c ${PATH_TO_CONFIG_FILE} -v${LOG_LEVEL}
+disple_be -c ${PATH_TO_CONFIG_FILE} -v${LOG_MASK}
 ```
 > For syntaxes of the config file see [displ_be.cfg](displ_be.cfg)
 
 Example:
 
 ```
-disple_be -c displ_be.cfg -v debug
+disple_be -c displ_be.cfg -v *:Debug
 ```
