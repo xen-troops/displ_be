@@ -23,6 +23,23 @@ if(WITH_WAYLAND)
 	endif()
 endif()
 
+if(WITH_IVI_EXTENSION)
+	pkg_check_modules (IVI_APP REQUIRED ivi-application)
+	if(!IVI_APP_FOUND)
+		message(FATAL_ERROR "No ivi-application found")
+	endif()
+
+	pkg_check_modules (ILM_CTRL REQUIRED ilmControl)
+	if(!ILM_CTRL_FOUND)
+		message(FATAL_ERROR "No ilmControl found")
+	endif()
+	
+	pkg_check_modules (ILM_COMMON REQUIRED ilmCommon)
+	if(!ILM_COMMON_FOUND)
+		message(FATAL_ERROR "No ilmCommon found")
+	endif()
+endif()
+
 ################################################################################
 # Includes
 ################################################################################

@@ -9,10 +9,8 @@
 #define SRC_WAYLAND_IVISURFACE_HPP_
 
 #include <memory>
-#include <unordered_map>
 
-#include <wayland-client.h>
-#include <ilm/ilm_types.h>
+#include <ilm/ivi-application-client-protocol.h>
 
 #include <xen/be/Log.hpp>
 
@@ -38,27 +36,23 @@ public:
 	/**
 	 * Returns IVI surface ID
 	 */
-	t_ilm_surface getIlmId() const { return mIlmSurface; }
+	uint32_t getIlmId() const { return mIlmSurfaceId; }
 
 private:
 
 	friend class Display;
 	friend class IviApplication;
 
-	IviSurface(SurfacePtr surface, uint32_t width, uint32_t height,
-			   uint32_t pixelFormat);
+	IviSurface(ivi_application* iviApplication, SurfacePtr surface);
 
-	t_ilm_surface mIlmSurface;
+	ivi_surface* mWlIviSurface;
+	uint32_t mIlmSurfaceId;
 	SurfacePtr mSurface;
 
 	XenBackend::Log mLog;
 
-	static std::unordered_map<uint32_t, ilmPixelFormat> sPixelFormatMap;
-
-	void init(uint32_t width, uint32_t height, uint32_t pixelFormat);
+	void init(ivi_application* iviApplication);
 	void release();
-
-	ilmPixelFormat convertPixelFormat(uint32_t pixelFormat);
 };
 
 typedef std::shared_ptr<IviSurface> IviSurfacePtr;
