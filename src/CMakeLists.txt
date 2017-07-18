@@ -27,14 +27,18 @@ endif()
 # Includes
 ################################################################################
 
-if(WITH_DRM)
-	include_directories(${DRM_INCLUDE_DIRS})
-endif()
-
 include_directories(
 	.
 	${CONFIG_INCLUDE_PATH}
 )
+
+if(WITH_DRM)
+	include_directories(${DRM_INCLUDE_DIRS})
+endif()
+
+if (WITH_WAYLAND)
+	include_directories(${CMAKE_CURRENT_BINARY_DIR}/displayBackend/wayland/protocols)
+endif()
 
 if(WITH_DRM OR WITH_WAYLAND)
 	include_directories(displayBackend)
@@ -74,11 +78,15 @@ install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 ################################################################################
 
 if(WITH_INPUT)
-	target_link_libraries(${PROJECT_NAME} input)
+	add_dependencies (input display)
 endif()
 
 if(WITH_DRM OR WITH_WAYLAND)
 	target_link_libraries(${PROJECT_NAME} display)
+endif()
+
+if(WITH_INPUT)
+	target_link_libraries(${PROJECT_NAME} input)
 endif()
 
 target_link_libraries(${PROJECT_NAME}
