@@ -31,7 +31,7 @@ Supported options:
 
 > If `WITH_DRM` and `WITH_WAYLAND` are disabled no display backend will be built.
 
-Supported variabels:
+Supported variables:
 
 | Variable | Description |
 | --- | --- |
@@ -54,7 +54,7 @@ cmake ${PATH_TO_SOURCES} -DWITH_WAYLAND=OFF -DWITH_INPUT=OFF -DCMAKE_BUILD_TYPE=
 ```
 cd ${BUILD_DIR}
 make     // build sources
-make doc // build documentaion
+make doc // build documentation
 ```
 ## How to install
 ```
