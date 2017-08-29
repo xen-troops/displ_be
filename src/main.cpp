@@ -104,7 +104,6 @@ void waitSignals()
 
 bool commandLineOptions(int argc, char *argv[])
 {
-
 	int opt = -1;
 
 	while((opt = getopt(argc, argv, "c:v:l:fh?")) != -1)
@@ -139,6 +138,7 @@ bool commandLineOptions(int argc, char *argv[])
 			break;
 
 		default:
+
 			return false;
 		}
 	}
