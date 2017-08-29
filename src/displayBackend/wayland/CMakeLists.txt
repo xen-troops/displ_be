@@ -21,7 +21,6 @@ endif()
 
 if(WITH_IVI_EXTENSION)
 	list(APPEND SOURCES
-		IlmControl.cpp
 		IviApplication.cpp
 		IviSurface.cpp
 	)

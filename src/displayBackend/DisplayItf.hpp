@@ -171,13 +171,11 @@ public:
 
 	/**
 	 * Initializes connector
-	 * @param x           horizontal offset
-	 * @param y           vertical offset
 	 * @param width       width
 	 * @param height      height
 	 * @param frameBuffer frame buffer
 	 */
-	virtual void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
+	virtual void init(uint32_t width, uint32_t height,
 					  FrameBufferPtr frameBuffer) = 0;
 
 	/**

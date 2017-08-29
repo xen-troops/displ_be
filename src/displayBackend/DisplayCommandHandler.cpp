@@ -203,8 +203,7 @@ void DisplayCommandHandler::setConfig(const xendispl_req& req)
 
 	if (configReq->fb_cookie != 0)
 	{
-		mConnector->init(
-				configReq->x, configReq->y, configReq->width, configReq->height,
+		mConnector->init(configReq->width, configReq->height,
 				mBuffersStorage->getFrameBufferAndCopy(configReq->fb_cookie));
 	}
 	else

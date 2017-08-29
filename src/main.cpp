@@ -162,18 +162,12 @@ DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
 	Wayland::DisplayPtr wlDisplay(new Wayland::Display());
 
 	string name;
-	uint32_t screen, x, y, w, h, z;
-
-	if (config->wlBackground(w, h))
-	{
-		wlDisplay->createBackgroundSurface(w, h);
-	}
 
 	for (int i = 0; i < config->wlConnectorsCount(); i++)
 	{
-		config->wlConnector(i, name, screen, x, y, w, h, z);
+		config->wlConnector(i, name);
 
-		wlDisplay->createConnector(name, screen, x, y, w, h, z);
+		wlDisplay->createConnector(name);
 	}
 
 	return wlDisplay;

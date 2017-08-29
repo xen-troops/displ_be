@@ -67,34 +67,7 @@ Config::Config(const string& fileName) :
  * Public
  ******************************************************************************/
 
-bool Config::wlBackground(uint32_t& w, uint32_t& h)
-{
-
-	string sectionName = "display.wayland.background";
-
-	if (mConfig.exists(sectionName))
-	{
-		try
-		{
-			w = mConfig.lookup(sectionName + ".w");
-			h = mConfig.lookup(sectionName + ".h");
-		}
-		catch(const SettingException& e)
-		{
-			throw ConfigException("Config: error reading " + sectionName);
-		}
-
-		LOG(mLog, DEBUG) << "Background, w: " << w << ", h: " << h;
-
-		return true;
-	}
-
-	return false;
-}
-
-void Config::wlConnector(int idx, string& name, uint32_t& screen,
-						 uint32_t& x, uint32_t& y,
-						 uint32_t& w, uint32_t& h, uint32_t& z)
+void Config::wlConnector(int idx, string& name)
 {
 	string sectionName = "display.wayland.connectors";
 
@@ -104,25 +77,7 @@ void Config::wlConnector(int idx, string& name, uint32_t& screen,
 
 		name = static_cast<const char*>(conSetting.lookup("name"));
 
-		if (!conSetting.lookupValue("screen", screen))
-		{
-			screen = 0;
-		}
-
-		x = conSetting.lookup("x");
-		y = conSetting.lookup("y");
-		w = conSetting.lookup("w");
-		h = conSetting.lookup("h");
-
-		if (!conSetting.lookupValue("z", z))
-		{
-			z = 0;
-		}
-
-		LOG(mLog, DEBUG) << sectionName << "[" << idx << "] name: " << name
-						 << ", screen: " << screen
-						 << ", x: " << x << ", y: " << y
-						 << ", w: " << w << ", h: " << h << ", z: " << z;
+		LOG(mLog, DEBUG) << sectionName << "[" << idx << "] name: " << name;
 	}
 	catch(const SettingException& e)
 	{
