@@ -82,14 +82,6 @@ public:
 	DisplayMode displayMode() const { return mDisplayMode; }
 
 	/**
-	 * Indicates if wayland background surface shall be created
-	 * @param w background width
-	 * @param h background height
-	 * @return <i>true</i> if background shall be created
-	 */
-	bool wlBackground(uint32_t& w, uint32_t& h);
-
-	/**
 	 * Returns number of defined virtual wayland connectors
 	 */
 	int wlConnectorsCount() const { return mWlConnectorsCount; }
@@ -98,16 +90,8 @@ public:
 	 * Returns parameters of virtual wayland connector
 	 * @param[in]  idx    index of connector
 	 * @param[out] name   connector name
-	 * @param[out] screen screen id
-	 * @param[out] x      horizontal offset
-	 * @param[out] y      vertical offset
-	 * @param[out] w      width
-	 * @param[out] h      height
-	 * @param[out] z      Z order
 	 */
-	void wlConnector(int idx, std::string& name, uint32_t& screen,
-					 uint32_t& x, uint32_t& y,
-					 uint32_t& w, uint32_t& h, uint32_t& z);
+	void wlConnector(int idx, std::string& name);
 
 	/**
 	 * Returns number of defined keyboards

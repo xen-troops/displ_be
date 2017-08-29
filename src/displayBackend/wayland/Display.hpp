@@ -32,7 +32,6 @@
 #include "Connector.hpp"
 #include "DisplayItf.hpp"
 #ifdef WITH_IVI_EXTENSION
-#include "IlmControl.hpp"
 #include "IviApplication.hpp"
 #endif
 #ifdef WITH_INPUT
@@ -63,28 +62,11 @@ public:
 	~Display();
 
 	/**
-	 * Creates background surface
-	 * @param width  width
-	 * @param height height
-	 */
-	void createBackgroundSurface(uint32_t width, uint32_t height);
-
-	/**
 	 * Creates virtual connector
 	 * @param name       connector name
-	 * @param screen     screen id
-	 * @param x          horizontal offset
-	 * @param y          vertical offset
-	 * @param width      width
-	 * @param height     height
-	 * @param zOrder     Z order
 	 * @return created connector
 	 */
-	DisplayItf::ConnectorPtr createConnector(const std::string& name,
-											 uint32_t screen,
-											 uint32_t x, uint32_t y,
-											 uint32_t width, uint32_t height,
-											 uint32_t zOrder);
+	DisplayItf::ConnectorPtr createConnector(const std::string& name);
 
 	/**
 	 * Starts events handling
@@ -161,7 +143,6 @@ private:
 
 #ifdef WITH_IVI_EXTENSION
 	IviApplicationPtr mIviApplication;
-	IlmControlPtr mIlmControl;
 #endif
 
 #ifdef WITH_INPUT
@@ -172,16 +153,13 @@ private:
 	WaylandDrmPtr mWaylandDrm;
 #endif
 
-	ShellSurfacePtr mBackgroundSurface;
-
 	std::thread mThread;
 
 	std::unique_ptr<XenBackend::PollFd> mPollFd;
 
-	ShellSurfacePtr createShellSurface(uint32_t x, uint32_t y);
+	ShellSurfacePtr createShellSurface();
 #ifdef WITH_IVI_EXTENSION
-	IviSurfacePtr createIviSurface(uint32_t x, uint32_t y,
-								   uint32_t width, uint32_t height);
+	IviSurfacePtr createIviSurface();
 #endif
 	static void sRegistryHandler(void *data, wl_registry *registry,
 								 uint32_t id, const char *interface,

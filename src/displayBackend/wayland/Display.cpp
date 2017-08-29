@@ -70,52 +70,20 @@ Display::~Display()
  * Public
  ******************************************************************************/
 
-void Display::createBackgroundSurface(uint32_t width, uint32_t height)
-{
-	if (mShell)
-	{
-		LOG(mLog, DEBUG) << "Create background surface, w: " << width
-						 << ", h: " << height;
-
-		mBackgroundSurface = mShell->createShellSurface(
-				mCompositor->createSurface());
-
-		mBackgroundSurface->setFullScreen();
-
-		auto sharedFile = mSharedMemory->createSharedFile(width, height, 32);
-		auto sharedBuffer = mSharedMemory->createSharedBuffer(
-							sharedFile, width, height, WL_SHM_FORMAT_XRGB8888);
-
-		mBackgroundSurface->mSurface->draw(sharedBuffer);
-	}
-	else
-	{
-		LOG(mLog, WARNING) << "Can't create background surface";
-	}
-}
-
-DisplayItf::ConnectorPtr Display::createConnector(const string& name,
-												  uint32_t screen,
-												  uint32_t x, uint32_t y,
-												  uint32_t width,
-												  uint32_t height,
-												  uint32_t zOrder)
+DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 {
 	Connector* connector = nullptr;
 
 	if (mShell)
 	{
-		connector = new ShellConnector(name, createShellSurface(x, y));
+		connector = new ShellConnector(name, createShellSurface());
 
 		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
 	}
 #ifdef WITH_IVI_EXTENSION
 	else if (mIviApplication)
 	{
-		auto iviSurface = createIviSurface(x, y, width, height);
-
-		connector = new IviConnector(name, iviSurface, mIlmControl,
-									 screen, x, y, width, height, zOrder);
+		connector = new IviConnector(name, createIviSurface());
 
 		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
 	}
@@ -235,32 +203,20 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
  * Private
  ******************************************************************************/
 
-ShellSurfacePtr Display::createShellSurface(uint32_t x, uint32_t y)
+ShellSurfacePtr Display::createShellSurface()
 {
+	LOG(mLog, DEBUG) << "Create toplevel surface";
+
 	auto shellSurface =
 			mShell->createShellSurface(mCompositor->createSurface());
 
-	if (mBackgroundSurface)
-	{
-		LOG(mLog, DEBUG) << "Create child surface";
-
-		wl_shell_surface_set_transient(shellSurface->mWlShellSurface,
-				mBackgroundSurface->mSurface->mWlSurface,
-				x, y, WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
-	}
-	else
-	{
-		LOG(mLog, DEBUG) << "Create toplevel surface";
-
-		shellSurface->setTopLevel();
-	}
+	shellSurface->setTopLevel();
 
 	return shellSurface;
 }
 
 #ifdef WITH_IVI_EXTENSION
-IviSurfacePtr Display::createIviSurface(uint32_t x, uint32_t y,
-										uint32_t width, uint32_t height)
+IviSurfacePtr Display::createIviSurface()
 {
 	return mIviApplication->createIviSurface(mCompositor->createSurface());
 }
@@ -360,17 +316,6 @@ void Display::init()
 	{
 		throw Exception("Can't get shared memory");
 	}
-
-#ifdef WITH_IVI_EXTENSION
-	try
-	{
-		mIlmControl.reset(new IlmControl());
-	}
-	catch(const Exception& e)
-	{
-		LOG(mLog, WARNING) << e.what() << ". ILM capability will be disabled.";
-	}
-#endif
 }
 
 void Display::release()
@@ -379,8 +324,6 @@ void Display::release()
 	// prior IviApplication
 
 	mConnectors.clear();
-
-	mBackgroundSurface.reset();
 
 #ifdef WITH_IVI_EXTENSION
 	mIviApplication.reset();

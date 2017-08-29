@@ -28,7 +28,6 @@
 
 #include "DisplayItf.hpp"
 #ifdef WITH_IVI_EXTENSION
-#include "IlmControl.hpp"
 #include "IviSurface.hpp"
 #endif
 #include "ShellSurface.hpp"
@@ -69,13 +68,11 @@ public:
 
 	/**
 	 * Initializes connector
-	 * @param x           horizontal offset
-	 * @param y           vertical offset
 	 * @param width       width
 	 * @param height      height
 	 * @param frameBuffer frame buffer
 	 */
-	void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
+	void init(uint32_t width, uint32_t height,
 			  DisplayItf::FrameBufferPtr frameBuffer) override;
 
 	/**
@@ -133,43 +130,11 @@ private:
 
 	friend class Display;
 
-	IviConnector(const std::string& name, IviSurfacePtr iviSurface,
-				 IlmControlPtr ilmControl, uint32_t screen,
-				 uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t z) :
+	IviConnector(const std::string& name, IviSurfacePtr iviSurface) :
 		Connector(name, iviSurface->getSurface()),
-		mIviSurface(iviSurface),
-		mIlmControl(ilmControl)
-	{
-		if (mIlmControl)
-		{
-			mIlmControl->addSurface(
-					mIviSurface->getIlmId(), screen, x, y, w, h, z);
-		}
-	}
+		mIviSurface(iviSurface) {}
 
 	IviSurfacePtr mIviSurface;
-	IlmControlPtr mIlmControl;
-
-	void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
-			  DisplayItf::FrameBufferPtr frameBuffer) override
-	{
-		Connector::init(x, y, width, height, frameBuffer);
-
-		if (mIlmControl)
-		{
-			mIlmControl->showSurface(mIviSurface->getIlmId());
-		}
-	}
-
-	void release() override
-	{
-		if (mIlmControl)
-		{
-			mIlmControl->hideSurface(mIviSurface->getIlmId());
-		}
-
-		Connector::release();
-	}
 };
 #endif
 

@@ -49,10 +49,10 @@ Connector::~Connector()
  * Public
  ******************************************************************************/
 
-void Connector::init(uint32_t x, uint32_t y, uint32_t width, uint32_t height,
+void Connector::init(uint32_t width, uint32_t height,
 					 FrameBufferPtr frameBuffer)
 {
-	LOG(mLog, DEBUG) << "Init, name: " << mName << ", x: " << x << ", y: " << y
+	LOG(mLog, DEBUG) << "Init, name: " << mName
 					 << ", w: " << width << ", height: " << height;
 
 	mSurface->draw(frameBuffer);
