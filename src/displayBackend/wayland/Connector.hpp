@@ -28,8 +28,10 @@
 
 #include "DisplayItf.hpp"
 #ifdef WITH_IVI_EXTENSION
+#include "IviApplication.hpp"
 #include "IviSurface.hpp"
 #endif
+#include "Shell.hpp"
 #include "ShellSurface.hpp"
 
 namespace Wayland {
@@ -108,14 +110,41 @@ private:
  ******************************************************************************/
 class ShellConnector : public Connector
 {
+public:
+	/**
+	 * Initializes connector
+	 * @param width       width
+	 * @param height      height
+	 * @param frameBuffer frame buffer
+	 */
+	void init(uint32_t width, uint32_t height,
+			  DisplayItf::FrameBufferPtr frameBuffer) override
+	{
+		mShellSurface = mShell->createShellSurface(getSurface());
+
+		Connector::init(width, height, frameBuffer);
+	}
+
+	/**
+	 * Releases initialized connector
+	 */
+	void release() override
+	{
+		Connector::release();
+
+		mShellSurface.reset();
+	}
+
 private:
 
 	friend class Display;
 
-	ShellConnector(const std::string& name, ShellSurfacePtr shellSurface) :
-		Connector(name, shellSurface->getSurface()),
-		mShellSurface(shellSurface) {}
+	ShellConnector(const std::string& name, ShellPtr shell,
+				   SurfacePtr surface) :
+		Connector(name, surface),
+		mShell(shell) {}
 
+	ShellPtr mShell;
 	ShellSurfacePtr mShellSurface;
 };
 
@@ -126,14 +155,41 @@ private:
  ******************************************************************************/
 class IviConnector : public Connector
 {
+public:
+	/**
+	 * Initializes connector
+	 * @param width       width
+	 * @param height      height
+	 * @param frameBuffer frame buffer
+	 */
+	void init(uint32_t width, uint32_t height,
+			  DisplayItf::FrameBufferPtr frameBuffer) override
+	{
+		mIviSurface = mIviApplication->createIviSurface(getSurface());
+
+		Connector::init(width, height, frameBuffer);
+	}
+
+	/**
+	 * Releases initialized connector
+	 */
+	void release() override
+	{
+		Connector::release();
+
+		mIviSurface.reset();
+	}
+
 private:
 
 	friend class Display;
 
-	IviConnector(const std::string& name, IviSurfacePtr iviSurface) :
-		Connector(name, iviSurface->getSurface()),
-		mIviSurface(iviSurface) {}
+	IviConnector(const std::string& name, IviApplicationPtr iviApplication,
+				 SurfacePtr surface) :
+		Connector(name, surface),
+		mIviApplication(iviApplication) {}
 
+	IviApplicationPtr mIviApplication;
 	IviSurfacePtr mIviSurface;
 };
 #endif
