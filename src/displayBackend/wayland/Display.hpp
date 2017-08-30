@@ -157,10 +157,6 @@ private:
 
 	std::unique_ptr<XenBackend::PollFd> mPollFd;
 
-	ShellSurfacePtr createShellSurface();
-#ifdef WITH_IVI_EXTENSION
-	IviSurfacePtr createIviSurface();
-#endif
 	static void sRegistryHandler(void *data, wl_registry *registry,
 								 uint32_t id, const char *interface,
 								 uint32_t version);

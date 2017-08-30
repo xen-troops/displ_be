@@ -76,14 +76,16 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 
 	if (mShell)
 	{
-		connector = new ShellConnector(name, createShellSurface());
+		connector = new ShellConnector(name, mShell,
+									   mCompositor->createSurface());
 
 		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
 	}
 #ifdef WITH_IVI_EXTENSION
 	else if (mIviApplication)
 	{
-		connector = new IviConnector(name, createIviSurface());
+		connector = new IviConnector(name, mIviApplication,
+									 mCompositor->createSurface());
 
 		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
 	}
@@ -202,25 +204,6 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 /*******************************************************************************
  * Private
  ******************************************************************************/
-
-ShellSurfacePtr Display::createShellSurface()
-{
-	LOG(mLog, DEBUG) << "Create toplevel surface";
-
-	auto shellSurface =
-			mShell->createShellSurface(mCompositor->createSurface());
-
-	shellSurface->setTopLevel();
-
-	return shellSurface;
-}
-
-#ifdef WITH_IVI_EXTENSION
-IviSurfacePtr Display::createIviSurface()
-{
-	return mIviApplication->createIviSurface(mCompositor->createSurface());
-}
-#endif
 
 void Display::sRegistryHandler(void *data, wl_registry *registry, uint32_t id,
 							   const char *interface, uint32_t version)
