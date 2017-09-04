@@ -122,6 +122,8 @@ public:
 	{
 		mShellSurface = mShell->createShellSurface(getSurface());
 
+		mShellSurface->setTopLevel();
+
 		Connector::init(width, height, frameBuffer);
 	}
 
