@@ -29,7 +29,7 @@
 
 #include "drm/Display.hpp"
 #include "Registry.hpp"
-#include "wayland-drm/wayland-drm-client-protocol.h"
+#include "wayland-drm-client-protocol.h"
 
 namespace Wayland {
 
