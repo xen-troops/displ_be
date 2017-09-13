@@ -262,8 +262,7 @@ ShellSurfacePtr Display::createShellSurface(uint32_t x, uint32_t y)
 IviSurfacePtr Display::createIviSurface(uint32_t x, uint32_t y,
 										uint32_t width, uint32_t height)
 {
-	return mIviApplication->createIviSurface(mCompositor->createSurface(),
-											 width, height, 0);
+	return mIviApplication->createIviSurface(mCompositor->createSurface());
 }
 #endif
 
@@ -303,7 +302,7 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 #ifdef WITH_IVI_EXTENSION
 	if (interface == "ivi_application")
 	{
-		mIviApplication.reset(new IviApplication(mWlDisplay));
+		mIviApplication.reset(new IviApplication(registry, id, version));
 	}
 #endif
 #ifdef WITH_INPUT

@@ -31,7 +31,7 @@ Supported options:
 
 > If `WITH_DRM` and `WITH_WAYLAND` are disabled no display backend will be built.
 
-Supported variabels:
+Supported variables:
 
 | Variable | Description |
 | --- | --- |
@@ -54,7 +54,7 @@ cmake ${PATH_TO_SOURCES} -DWITH_WAYLAND=OFF -DWITH_INPUT=OFF -DCMAKE_BUILD_TYPE=
 ```
 cd ${BUILD_DIR}
 make     // build sources
-make doc // build documentaion
+make doc // build documentation
 ```
 ## How to install
 ```
@@ -63,12 +63,12 @@ make DESTDIR=${PATH_TO_INSTALL} install //to other location
 ```
 ## How to run:
 ```
-disple_be -c ${PATH_TO_CONFIG_FILE} -v${LOG_LEVEL}
+disple_be -c ${PATH_TO_CONFIG_FILE} -v${LOG_MASK}
 ```
 > For syntaxes of the config file see [displ_be.cfg](displ_be.cfg)
 
 Example:
 
 ```
-disple_be -c displ_be.cfg -v debug
+disple_be -c displ_be.cfg -v *:Debug
 ```

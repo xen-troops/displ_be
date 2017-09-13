@@ -10,6 +10,7 @@
 
 #include <xen/be/Log.hpp>
 
+#include "Registry.hpp"
 #include "IviSurface.hpp"
 
 namespace Wayland {
@@ -18,7 +19,7 @@ namespace Wayland {
  * Wayland IVI Applicaion class.
  * @ingroup wayland
  ******************************************************************************/
-class IviApplication
+class IviApplication : public Registry
 {
 public:
 
@@ -28,19 +29,18 @@ public:
 	 * Creates IVI surface
 	 * @param surface surface
 	 */
-	IviSurfacePtr createIviSurface(SurfacePtr surface, uint32_t width,
-								   uint32_t height, uint32_t pixelFormat);
+	IviSurfacePtr createIviSurface(SurfacePtr surface);
 
 private:
 
 	friend class Display;
 
-	IviApplication(wl_display* display);
+	IviApplication(wl_registry* registry, uint32_t id, uint32_t version);
 
-	bool mInitialised;
+	ivi_application* mWlIviApplication;
 	XenBackend::Log mLog;
 
-	void init(wl_display* display);
+	void init();
 	void release();
 };
 

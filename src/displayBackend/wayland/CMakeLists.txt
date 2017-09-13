@@ -1,3 +1,5 @@
+add_subdirectory(protocols)
+	
 set(SOURCES
 	Compositor.cpp
 	Connector.cpp
@@ -14,7 +16,6 @@ if(WITH_DRM)
 	list(APPEND SOURCES
 		DrmBuffer.cpp
 		WaylandDrm.cpp
-		wayland-drm/wayland-drm-protocol.c
 	)
 endif()
 
@@ -37,12 +38,18 @@ endif()
 
 add_library(display_wayland STATIC ${SOURCES})
 
+if(WITH_DRM)
+	target_link_libraries(display_wayland wayland_drm_protocol)
+endif()
+
 target_link_libraries(display_wayland ${WAYLAND_LIBRARIES})
 
 if(WITH_IVI_EXTENSION)
 	target_link_libraries(display_wayland
-		ilmCommon
-		ilmClient
-		ilmControl
+		${IVI_APP_LIBRARIES}
+		${ILM_CTRL_LIBRARIES}
+		${ILM_COMMON_LIBRARIES}
 	)
 endif()
+
+target_link_libraries(display_wayland xenbe)

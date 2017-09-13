@@ -155,8 +155,6 @@ void IlmControl::setupLayers()
 
 	for(auto layer : layers)
 	{
-		LOG(mLog, DEBUG) << "Create layer for screen id: " << layer.first;
-
 		auto layerId = createLayer(layer.first);
 
 		mLayers.push_back(layerId);
@@ -259,6 +257,8 @@ void IlmControl::destroyLayers()
 
 		ilm_layerRemove(layerId);
 	}
+
+	mLayers.clear();
 }
 
 void IlmControl::setSurfaceVisibility(t_ilm_surface surfaceId, bool visible)

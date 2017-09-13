@@ -12,31 +12,21 @@
 
 #include "Exception.hpp"
 
-using std::unordered_map;
-
 namespace Wayland {
-
-unordered_map<uint32_t, ilmPixelFormat> IviSurface::sPixelFormatMap =
-{
-	{DRM_FORMAT_RGB888, 	ILM_PIXELFORMAT_RGB_888},
-	{DRM_FORMAT_RGBA8888, 	ILM_PIXELFORMAT_RGBA_8888},
-	{DRM_FORMAT_RGB565,		ILM_PIXELFORMAT_RGB_565},
-	{DRM_FORMAT_RGBA5551,	ILM_PIXELFORMAT_RGBA_5551},
-	{DRM_FORMAT_RGBA4444,	ILM_PIXELFORMAT_RGBA_4444}
-};
 
 /*******************************************************************************
  * IviSurface
  ******************************************************************************/
 
-IviSurface::IviSurface(SurfacePtr surface,
-					   uint32_t width, uint32_t height, uint32_t pixelFormat) :
+IviSurface::IviSurface(ivi_application* iviApplication, SurfacePtr surface) :
+	mWlIviSurface(nullptr),
+	mIlmSurfaceId(0),
 	mSurface(surface),
 	mLog("IviSurface")
 {
 	try
 	{
-		init(width, height, pixelFormat);
+		init(iviApplication);
 	}
 	catch(const std::exception& e)
 	{
@@ -59,43 +49,32 @@ IviSurface::~IviSurface()
  * Private
  ******************************************************************************/
 
-void IviSurface::init(uint32_t width, uint32_t height, uint32_t pixelFormat)
+void IviSurface::init(ivi_application* iviApplication)
 {
 	static t_ilm_surface sSurfaceId = 1000;
 
-	mIlmSurface = sSurfaceId++;
+	mIlmSurfaceId = sSurfaceId++;
 
-	if (ilm_surfaceCreate(
-			reinterpret_cast<t_ilm_nativehandle>(mSurface->mWlSurface),
-			width, height, convertPixelFormat(pixelFormat), &mIlmSurface) !=
-		ILM_SUCCESS)
+	mWlIviSurface = ivi_application_surface_create(iviApplication,
+												   mIlmSurfaceId,
+												   mSurface->mWlSurface);
+
+	if (!mWlIviSurface)
 	{
-		throw Exception("Can't create ivi surface");
+		throw Exception("Can't create IVI surface");
 	}
 
-	LOG(mLog, DEBUG) << "Create, surface id: " << mIlmSurface;
+	LOG(mLog, DEBUG) << "Create, surface id: " << mIlmSurfaceId;
 }
 
 void IviSurface::release()
 {
-	if (mIlmSurface != INVALID_ID)
+	if (mWlIviSurface)
 	{
-		ilm_surfaceRemove(mIlmSurface);
+		ivi_surface_destroy(mWlIviSurface);
 
 		LOG(mLog, DEBUG) << "Delete";
 	}
-}
-
-ilmPixelFormat IviSurface::convertPixelFormat(uint32_t pixelFormat)
-{
-	auto result = sPixelFormatMap.find(pixelFormat);
-
-	if (result == sPixelFormatMap.end())
-	{
-		return ILM_PIXEL_FORMAT_UNKNOWN;
-	}
-
-	return result->second;
 }
 
 }
