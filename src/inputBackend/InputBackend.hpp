@@ -93,8 +93,8 @@ public:
 	 * @param devId        device id
 	 */
 	InputBackend(ConfigPtr config, InputItf::InputManagerPtr inputManager,
-				 const std::string& deviceName, domid_t domId) :
-		BackendBase("VkbdBackend", deviceName, domId),
+				 const std::string& deviceName) :
+		BackendBase("VkbdBackend", deviceName),
 		mConfig(config),
 		mInputManager(inputManager)
 		{}

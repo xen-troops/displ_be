@@ -139,9 +139,8 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
 
 DisplayBackend::DisplayBackend(ConfigPtr config,
 							   DisplayPtr display,
-							   const string& deviceName,
-							   domid_t domId) :
-	BackendBase("DisplBackend", deviceName, domId),
+							   const string& deviceName) :
+	BackendBase("DisplBackend", deviceName),
 	mConfig(config),
 	mDisplay(display)
 {
