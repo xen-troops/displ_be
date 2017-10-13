@@ -128,8 +128,7 @@ public:
 	 */
 	DisplayBackend(ConfigPtr config,
 				   DisplayItf::DisplayPtr display,
-				   const std::string& deviceName,
-				   domid_t domId);
+				   const std::string& deviceName);
 
 protected:
 

@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
 #ifdef WITH_DISPLAY
 			DisplayItf::DisplayPtr display = getDisplay(config);
 			DisplayBackend displayBackend(config, display,
-										  XENDISPL_DRIVER_NAME, 0);
+										  XENDISPL_DRIVER_NAME);
 			displayBackend.start();
 #endif
 
@@ -340,7 +340,7 @@ int main(int argc, char *argv[])
 			}
 
 			InputBackend inputBackend(config, inputManager,
-									  XENKBD_DRIVER_NAME, 0);
+									  XENKBD_DRIVER_NAME);
 
 			inputBackend.start();
 #endif //WITH_INPUT
