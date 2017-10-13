@@ -94,8 +94,8 @@ install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 # Libraries
 ################################################################################
 
-if(WITH_INPUT)
-	add_dependencies (input display)
+if(WITH_INPUT AND (WITH_DMR OR WITH_WAYLAND))
+	add_dependencies(input display)
 endif()
 
 if(WITH_DRM OR WITH_WAYLAND)
