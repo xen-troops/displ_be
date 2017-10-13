@@ -224,19 +224,26 @@ Config::DisplayMode Config::readDisplayMode()
 
 int Config::readWlConnectorsCount()
 {
-	string sectionName = "display.wayland.connectors";
-
-	try
+	if (mDisplayMode == DisplayMode::WAYLAND)
 	{
-		auto count = mConfig.lookup(sectionName).getLength();
+		string sectionName = "display.wayland.connectors";
 
-		LOG(mLog, DEBUG) << sectionName << " count: " << count;
+		try
+		{
+			auto count = mConfig.lookup(sectionName).getLength();
 
-		return count;
+			LOG(mLog, DEBUG) << sectionName << " count: " << count;
+
+			return count;
+		}
+		catch(const SettingNotFoundException& e)
+		{
+			throw ConfigException("Config: error reading " + sectionName);
+		}
 	}
-	catch(const SettingNotFoundException& e)
+	else
 	{
-		throw ConfigException("Config: error reading " + sectionName);
+		return 0;
 	}
 }
 
