@@ -26,8 +26,6 @@
 #include <cstring>
 #include <sys/mman.h>
 
-#include <wayland-client.h>
-
 #include <xen/errno.h>
 
 using std::hex;
