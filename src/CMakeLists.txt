@@ -23,7 +23,7 @@ if(WITH_WAYLAND)
 	endif()
 endif()
 
-if(WITH_IVI_EXTENSION)
+if(WITH_IVI_EXTENSION AND WITH_WAYLAND)
 	pkg_check_modules (IVI_APP REQUIRED ivi-application)
 	if(!IVI_APP_FOUND)
 		message(FATAL_ERROR "No ivi-application found")
