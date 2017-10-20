@@ -67,7 +67,7 @@ Config::Config(const string& fileName) :
  * Public
  ******************************************************************************/
 
-void Config::displayDomParams(int idx, std::string& name, uint16_t& devId,
+void Config::displayDomParams(int idx, string& name, uint16_t& devId,
 							  int& connectorsCount)
 {
 	string sectionName = "display.doms";
@@ -91,30 +91,16 @@ void Config::displayDomParams(int idx, std::string& name, uint16_t& devId,
 	}
 }
 
-void Config::inputKeyboard(int idx, int& id, bool& wayland, string& name)
-{
-	readInputSection("input.keyboards", idx, id, wayland, name);
-}
-
-void Config::inputPointer(int idx, int& id, bool& wayland, string& name)
-{
-	readInputSection("input.pointers", idx, id, wayland, name);
-}
-
-void Config::inputTouch(int idx, int& id, bool& wayland, string& name)
-{
-	readInputSection("input.touches", idx, id, wayland, name);
-}
-
-std::string Config::displayDomConnectorName(const std::string& domName,
-											uint16_t devId,
-											int idx)
+string Config::displayDomConnectorName(const string& domName,
+									   uint16_t devId, int idx)
 {
 	string sectionName = "display.doms";
 
 	try
 	{
-		Setting& domain = findSettingByDomain(sectionName, domName, devId);
+		int index;
+		Setting& domain = findSettingByDomain(sectionName, domName, devId,
+											  index);
 		Setting& connectors = domain.lookup("connectors");
 
 		if ((idx >= connectors.getLength()) || (idx < 0))
@@ -135,19 +121,40 @@ std::string Config::displayDomConnectorName(const std::string& domName,
 	}
 }
 
-bool Config::domKeyboardId(const std::string& domName, uint16_t devId, int& id)
+int Config::inputDomIndex(const string& domName, uint16_t devId) const
 {
-	return readInputId("keyboardId", domName, devId, id);
+	string sectionName = "display.doms";
+
+	try
+	{
+		int index;
+
+		findSettingByDomain(sectionName, domName, devId, index);
+
+		LOG(mLog, DEBUG) << "Dom name: " << domName << ", dev id: " << devId
+						 << ", index: " << index;
+
+		return index;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading " + sectionName);
+	}
 }
 
-bool Config::domPointerId(const std::string& domName, uint16_t devId, int& id)
+void Config::inputKeyboard(int idx, string& device, string& connector)
 {
-	return readInputId("pointerId", domName, devId, id);
+	readInputParams(idx, "keyboard", device, connector);
 }
 
-bool Config::domTouchId(const std::string& domName, uint16_t devId, int& id)
+void Config::inputPointer(int idx, string& device, string& connector)
 {
-	return readInputId("touchId", domName, devId, id);
+	readInputParams(idx, "pointer", device, connector);
+}
+
+void Config::inputTouch(int idx, string& device, string& connector)
+{
+	readInputParams(idx, "touch", device, connector);
 }
 
 /*******************************************************************************
@@ -157,10 +164,8 @@ bool Config::domTouchId(const std::string& domName, uint16_t devId, int& id)
 void Config::initCachedValues()
 {
 	mDisplayMode = readDisplayMode();
-	mDisplayDomainsCount = readDomainsCount();
-	mInputKeyboardsCount = readInputsCount("input.keyboards");
-	mInputPointersCount = readInputsCount("input.pointers");
-	mInputTouchesCount = readInputsCount("input.touches");
+	mDisplayDomainsCount = readSectionCount("display.doms");
+	mInputDomainsCount = readSectionCount("input.doms");
 }
 
 Config::DisplayMode Config::readDisplayMode()
@@ -184,10 +189,8 @@ Config::DisplayMode Config::readDisplayMode()
 	return DisplayMode::DRM;
 }
 
-int Config::readDomainsCount()
+int Config::readSectionCount(const string& sectionName)
 {
-	string sectionName = "display.doms";
-
 	try
 	{
 		auto count = mConfig.lookup(sectionName).getLength();
@@ -202,30 +205,29 @@ int Config::readDomainsCount()
 	}
 }
 
-void Config::readInputSection(const string& sectionName, int idx, int& id,
-							  bool& wayland, string& name)
+void Config::readInputParams(int idx, const string& paramName,
+		 	 	 	 	 	 string& device, string& connector)
 {
+	string sectionName = "input.doms";
+
 	try
 	{
-		Setting& setting = mConfig.lookup(sectionName)[idx];
+		device.clear();
+		connector.clear();
 
-		id = setting.lookup("id");
+		Setting& domSetting = mConfig.lookup(sectionName)[idx];
 
-		wayland = false;
-
-		setting.lookupValue("wayland", wayland);
-
-		if (wayland)
+		if (domSetting.exists(paramName))
 		{
-			name = static_cast<const char*>(setting.lookup("conName"));
-		}
-		else
-		{
-			name = static_cast<const char*>(setting.lookup("device"));
+			Setting& inputSetting = domSetting.lookup(paramName);
+
+			inputSetting.lookupValue("device", device);
+			inputSetting.lookupValue("connector", connector);
 		}
 
-		LOG(mLog, DEBUG) << sectionName << "[" << idx << "] id: " << id
-						 << ", wayland: " << wayland << ", name: " << name;
+		LOG(mLog, DEBUG) << sectionName << "[" << idx << "]." << paramName
+						 << " device: " << device
+						 << ", connector: " << connector;
 	}
 	catch(const SettingException& e)
 	{
@@ -233,43 +235,9 @@ void Config::readInputSection(const string& sectionName, int idx, int& id,
 	}
 }
 
-int Config::readInputsCount(const std::string& sectionName)
-{
-	int count = 0;
-
-	if (mConfig.exists(sectionName))
-	{
-		count = mConfig.lookup(sectionName).getLength();
-	}
-
-	LOG(mLog, DEBUG) << sectionName << " count: " << count;
-
-	return count;
-}
-
-bool Config::readInputId(const string& settingName, const string& domName,
-						 uint16_t devId, int& id)
-{
-	string sectionName = "input.doms";
-
-	if (mConfig.exists(sectionName))
-	{
-		Setting& domain = findSettingByDomain(sectionName, domName, devId);
-
-		if (domain.lookupValue(settingName, id))
-		{
-			LOG(mLog, DEBUG) << "Dom name: " << domName << ", dev id: " << devId
-							 << ", " << settingName << ": " << id;
-
-			return true;
-		}
-	}
-
-	return false;
-}
-
 Setting& Config::findSettingByDomain(const string& sectionName,
-									 const string& domName, uint16_t devId)
+									 const string& domName, uint16_t devId,
+									 int& index) const
 {
 	try
 	{
@@ -285,6 +253,8 @@ Setting& Config::findSettingByDomain(const string& sectionName,
 
 			if ((name == domName) && (id == devId))
 			{
+				index = i;
+
 				return section[i];
 			}
 		}

@@ -81,58 +81,34 @@ void InputFrontendHandler::onClosing()
 
 void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer)
 {
-	try
-	{
-		int id;
+	auto keyboard =  mInputManager->getKeyboard(
+			mConfig->inputDomIndex(getDomName(), getDevId()));
 
-		if (mConfig->domKeyboardId(getDomName(), getDevId(), id))
-		{
-			mKeyboardHandler.reset(
-					new KeyboardHandler(mInputManager->getKeyboard(id),
-										ringBuffer));
-		}
-	}
-	catch(const InputItf::Exception& e)
+	if (keyboard)
 	{
-		LOG(mLog, WARNING) << e.what();
+		mKeyboardHandler.reset( new KeyboardHandler(keyboard, ringBuffer));
 	}
 }
 
 void InputFrontendHandler::createPointerHandler(InputRingBufferPtr ringBuffer)
 {
-	try
-	{
-		int id;
+	auto pointer =  mInputManager->getPointer(
+			mConfig->inputDomIndex(getDomName(), getDevId()));
 
-		if (mConfig->domPointerId(getDomName(), getDevId(), id))
-		{
-			mPointerHandler.reset(
-					new PointerHandler(mInputManager->getPointer(id),
-									   ringBuffer));
-		}
-	}
-	catch(const InputItf::Exception& e)
+	if (pointer)
 	{
-		LOG(mLog, WARNING) << e.what();
+		mPointerHandler.reset(new PointerHandler(pointer, ringBuffer));
 	}
 }
 
 void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer)
 {
-	try
-	{
-		int id;
+	auto touch =  mInputManager->getTouch(
+			mConfig->inputDomIndex(getDomName(), getDevId()));
 
-		if (mConfig->domTouchId(getDomName(), getDevId(), id))
-		{
-			mTouchHandler.reset(
-					new TouchHandler(mInputManager->getTouch(id),
-									 ringBuffer));
-		}
-	}
-	catch(const InputItf::Exception& e)
+	if (touch)
 	{
-		LOG(mLog, WARNING) << e.what();
+		mTouchHandler.reset(new TouchHandler(touch, ringBuffer));
 	}
 }
 

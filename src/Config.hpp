@@ -106,76 +106,38 @@ public:
 										int idx);
 
 	/**
-	 * Returns number of defined keyboards
+	 * Returns number of defined input domains
 	 */
-	int inputKeyboardsCount() const { return mInputKeyboardsCount; }
+	int inputDomsCount() const { return mInputDomainsCount; }
 
 	/**
-	 * Returns parameters of defined keyboard
-	 * @param[in]  idx     keyboard index
-	 * @param[out] id      keyboard id
-	 * @param[out] wayland indicates if it is virtual wayland keyboard
-	 * @param[out] name    if wayland is <i>true</i>, name of associated
-	 * connector. Otherwise, device name /dev/input/event...
+	 * Returns index of domain and devId in input domains
 	 */
-	void inputKeyboard(int idx, int& id, bool& wayland, std::string& name);
+	int inputDomIndex(const std::string& domName, uint16_t devId) const;
 
 	/**
-	 * Return number of defined pointers
+	 * Returns parameters of defined domain keyboard
+	 * @param[in]  idx     domain index
+	 * @param[out] device  input device name /dev/input/event...
+	 * @param[out] connector wl connector
 	 */
-	int inputPointersCount() const { return mInputPointersCount; }
+	void inputKeyboard(int idx, std::string& device, std::string& connector);
 
 	/**
-	 * Returns parameters of defined pointer
-	 * @param[in]  idx     pointer index
-	 * @param[out] id      pointer id
-	 * @param[out] wayland indicates if it is virtual wayland pointer
-	 * @param[out] name    if wayland is <i>true</i>, name of associated
-	 * connector. Otherwise, device name /dev/input/event...
+	 * Returns parameters of defined domain pointer
+	 * @param[in]  idx     domain index
+	 * @param[out] device  input device name /dev/input/event...
+	 * @param[out] connector wl connector
 	 */
-	void inputPointer(int idx, int& id, bool& wayland, std::string& name);
+	void inputPointer(int idx, std::string& device, std::string& connector);
 
 	/**
-	 * Return number of defined touches
+	 * Returns parameters of defined domain touch
+	 * @param[in]  idx     domain index
+	 * @param[out] device  input device name /dev/input/event...
+	 * @param[out] connector wl connector
 	 */
-	int inputTouchesCount() const { return mInputTouchesCount; }
-
-	/**
-	 * Returns parameters of defined touch
-	 * @param[in]  idx     touch index
-	 * @param[out] id      touch id
-	 * @param[out] wayland indicates if it is virtual wayland touch
-	 * @param[out] name    if wayland is <i>true</i>, name of associated
-	 * connector. Otherwise, device name /dev/input/event...
-	 */
-	void inputTouch(int idx, int& id, bool& wayland, std::string& name);
-
-	/**
-	 * Return keyboard id for specified frontend
-	 * @param[in]  domName domain name
-	 * @param[in]  devId   device id
-	 * @param[out] id      keyboard id
-	 * @return <i>true</i> if keyboard id is defined
-	 */
-	bool domKeyboardId(const std::string& domName, uint16_t devId, int& id);
-
-	/**
-	 * Return pointer id for specified frontend
-	 * @param[in]  domName domain name
-	 * @param[in]  devId   device id
-	 * @param[out] id      pointer id
-	 * @return <i>true</i> if pointer id is defined
-	 */
-	bool domPointerId(const std::string& domName, uint16_t devId, int& id);
-
-	/**
-	 * Return touch id for specified frontend
-	 * @param[in]  domName domain name
-	 * @param[in]  devId   device id
-	 * @param[out] id      touch id
-	 * @return <i>true</i> if touch id is defined
-	 */
-	bool domTouchId(const std::string& domName, uint16_t devId, int& id);
+	void inputTouch(int idx, std::string& device, std::string& connector);
 
 private:
 
@@ -186,24 +148,17 @@ private:
 
 	DisplayMode mDisplayMode;
 	int mDisplayDomainsCount;
-	int mInputKeyboardsCount;
-	int mInputPointersCount;
-	int mInputTouchesCount;
+	int mInputDomainsCount;
 
 	void initCachedValues();
 	DisplayMode readDisplayMode();
-	int readDomainsCount();
-	int readInputKeyboardsCount();
-	int readInputPointersCount();
-	int readInputTouchesCount();
-	void readInputSection(const std::string& sectionName, int idx,
-						  int& id, bool& wayland, std::string& name);
-	int readInputsCount(const std::string& sectionName);
-	bool readInputId(const std::string& settingName, const std::string& domName,
-					 uint16_t devId, int& id);
+	int readSectionCount(const std::string& sectionName);
+	void readInputParams(int idx, const std::string& paramName,
+						 std::string& device, std::string& connector);
 	libconfig::Setting& findSettingByDomain(const std::string& sectionName,
 											const std::string& domName,
-											uint16_t devId);
+											uint16_t devId,
+											int& index) const;
 };
 
 typedef std::shared_ptr<Config> ConfigPtr;
