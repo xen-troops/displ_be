@@ -60,9 +60,6 @@ using std::transform;
 
 using XenBackend::Log;
 
-const uint32_t cWlBackgroundWidth = 1920;
-const uint32_t cWlBackgroundHeight = 1080;
-
 string gCfgFileName;
 string gLogFileName;
 
