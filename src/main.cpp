@@ -158,13 +158,19 @@ DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
 	// Wayland
 	Wayland::DisplayPtr wlDisplay(new Wayland::Display());
 
-	string name;
-
-	for (int i = 0; i < config->wlConnectorsCount(); i++)
+	for (int i = 0; i < config->displayDomsCount(); i++)
 	{
-		config->wlConnector(i, name);
+		string domName;
+		uint16_t devId;
+		int connectorsCount;
 
-		wlDisplay->createConnector(name);
+		config->displayDomParams(i, domName, devId, connectorsCount);
+
+		for (int j = 0; j < connectorsCount; j++)
+		{
+			wlDisplay->createConnector(
+					config->displayDomConnectorName(domName, devId, j));
+		}
 	}
 
 	return wlDisplay;

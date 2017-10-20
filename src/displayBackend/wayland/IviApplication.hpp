@@ -29,7 +29,7 @@ public:
 	 * Creates IVI surface
 	 * @param surface surface
 	 */
-	IviSurfacePtr createIviSurface(SurfacePtr surface);
+	IviSurfacePtr createIviSurface(SurfacePtr surface, uint32_t surfaceId);
 
 private:
 

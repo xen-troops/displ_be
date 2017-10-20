@@ -18,9 +18,10 @@ namespace Wayland {
  * IviSurface
  ******************************************************************************/
 
-IviSurface::IviSurface(ivi_application* iviApplication, SurfacePtr surface) :
+IviSurface::IviSurface(ivi_application* iviApplication, SurfacePtr surface,
+					   uint32_t surfaceId) :
 	mWlIviSurface(nullptr),
-	mIlmSurfaceId(0),
+	mIlmSurfaceId(surfaceId),
 	mSurface(surface),
 	mLog("IviSurface")
 {
@@ -51,10 +52,6 @@ IviSurface::~IviSurface()
 
 void IviSurface::init(ivi_application* iviApplication)
 {
-	static t_ilm_surface sSurfaceId = 1000;
-
-	mIlmSurfaceId = sSurfaceId++;
-
 	mWlIviSurface = ivi_application_surface_create(iviApplication,
 												   mIlmSurfaceId,
 												   mSurface->mWlSurface);

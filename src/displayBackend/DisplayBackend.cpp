@@ -24,6 +24,10 @@
 
 #include <xen/be/XenStore.hpp>
 
+#ifdef WITH_IVI_EXTENSION
+#include "wayland/Connector.hpp"
+#endif
+
 /***************************************************************************//**
  * @mainpage displ_be
  *
@@ -32,6 +36,7 @@
  *
  ******************************************************************************/
 
+using std::dynamic_pointer_cast;
 using std::string;
 using std::to_string;
 using std::vector;
@@ -121,11 +126,23 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
 
 	ref = getXenStore().readInt(conPath + XENDISPL_FIELD_REQ_RING_REF);
 
-	auto connectorName = mConfig->domConnectorName(getDomName(), getDevId(),
-												   conIndex);
+	auto connectorName = mConfig->displayDomConnectorName(getDomName(),
+														  getDevId(),
+														  conIndex);
+
+	auto connector = mDisplay->getConnectorByName(connectorName);
+
+#ifdef WITH_IVI_EXTENSION
+	auto iviConnector = dynamic_pointer_cast<Wayland::IviConnector>(connector);
+
+	if (iviConnector)
+	{
+		iviConnector->setSurfaceId(getXenStore().readInt(conPath + "id"));
+	}
+#endif
 
 	CtrlRingBufferPtr ctrlRingBuffer(
-			new CtrlRingBuffer(mDisplay->getConnectorByName(connectorName),
+			new CtrlRingBuffer(connector,
 							   bufferStorage,
 							   eventRingBuffer,
 							   getDomId(), port, ref));

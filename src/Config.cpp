@@ -67,17 +67,23 @@ Config::Config(const string& fileName) :
  * Public
  ******************************************************************************/
 
-void Config::wlConnector(int idx, string& name)
+void Config::displayDomParams(int idx, std::string& name, uint16_t& devId,
+							  int& connectorsCount)
 {
-	string sectionName = "display.wayland.connectors";
+	string sectionName = "display.doms";
 
 	try
 	{
-		Setting& conSetting = mConfig.lookup(sectionName)[idx];
+		Setting& domSetting = mConfig.lookup(sectionName)[idx];
 
-		name = static_cast<const char*>(conSetting.lookup("name"));
+		name = static_cast<const char*>(domSetting.lookup("name"));
+		devId = static_cast<int>(domSetting.lookup("devId"));
+		connectorsCount = domSetting.lookup("connectors").getLength();
 
-		LOG(mLog, DEBUG) << sectionName << "[" << idx << "] name: " << name;
+		LOG(mLog, DEBUG) << sectionName << "[" << idx
+						 << "] name: " << name
+						 << ", devId: " << devId
+						 << ", connectors count: " << connectorsCount;
 	}
 	catch(const SettingException& e)
 	{
@@ -100,8 +106,9 @@ void Config::inputTouch(int idx, int& id, bool& wayland, string& name)
 	readInputSection("input.touches", idx, id, wayland, name);
 }
 
-std::string Config::domConnectorName(const std::string& domName, uint16_t devId,
-							 int idx)
+std::string Config::displayDomConnectorName(const std::string& domName,
+											uint16_t devId,
+											int idx)
 {
 	string sectionName = "display.doms";
 
@@ -150,7 +157,7 @@ bool Config::domTouchId(const std::string& domName, uint16_t devId, int& id)
 void Config::initCachedValues()
 {
 	mDisplayMode = readDisplayMode();
-	mWlConnectorsCount = readWlConnectorsCount();
+	mDisplayDomainsCount = readDomainsCount();
 	mInputKeyboardsCount = readInputsCount("input.keyboards");
 	mInputPointersCount = readInputsCount("input.pointers");
 	mInputTouchesCount = readInputsCount("input.touches");
@@ -177,28 +184,21 @@ Config::DisplayMode Config::readDisplayMode()
 	return DisplayMode::DRM;
 }
 
-int Config::readWlConnectorsCount()
+int Config::readDomainsCount()
 {
-	if (mDisplayMode == DisplayMode::WAYLAND)
+	string sectionName = "display.doms";
+
+	try
 	{
-		string sectionName = "display.wayland.connectors";
+		auto count = mConfig.lookup(sectionName).getLength();
 
-		try
-		{
-			auto count = mConfig.lookup(sectionName).getLength();
+		LOG(mLog, DEBUG) << sectionName << " count: " << count;
 
-			LOG(mLog, DEBUG) << sectionName << " count: " << count;
-
-			return count;
-		}
-		catch(const SettingNotFoundException& e)
-		{
-			throw ConfigException("Config: error reading " + sectionName);
-		}
+		return count;
 	}
-	else
+	catch(const SettingNotFoundException& e)
 	{
-		return 0;
+		throw ConfigException("Config: error reading " + sectionName);
 	}
 }
 
