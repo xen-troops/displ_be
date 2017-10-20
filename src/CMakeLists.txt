@@ -33,7 +33,7 @@ if(WITH_IVI_EXTENSION AND WITH_WAYLAND)
 	if(!ILM_CTRL_FOUND)
 		message(FATAL_ERROR "No ilmControl found")
 	endif()
-	
+
 	pkg_check_modules (ILM_COMMON REQUIRED ilmCommon)
 	if(!ILM_COMMON_FOUND)
 		message(FATAL_ERROR "No ilmCommon found")
