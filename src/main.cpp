@@ -181,116 +181,75 @@ DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
 #endif
 
 #ifdef WITH_INPUT
-InputItf::InputManagerPtr getInputManager(ConfigPtr config)
+InputItf::InputManagerPtr getInputManager(
+#ifdef WITH_WAYLAND
+										  Wayland::DisplayPtr display,
+#endif
+										  ConfigPtr config
+		)
 {
 	Input::InputManagerPtr inputManager(new Input::InputManager());
-	int id;
-	bool wayland;
-	string name;
 
-	for(int i = 0; i < config->inputKeyboardsCount(); i++)
+	for (int i = 0; i < config->inputDomsCount(); i++)
 	{
-		config->inputKeyboard(i, id, wayland, name);
+		string connector;
+		string device;
 
-		if (wayland)
+		config->inputKeyboard(i, device, connector);
+
+		if (!connector.empty())
 		{
+#ifdef WITH_WAYLAND
+			inputManager->createWlKeyboard(i, connector);
+#else
 			throw InputItf::Exception(
 					"Can't create wayland keyboard. Wayland is not supported.");
+#endif
 		}
-		else
+
+		if (!device.empty())
 		{
-			inputManager->createInputKeyboard(id, name);
+			inputManager->createInputKeyboard(i, device);
 		}
-	}
 
-	for(int i = 0; i < config->inputPointersCount(); i++)
-	{
-		config->inputPointer(i, id, wayland, name);
+		config->inputPointer(i, connector, device);
 
-		if (wayland)
+		if (!connector.empty())
 		{
-			throw InputItf::Exception(
-					"Can't create wayland pointer. Wayland is not supported.");
-		}
-		else
-		{
-			inputManager->createInputPointer(id, name);
-		}
-	}
-
-	for(int i = 0; i < config->inputTouchesCount(); i++)
-	{
-		config->inputTouch(i, id, wayland, name);
-
-		if (wayland)
-		{
-			throw InputItf::Exception(
-					"Can't create wayland touch. Wayland is not supported.");
-		}
-		else
-		{
-			inputManager->createInputTouch(id, name);
-		}
-	}
-
-	return inputManager;
-}
-
 #ifdef WITH_WAYLAND
-InputItf::InputManagerPtr getInputManager(Wayland::DisplayPtr display,
-										  ConfigPtr config)
-{
-	Input::InputManagerPtr inputManager(new Input::InputManager(display));
-
-	int id;
-	bool wayland;
-	string name;
-
-	for(int i = 0; i < config->inputKeyboardsCount(); i++)
-	{
-		config->inputKeyboard(i, id, wayland, name);
-
-		if (wayland)
-		{
-			inputManager->createWlKeyboard(id, name);
+			inputManager->createWlPointer(i, connector);
+#else
+			throw InputItf::Exception(
+					"Can't create wayland keyboard. Wayland is not supported.");
+#endif
 		}
-		else
-		{
-			inputManager->createInputKeyboard(id, name);
-		}
-	}
 
-	for(int i = 0; i < config->inputPointersCount(); i++)
-	{
-		config->inputPointer(i, id, wayland, name);
-
-		if (wayland)
+		if (!device.empty())
 		{
-			inputManager->createWlPointer(id, name);
+			inputManager->createInputPointer(i, device);
 		}
-		else
-		{
-			inputManager->createInputPointer(id, name);
-		}
-	}
 
-	for(int i = 0; i < config->inputTouchesCount(); i++)
-	{
-		config->inputTouch(i, id, wayland, name);
+		config->inputTouch(i, connector, device);
 
-		if (wayland)
+		if (!connector.empty())
 		{
-			inputManager->createWlTouch(id, name);
+#ifdef WITH_WAYLAND
+			inputManager->createWlTouch(i, connector);
+#else
+			throw InputItf::Exception(
+					"Can't create wayland keyboard. Wayland is not supported.");
+#endif
 		}
-		else
+
+		if (!device.empty())
 		{
-			inputManager->createInputTouch(id, name);
+			inputManager->createInputTouch(i, device);
 		}
 	}
 
 	return inputManager;
 }
-#endif //WITH_WAYLAND
+
 #endif //WITH_INPUT
 
 int main(int argc, char *argv[])
@@ -321,20 +280,14 @@ int main(int argc, char *argv[])
 #ifdef WITH_INPUT
 			InputItf::InputManagerPtr inputManager;
 
-			if (config->displayMode() == Config::DisplayMode::WAYLAND)
-			{
+			inputManager =
 #ifdef WITH_WAYLAND
-				inputManager = getInputManager(
-						dynamic_pointer_cast<Wayland::Display>(display),
-						config);
+					getInputManager(
+							dynamic_pointer_cast<Wayland::Display>(display),
+							config);
 #else
-				throw InputItf::Exception("Wayland is not supported");
+			getInputManager(config);
 #endif
-			}
-			else
-			{
-				inputManager = getInputManager(config);
-			}
 
 			InputBackend inputBackend(config, inputManager,
 									  XENKBD_DRIVER_NAME);

@@ -164,36 +164,36 @@ KeyboardPtr InputManager::getKeyboard(int id)
 {
 	auto iter = mKeyboards.find(id);
 
-	if (iter == mKeyboards.end())
+	if (iter != mKeyboards.end())
 	{
-		throw Exception("Wrong keyboard id " + to_string(id));
+		return iter->second;
 	}
 
-	return iter->second;
+	return KeyboardPtr();
 }
 
 PointerPtr InputManager::getPointer(int id)
 {
 	auto iter = mPointers.find(id);
 
-	if (iter == mPointers.end())
+	if (iter != mPointers.end())
 	{
-		throw Exception("Wrong pointer id " + to_string(id));
+		return iter->second;
 	}
 
-	return iter->second;
+	return PointerPtr();
 }
 
 TouchPtr InputManager::getTouch(int id)
 {
 	auto iter = mTouches.find(id);
 
-	if (iter == mTouches.end())
+	if (iter != mTouches.end())
 	{
-		throw Exception("Wrong touch id " + to_string(id));
+		return iter->second;
 	}
 
-	return iter->second;
+	return TouchPtr();
 }
 
 }

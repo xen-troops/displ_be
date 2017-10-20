@@ -7,7 +7,6 @@
 
 #include "IviSurface.hpp"
 
-#include <drm_fourcc.h>
 #include <ilm/ilm_client.h>
 
 #include "Exception.hpp"
