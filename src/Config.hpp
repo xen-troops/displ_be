@@ -82,16 +82,28 @@ public:
 	DisplayMode displayMode() const { return mDisplayMode; }
 
 	/**
-	 * Returns number of defined virtual wayland connectors
+	 * Returns number of defined display domains
 	 */
-	int wlConnectorsCount() const { return mWlConnectorsCount; }
+	int displayDomsCount() const { return mDisplayDomainsCount; }
 
 	/**
-	 * Returns parameters of virtual wayland connector
-	 * @param[in]  idx    index of connector
-	 * @param[out] name   connector name
+	 * Returns domain parameters
+	 * @param[in]  idx    domain index
+	 * @param[out] name   domain name
 	 */
-	void wlConnector(int idx, std::string& name);
+	void displayDomParams(int idx, std::string& name, uint16_t& devId,
+						  int& connectorsCount);
+
+	/**
+	 * Returns connector name for specified frontend
+	 * @param[in] domName domain name
+	 * @param[in] devId   device id
+	 * @param[in] idx     connector index
+	 * @return connector name
+	 */
+	std::string displayDomConnectorName(const std::string& domName,
+										uint16_t devId,
+										int idx);
 
 	/**
 	 * Returns number of defined keyboards
@@ -139,16 +151,6 @@ public:
 	void inputTouch(int idx, int& id, bool& wayland, std::string& name);
 
 	/**
-	 * Returns connector name for specified frontend
-	 * @param[in] domName domain name
-	 * @param[in] devId   device id
-	 * @param[in] idx     connector index
-	 * @return connector name
-	 */
-	std::string domConnectorName(const std::string& domName, uint16_t devId,
-								 int idx);
-
-	/**
 	 * Return keyboard id for specified frontend
 	 * @param[in]  domName domain name
 	 * @param[in]  devId   device id
@@ -183,14 +185,14 @@ private:
 	libconfig::Config mConfig;
 
 	DisplayMode mDisplayMode;
-	int mWlConnectorsCount;
+	int mDisplayDomainsCount;
 	int mInputKeyboardsCount;
 	int mInputPointersCount;
 	int mInputTouchesCount;
 
 	void initCachedValues();
 	DisplayMode readDisplayMode();
-	int readWlConnectorsCount();
+	int readDomainsCount();
 	int readInputKeyboardsCount();
 	int readInputPointersCount();
 	int readInputTouchesCount();

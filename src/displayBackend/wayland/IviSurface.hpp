@@ -43,7 +43,8 @@ private:
 	friend class Display;
 	friend class IviApplication;
 
-	IviSurface(ivi_application* iviApplication, SurfacePtr surface);
+	IviSurface(ivi_application* iviApplication, SurfacePtr surface,
+			   uint32_t surfaceId);
 
 	ivi_surface* mWlIviSurface;
 	uint32_t mIlmSurfaceId;

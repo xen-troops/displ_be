@@ -167,7 +167,8 @@ public:
 	void init(uint32_t width, uint32_t height,
 			  DisplayItf::FrameBufferPtr frameBuffer) override
 	{
-		mIviSurface = mIviApplication->createIviSurface(getSurface());
+		mIviSurface = mIviApplication->createIviSurface(getSurface(),
+														mSurfaceId);
 
 		Connector::init(width, height, frameBuffer);
 	}
@@ -182,6 +183,11 @@ public:
 		mIviSurface.reset();
 	}
 
+	/**
+	 * Sets surface Id
+	 */
+	void setSurfaceId(uint32_t surfaceId) { mSurfaceId = surfaceId; }
+
 private:
 
 	friend class Display;
@@ -189,10 +195,12 @@ private:
 	IviConnector(const std::string& name, IviApplicationPtr iviApplication,
 				 SurfacePtr surface) :
 		Connector(name, surface),
-		mIviApplication(iviApplication) {}
+		mIviApplication(iviApplication),
+		mSurfaceId(0) {}
 
 	IviApplicationPtr mIviApplication;
 	IviSurfacePtr mIviSurface;
+	uint32_t mSurfaceId;
 };
 #endif
 

@@ -44,11 +44,12 @@ IviApplication::~IviApplication()
  * Public
  ******************************************************************************/
 
-IviSurfacePtr IviApplication::createIviSurface(SurfacePtr surface)
+IviSurfacePtr IviApplication::createIviSurface(SurfacePtr surface,
+											   uint32_t surfaceId)
 {
-	LOG(mLog, DEBUG) << "Create ivi surface";
+	LOG(mLog, DEBUG) << "Create ivi surface, id: " << surfaceId;
 
-	return IviSurfacePtr(new IviSurface(mWlIviApplication, surface));
+	return IviSurfacePtr(new IviSurface(mWlIviApplication, surface, surfaceId));
 }
 
 /*******************************************************************************
