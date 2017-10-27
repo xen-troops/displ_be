@@ -74,9 +74,12 @@ private:
 	std::unique_ptr<PointerHandler> mPointerHandler;
 	std::unique_ptr<TouchHandler> mTouchHandler;
 
-	void createKeyboardHandler(InputRingBufferPtr ringBuffer);
-	void createPointerHandler(InputRingBufferPtr ringBuffer);
-	void createTouchHandler(InputRingBufferPtr ringBuffer);
+	void createKeyboardHandler(InputRingBufferPtr ringBuffer,
+							   const std::string& id);
+	void createPointerHandler(InputRingBufferPtr ringBuffer,
+							  const std::string& id);
+	void createTouchHandler(InputRingBufferPtr ringBuffer,
+							const std::string& id);
 };
 
 /***************************************************************************//**

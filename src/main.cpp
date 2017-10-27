@@ -57,6 +57,7 @@ using std::string;
 using std::this_thread::sleep_for;
 using std::toupper;
 using std::transform;
+using std::vector;
 
 using XenBackend::Log;
 
@@ -158,19 +159,13 @@ DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
 	// Wayland
 	Wayland::DisplayPtr wlDisplay(new Wayland::Display());
 
-	for (int i = 0; i < config->displayDomsCount(); i++)
+	vector<Config::Connector> connectors;
+
+	config->getConnectors(connectors);
+
+	for (auto connector : connectors)
 	{
-		string domName;
-		uint16_t devId;
-		int connectorsCount;
-
-		config->displayDomParams(i, domName, devId, connectorsCount);
-
-		for (int j = 0; j < connectorsCount; j++)
-		{
-			wlDisplay->createConnector(
-					config->displayDomConnectorName(domName, devId, j));
-		}
+		wlDisplay->createConnector(connector.name, connector.surfaceId);
 	}
 
 	return wlDisplay;
@@ -190,60 +185,66 @@ InputItf::InputManagerPtr getInputManager(
 {
 	Input::InputManagerPtr inputManager(new Input::InputManager());
 
-	for (int i = 0; i < config->inputDomsCount(); i++)
+	vector<Config::Input> inputs;
+
+	config->getKeyboards(inputs);
+
+	for (auto keyboard : inputs)
 	{
-		string connector;
-		string device;
-
-		config->inputKeyboard(i, device, connector);
-
-		if (!connector.empty())
+		if (!keyboard.connector.empty())
 		{
 #ifdef WITH_WAYLAND
-			inputManager->createWlKeyboard(i, connector);
+			inputManager->createWlKeyboard(keyboard.id, keyboard.connector);
 #else
 			throw InputItf::Exception(
 					"Can't create wayland keyboard. Wayland is not supported.");
 #endif
 		}
 
-		if (!device.empty())
+		if (!keyboard.device.empty())
 		{
-			inputManager->createInputKeyboard(i, device);
+			inputManager->createInputKeyboard(keyboard.id, keyboard.device);
 		}
+	}
 
-		config->inputPointer(i, connector, device);
+	config->getPointers(inputs);
 
-		if (!connector.empty())
+	for (auto pointer : inputs)
+	{
+		if (!pointer.connector.empty())
 		{
 #ifdef WITH_WAYLAND
-			inputManager->createWlPointer(i, connector);
+			inputManager->createWlPointer(pointer.id, pointer.connector);
 #else
 			throw InputItf::Exception(
-					"Can't create wayland keyboard. Wayland is not supported.");
+					"Can't create wayland pointer. Wayland is not supported.");
 #endif
 		}
 
-		if (!device.empty())
+		if (!pointer.device.empty())
 		{
-			inputManager->createInputPointer(i, device);
+			inputManager->createInputPointer(pointer.id, pointer.device);
 		}
 
-		config->inputTouch(i, connector, device);
+	}
 
-		if (!connector.empty())
+	config->getTouches(inputs);
+
+	for (auto touch : inputs)
+	{
+		if (!touch.connector.empty())
 		{
 #ifdef WITH_WAYLAND
-			inputManager->createWlTouch(i, connector);
+			inputManager->createWlTouch(touch.id, touch.connector);
 #else
 			throw InputItf::Exception(
-					"Can't create wayland keyboard. Wayland is not supported.");
+					"Can't create wayland touch. Wayland is not supported.");
 #endif
 		}
 
-		if (!device.empty())
+		if (!touch.device.empty())
 		{
-			inputManager->createInputTouch(i, device);
+			inputManager->createInputTouch(touch.id, touch.device);
 		}
 	}
 

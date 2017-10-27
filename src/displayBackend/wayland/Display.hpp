@@ -64,9 +64,11 @@ public:
 	/**
 	 * Creates virtual connector
 	 * @param name       connector name
+	 * @param surfaceId  surface id
 	 * @return created connector
 	 */
-	DisplayItf::ConnectorPtr createConnector(const std::string& name);
+	DisplayItf::ConnectorPtr createConnector(const std::string& name,
+											 uint32_t surfaceId = 0);
 
 	/**
 	 * Starts events handling

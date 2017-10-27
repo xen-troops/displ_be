@@ -70,7 +70,8 @@ Display::~Display()
  * Public
  ******************************************************************************/
 
-DisplayItf::ConnectorPtr Display::createConnector(const string& name)
+DisplayItf::ConnectorPtr Display::createConnector(const string& name,
+												  uint32_t surfaceId)
 {
 	Connector* connector = nullptr;
 
@@ -85,7 +86,7 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 	else if (mIviApplication)
 	{
 		connector = new IviConnector(name, mIviApplication,
-									 mCompositor->createSurface());
+									 mCompositor->createSurface(), surfaceId);
 
 		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
 	}

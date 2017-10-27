@@ -60,7 +60,8 @@ InputManager::~InputManager()
  ******************************************************************************/
 
 #ifdef WITH_WAYLAND
-KeyboardPtr InputManager::createWlKeyboard(int id, const string& conName)
+KeyboardPtr InputManager::createWlKeyboard(const string& id,
+										   const string& conName)
 {
 	LOG(mLog, DEBUG) << "Create WL keyboard id: " << id
 					 << ", connector: " << conName;
@@ -81,7 +82,8 @@ KeyboardPtr InputManager::createWlKeyboard(int id, const string& conName)
 	return keyboard;
 }
 
-PointerPtr InputManager::createWlPointer(int id, const string& conName)
+PointerPtr InputManager::createWlPointer(const string& id,
+										 const string& conName)
 {
 	LOG(mLog, DEBUG) << "Create WL pointer id: " << id
 					 << ", connector: " << conName;
@@ -102,7 +104,7 @@ PointerPtr InputManager::createWlPointer(int id, const string& conName)
 	return pointer;
 }
 
-TouchPtr InputManager::createWlTouch(int id, const string& conName)
+TouchPtr InputManager::createWlTouch(const string& id, const string& conName)
 {
 	LOG(mLog, DEBUG) << "Create WL touch id: " << id
 					 << ", connector: " << conName;
@@ -124,7 +126,8 @@ TouchPtr InputManager::createWlTouch(int id, const string& conName)
 }
 #endif
 
-KeyboardPtr InputManager::createInputKeyboard(int id, const string& name)
+KeyboardPtr InputManager::createInputKeyboard(const string& id,
+											  const string& name)
 {
 	LOG(mLog, DEBUG) << "Create Input keyboard id: " << id
 					 << ", name: " << name;
@@ -136,7 +139,8 @@ KeyboardPtr InputManager::createInputKeyboard(int id, const string& name)
 	return keyboard;
 }
 
-PointerPtr InputManager::createInputPointer(int id, const string& name)
+PointerPtr InputManager::createInputPointer(const string& id,
+											const string& name)
 {
 	LOG(mLog, DEBUG) << "Create Input pointer id: " << id
 					 << ", name: " << name;
@@ -148,7 +152,7 @@ PointerPtr InputManager::createInputPointer(int id, const string& name)
 	return pointer;
 }
 
-TouchPtr InputManager::createInputTouch(int id, const string& name)
+TouchPtr InputManager::createInputTouch(const string& id, const string& name)
 {
 	LOG(mLog, DEBUG) << "Create Input touch id: " << id
 					 << ", name: " << name;
@@ -160,7 +164,7 @@ TouchPtr InputManager::createInputTouch(int id, const string& name)
 	return touch;
 }
 
-KeyboardPtr InputManager::getKeyboard(int id)
+KeyboardPtr InputManager::getKeyboard(const string& id)
 {
 	auto iter = mKeyboards.find(id);
 
@@ -172,7 +176,7 @@ KeyboardPtr InputManager::getKeyboard(int id)
 	return KeyboardPtr();
 }
 
-PointerPtr InputManager::getPointer(int id)
+PointerPtr InputManager::getPointer(const string& id)
 {
 	auto iter = mPointers.find(id);
 
@@ -184,7 +188,7 @@ PointerPtr InputManager::getPointer(int id)
 	return PointerPtr();
 }
 
-TouchPtr InputManager::getTouch(int id)
+TouchPtr InputManager::getTouch(const string& id)
 {
 	auto iter = mTouches.find(id);
 

@@ -96,9 +96,9 @@ public:
 
 	virtual ~InputManager() {}
 
-	virtual KeyboardPtr getKeyboard(int id) = 0;
-	virtual PointerPtr getPointer(int id) = 0;
-	virtual TouchPtr getTouch(int id) = 0;
+	virtual KeyboardPtr getKeyboard(const std::string& id) = 0;
+	virtual PointerPtr getPointer(const std::string& id) = 0;
+	virtual TouchPtr getTouch(const std::string& id) = 0;
 };
 
 typedef std::shared_ptr<InputManager> InputManagerPtr;
