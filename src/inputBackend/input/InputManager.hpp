@@ -32,19 +32,24 @@ public:
 	~InputManager();
 
 #ifdef WITH_WAYLAND
-	InputItf::KeyboardPtr createWlKeyboard(int id, const std::string& conName);
-	InputItf::PointerPtr createWlPointer(int id, const std::string& conName);
-	InputItf::TouchPtr createWlTouch(int id, const std::string& conName);
+	InputItf::KeyboardPtr createWlKeyboard(const std::string& id,
+										   const std::string& conName);
+	InputItf::PointerPtr createWlPointer(const std::string& id,
+										 const std::string& conName);
+	InputItf::TouchPtr createWlTouch(const std::string& id,
+									 const std::string& conName);
 #endif
 
-	InputItf::KeyboardPtr createInputKeyboard(
-			int id, const std::string& devName);
-	InputItf::PointerPtr createInputPointer(int id, const std::string& devName);
-	InputItf::TouchPtr createInputTouch(int id, const std::string& devName);
+	InputItf::KeyboardPtr createInputKeyboard(const std::string& id,
+											  const std::string& devName);
+	InputItf::PointerPtr createInputPointer(const std::string& id,
+											const std::string& devName);
+	InputItf::TouchPtr createInputTouch(const std::string& id,
+										const std::string& devName);
 
-	InputItf::KeyboardPtr getKeyboard(int id) override;
-	InputItf::PointerPtr getPointer(int id) override;
-	InputItf::TouchPtr getTouch(int id) override;
+	InputItf::KeyboardPtr getKeyboard(const std::string& id) override;
+	InputItf::PointerPtr getPointer(const std::string& id) override;
+	InputItf::TouchPtr getTouch(const std::string& id) override;
 
 private:
 
@@ -54,9 +59,9 @@ private:
 
 	XenBackend::Log mLog;
 
-	std::unordered_map<int, InputItf::KeyboardPtr> mKeyboards;
-	std::unordered_map<int, InputItf::PointerPtr> mPointers;
-	std::unordered_map<int, InputItf::TouchPtr> mTouches;
+	std::unordered_map<std::string, InputItf::KeyboardPtr> mKeyboards;
+	std::unordered_map<std::string, InputItf::PointerPtr> mPointers;
+	std::unordered_map<std::string, InputItf::TouchPtr> mTouches;
 
 };
 

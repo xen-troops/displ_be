@@ -183,20 +183,15 @@ public:
 		mIviSurface.reset();
 	}
 
-	/**
-	 * Sets surface Id
-	 */
-	void setSurfaceId(uint32_t surfaceId) { mSurfaceId = surfaceId; }
-
 private:
 
 	friend class Display;
 
 	IviConnector(const std::string& name, IviApplicationPtr iviApplication,
-				 SurfacePtr surface) :
+				 SurfacePtr surface, uint32_t surfaceId) :
 		Connector(name, surface),
 		mIviApplication(iviApplication),
-		mSurfaceId(0) {}
+		mSurfaceId(surfaceId) {}
 
 	IviApplicationPtr mIviApplication;
 	IviSurfacePtr mIviSurface;

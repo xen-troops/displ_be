@@ -22,6 +22,7 @@
 
 using std::string;
 using std::to_string;
+using std::vector;
 
 using libconfig::Setting;
 using libconfig::FileIOException;
@@ -49,7 +50,7 @@ Config::Config(const string& fileName) :
 
 		mConfig.readFile(cfgName);
 
-		initCachedValues();
+		mDisplayMode = readDisplayMode();
 	}
 	catch(const FileIOException& e)
 	{
@@ -67,106 +68,56 @@ Config::Config(const string& fileName) :
  * Public
  ******************************************************************************/
 
-void Config::displayDomParams(int idx, string& name, uint16_t& devId,
-							  int& connectorsCount)
+void Config::getConnectors(vector<Connector>& connectors)
 {
-	string sectionName = "display.doms";
+	auto sectionName = "display.connectors";
 
 	try
 	{
-		Setting& domSetting = mConfig.lookup(sectionName)[idx];
+		connectors.clear();
 
-		name = static_cast<const char*>(domSetting.lookup("name"));
-		devId = static_cast<int>(domSetting.lookup("devId"));
-		connectorsCount = domSetting.lookup("connectors").getLength();
+		auto& setting = mConfig.lookup(sectionName);
 
-		LOG(mLog, DEBUG) << sectionName << "[" << idx
-						 << "] name: " << name
-						 << ", devId: " << devId
-						 << ", connectors count: " << connectorsCount;
-	}
-	catch(const SettingException& e)
-	{
-		throw ConfigException("Config: error reading " + sectionName);
-	}
-}
-
-string Config::displayDomConnectorName(const string& domName,
-									   uint16_t devId, int idx)
-{
-	string sectionName = "display.doms";
-
-	try
-	{
-		int index;
-		Setting& domain = findSettingByDomain(sectionName, domName, devId,
-											  index);
-		Setting& connectors = domain.lookup("connectors");
-
-		if ((idx >= connectors.getLength()) || (idx < 0))
+		for (int i = 0; i < setting.getLength(); i++)
 		{
-			throw ConfigException("Config: connector index out of range");
+			Connector connector {};
+
+			connector.id =  static_cast<const char*>(setting[i].lookup("id"));
+			connector.name = static_cast<const char*>(setting[i].lookup("name"));
+			setting[i].lookupValue("surfaceId", connector.surfaceId);
+
+			connectors.push_back(connector);
+
+			LOG(mLog, DEBUG) << sectionName
+							 << " Id: " << connector.id
+							 << ", name: " << connector.name
+							 << ", surfaceId: " << connector.surfaceId;
 		}
-
-		string conName = static_cast<const char*>(connectors[idx]);
-
-		LOG(mLog, DEBUG) << "Dom name: " << domName << ", dev id: " << devId
-						 << ", con idx: " << idx << ", con name: " << conName;
-
-		return conName;
 	}
-	catch(const SettingException& e)
+	catch(const SettingNotFoundException& e)
 	{
-		throw ConfigException("Config: error reading " + sectionName);
+		throw ConfigException(string("Config: error reading ") + sectionName);
 	}
 }
 
-int Config::inputDomIndex(const string& domName, uint16_t devId) const
+void Config::getKeyboards(vector<Input>& keyboards)
 {
-	string sectionName = "display.doms";
-
-	try
-	{
-		int index;
-
-		findSettingByDomain(sectionName, domName, devId, index);
-
-		LOG(mLog, DEBUG) << "Dom name: " << domName << ", dev id: " << devId
-						 << ", index: " << index;
-
-		return index;
-	}
-	catch(const SettingException& e)
-	{
-		throw ConfigException("Config: error reading " + sectionName);
-	}
+	getInputs(keyboards, "input.keyboards");
 }
 
-void Config::inputKeyboard(int idx, string& device, string& connector)
+void Config::getPointers(vector<Input>& pointers)
 {
-	readInputParams(idx, "keyboard", device, connector);
+	getInputs(pointers, "input.pointers");
 }
 
-void Config::inputPointer(int idx, string& device, string& connector)
+void Config::getTouches(vector<Input>& touches)
 {
-	readInputParams(idx, "pointer", device, connector);
-}
-
-void Config::inputTouch(int idx, string& device, string& connector)
-{
-	readInputParams(idx, "touch", device, connector);
+	getInputs(touches, "input.touches");
 }
 
 /*******************************************************************************
  * Private
  ******************************************************************************/
-
-void Config::initCachedValues()
-{
-	mDisplayMode = readDisplayMode();
-	mDisplayDomainsCount = readSectionCount("display.doms");
-	mInputDomainsCount = readSectionCount("input.doms");
-}
 
 Config::DisplayMode Config::readDisplayMode()
 {
@@ -189,80 +140,30 @@ Config::DisplayMode Config::readDisplayMode()
 	return DisplayMode::DRM;
 }
 
-int Config::readSectionCount(const string& sectionName)
+void Config::getInputs(vector<Input>& inputs, const string& sectionName)
 {
 	try
 	{
-		auto count = mConfig.lookup(sectionName).getLength();
+		inputs.clear();
 
-		LOG(mLog, DEBUG) << sectionName << " count: " << count;
+		auto& setting = mConfig.lookup(sectionName);
 
-		return count;
+		for (int i = 0; i < setting.getLength(); i++)
+		{
+			Input input {};
+
+			input.id =  static_cast<const char*>(setting[i].lookup("id"));
+			setting[i].lookupValue("device", input.device);
+			setting[i].lookupValue("connector", input.connector);
+
+			LOG(mLog, DEBUG) << sectionName
+							 << " id: " << input.id
+							 << ", device: " << input.device
+							 << ", connector: " << input.connector;
+		}
 	}
 	catch(const SettingNotFoundException& e)
 	{
-		throw ConfigException("Config: error reading " + sectionName);
-	}
-}
-
-void Config::readInputParams(int idx, const string& paramName,
-		 	 	 	 	 	 string& device, string& connector)
-{
-	string sectionName = "input.doms";
-
-	try
-	{
-		device.clear();
-		connector.clear();
-
-		Setting& domSetting = mConfig.lookup(sectionName)[idx];
-
-		if (domSetting.exists(paramName))
-		{
-			Setting& inputSetting = domSetting.lookup(paramName);
-
-			inputSetting.lookupValue("device", device);
-			inputSetting.lookupValue("connector", connector);
-		}
-
-		LOG(mLog, DEBUG) << sectionName << "[" << idx << "]." << paramName
-						 << " device: " << device
-						 << ", connector: " << connector;
-	}
-	catch(const SettingException& e)
-	{
-		throw ConfigException("Config: error reading " + sectionName);
-	}
-}
-
-Setting& Config::findSettingByDomain(const string& sectionName,
-									 const string& domName, uint16_t devId,
-									 int& index) const
-{
-	try
-	{
-		Setting& section = mConfig.lookup(sectionName);
-
-		LOG(mLog, DEBUG) << "Lookup dom name: " << domName
-						 << ", dev id: " << devId << " in " << sectionName;
-
-		for(int i = 0; i < section.getLength(); i++)
-		{
-			string name = static_cast<const char*>(section[i].lookup("name"));
-			uint16_t id = static_cast<int>(section[i].lookup("devId"));
-
-			if ((name == domName) && (id == devId))
-			{
-				index = i;
-
-				return section[i];
-			}
-		}
-
-		throw ConfigException("Config: no entry found in " + sectionName);
-	}
-	catch(const SettingException& e)
-	{
-		throw ConfigException("Config: error reading " + sectionName);
+		throw ConfigException(string("Config: error reading ") + sectionName);
 	}
 }

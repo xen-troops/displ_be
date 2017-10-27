@@ -65,9 +65,11 @@ void InputFrontendHandler::onBind()
 
 	addRingBuffer(eventRingBuffer);
 
-	createKeyboardHandler(eventRingBuffer);
-	createPointerHandler(eventRingBuffer);
-	createTouchHandler(eventRingBuffer);
+	auto id = getXenStore().readString(getXsFrontendPath() + "/id");
+
+	createKeyboardHandler(eventRingBuffer, id);
+	createPointerHandler(eventRingBuffer, id);
+	createTouchHandler(eventRingBuffer, id);
 }
 
 void InputFrontendHandler::onClosing()
@@ -79,10 +81,10 @@ void InputFrontendHandler::onClosing()
 	mTouchHandler.reset();
 }
 
-void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer)
+void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer,
+												 const string& id)
 {
-	auto keyboard =  mInputManager->getKeyboard(
-			mConfig->inputDomIndex(getDomName(), getDevId()));
+	auto keyboard =  mInputManager->getKeyboard(id);
 
 	if (keyboard)
 	{
@@ -90,10 +92,10 @@ void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer)
 	}
 }
 
-void InputFrontendHandler::createPointerHandler(InputRingBufferPtr ringBuffer)
+void InputFrontendHandler::createPointerHandler(InputRingBufferPtr ringBuffer,
+												const string& id)
 {
-	auto pointer =  mInputManager->getPointer(
-			mConfig->inputDomIndex(getDomName(), getDevId()));
+	auto pointer =  mInputManager->getPointer(id);
 
 	if (pointer)
 	{
@@ -101,10 +103,10 @@ void InputFrontendHandler::createPointerHandler(InputRingBufferPtr ringBuffer)
 	}
 }
 
-void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer)
+void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer,
+											  const string& id)
 {
-	auto touch =  mInputManager->getTouch(
-			mConfig->inputDomIndex(getDomName(), getDevId()));
+	auto touch =  mInputManager->getTouch(id);
 
 	if (touch)
 	{

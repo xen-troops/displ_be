@@ -71,6 +71,20 @@ public:
 		WAYLAND//!< Wayland
 	};
 
+	struct Connector
+	{
+		std::string id;
+		std::string name;
+		uint32_t surfaceId;
+	};
+
+	struct Input
+	{
+		std::string id;
+		std::string device;
+		std::string connector;
+	};
+
 	/**
 	 * @param fileName
 	 */
@@ -82,62 +96,28 @@ public:
 	DisplayMode displayMode() const { return mDisplayMode; }
 
 	/**
-	 * Returns number of defined display domains
+	 * Returns connector parameters
+	 * @param[out] connectors connector parameters
 	 */
-	int displayDomsCount() const { return mDisplayDomainsCount; }
+	void getConnectors(std::vector<Connector>& connectors);
 
 	/**
-	 * Returns domain parameters
-	 * @param[in]  idx    domain index
-	 * @param[out] name   domain name
+	 * Returns keyboard parameters
+	 * @param[out] keyboards keyboard parameters
 	 */
-	void displayDomParams(int idx, std::string& name, uint16_t& devId,
-						  int& connectorsCount);
+	void getKeyboards(std::vector<Input>& keyboards);
 
 	/**
-	 * Returns connector name for specified frontend
-	 * @param[in] domName domain name
-	 * @param[in] devId   device id
-	 * @param[in] idx     connector index
-	 * @return connector name
+	 * Returns pointer parameters
+	 * @param[out] pointers pointer parameters
 	 */
-	std::string displayDomConnectorName(const std::string& domName,
-										uint16_t devId,
-										int idx);
+	void getPointers(std::vector<Input>& pointers);
 
 	/**
-	 * Returns number of defined input domains
+	 * Returns touch parameters
+	 * @param[out] touches touch parameters
 	 */
-	int inputDomsCount() const { return mInputDomainsCount; }
-
-	/**
-	 * Returns index of domain and devId in input domains
-	 */
-	int inputDomIndex(const std::string& domName, uint16_t devId) const;
-
-	/**
-	 * Returns parameters of defined domain keyboard
-	 * @param[in]  idx     domain index
-	 * @param[out] device  input device name /dev/input/event...
-	 * @param[out] connector wl connector
-	 */
-	void inputKeyboard(int idx, std::string& device, std::string& connector);
-
-	/**
-	 * Returns parameters of defined domain pointer
-	 * @param[in]  idx     domain index
-	 * @param[out] device  input device name /dev/input/event...
-	 * @param[out] connector wl connector
-	 */
-	void inputPointer(int idx, std::string& device, std::string& connector);
-
-	/**
-	 * Returns parameters of defined domain touch
-	 * @param[in]  idx     domain index
-	 * @param[out] device  input device name /dev/input/event...
-	 * @param[out] connector wl connector
-	 */
-	void inputTouch(int idx, std::string& device, std::string& connector);
+	void getTouches(std::vector<Input>& touches);
 
 private:
 
@@ -147,18 +127,9 @@ private:
 	libconfig::Config mConfig;
 
 	DisplayMode mDisplayMode;
-	int mDisplayDomainsCount;
-	int mInputDomainsCount;
 
-	void initCachedValues();
 	DisplayMode readDisplayMode();
-	int readSectionCount(const std::string& sectionName);
-	void readInputParams(int idx, const std::string& paramName,
-						 std::string& device, std::string& connector);
-	libconfig::Setting& findSettingByDomain(const std::string& sectionName,
-											const std::string& domName,
-											uint16_t devId,
-											int& index) const;
+	void getInputs(std::vector<Input>& inputs, const std::string& sectionName);
 };
 
 typedef std::shared_ptr<Config> ConfigPtr;

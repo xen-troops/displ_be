@@ -20,6 +20,7 @@
 
 #include "DisplayBackend.hpp"
 
+#include <algorithm>
 #include <vector>
 
 #include <xen/be/XenStore.hpp>
@@ -36,7 +37,10 @@
  *
  ******************************************************************************/
 
+using std::begin;
 using std::dynamic_pointer_cast;
+using std::end;
+using std::find_if;
 using std::string;
 using std::to_string;
 using std::vector;
@@ -126,20 +130,24 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
 
 	ref = getXenStore().readInt(conPath + XENDISPL_FIELD_REQ_RING_REF);
 
-	auto connectorName = mConfig->displayDomConnectorName(getDomName(),
-														  getDevId(),
-														  conIndex);
+	vector<Config::Connector> connectors;
 
-	auto connector = mDisplay->getConnectorByName(connectorName);
+	mConfig->getConnectors(connectors);
 
-#ifdef WITH_IVI_EXTENSION
-	auto iviConnector = dynamic_pointer_cast<Wayland::IviConnector>(connector);
+	auto id = getXenStore().readString(conPath + "id");
 
-	if (iviConnector)
+	auto it = find_if(begin(connectors), end(connectors),
+					  [&id](const Config::Connector& connector)
+					  { return connector.id == id; });
+
+	if (it == end(connectors))
 	{
-		iviConnector->setSurfaceId(getXenStore().readInt(conPath + "id"));
+		LOG(mLog, WARNING) << "Connector: " << id << " is not configured";
+
+		return;
 	}
-#endif
+
+	auto connector = mDisplay->getConnectorByName(it->name);
 
 	CtrlRingBufferPtr ctrlRingBuffer(
 			new CtrlRingBuffer(connector,
