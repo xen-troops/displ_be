@@ -76,6 +76,11 @@ void Config::getConnectors(vector<Connector>& connectors)
 	{
 		connectors.clear();
 
+		if (!mConfig.exists(sectionName))
+		{
+			return;
+		}
+
 		auto& setting = mConfig.lookup(sectionName);
 
 		for (int i = 0; i < setting.getLength(); i++)
@@ -145,6 +150,11 @@ void Config::getInputs(vector<Input>& inputs, const string& sectionName)
 	try
 	{
 		inputs.clear();
+
+		if (!mConfig.exists(sectionName))
+		{
+			return;
+		}
 
 		auto& setting = mConfig.lookup(sectionName);
 
