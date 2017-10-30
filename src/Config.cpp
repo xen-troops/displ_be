@@ -88,14 +88,14 @@ void Config::getConnectors(vector<Connector>& connectors)
 			Connector connector {};
 
 			connector.id =  static_cast<const char*>(setting[i].lookup("id"));
-			connector.name = static_cast<const char*>(setting[i].lookup("name"));
+			connector.name = static_cast<const char*>(setting[i].lookup("connector"));
 			setting[i].lookupValue("surfaceId", connector.surfaceId);
 
 			connectors.push_back(connector);
 
 			LOG(mLog, DEBUG) << sectionName
 							 << " Id: " << connector.id
-							 << ", name: " << connector.name
+							 << ", connector: " << connector.name
 							 << ", surfaceId: " << connector.surfaceId;
 		}
 	}
