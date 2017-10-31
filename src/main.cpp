@@ -49,6 +49,8 @@
 #include "input/InputManager.hpp"
 #endif
 
+#include "Version.hpp"
+
 using std::cout;
 using std::dynamic_pointer_cast;
 using std::endl;
@@ -60,6 +62,7 @@ using std::transform;
 using std::vector;
 
 using XenBackend::Log;
+using XenBackend::Utils;
 
 string gCfgFileName;
 string gLogFileName;
@@ -261,6 +264,9 @@ int main(int argc, char *argv[])
 
 		if (commandLineOptions(argc, argv))
 		{
+			LOG("Main", INFO) << "backend version:  " << VERSION;
+			LOG("Main", INFO) << "libxenbe version: " << Utils::getVersion();
+
 			ofstream logFile;
 
 			if (!gLogFileName.empty())
