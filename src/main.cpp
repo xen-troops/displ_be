@@ -66,6 +66,14 @@ using std::vector;
 using XenBackend::Log;
 using XenBackend::Utils;
 
+enum class DisplayMode
+{
+	WAYLAND,
+	DRM
+};
+
+DisplayMode gDisplayMode = DisplayMode::WAYLAND;
+string gDrmDevice = "/dev/dri/card0";
 string gLogFileName;
 
 /*******************************************************************************
@@ -108,10 +116,39 @@ bool commandLineOptions(int argc, char *argv[])
 {
 	int opt = -1;
 
-	while((opt = getopt(argc, argv, "c:v:l:fh?")) != -1)
+	while((opt = getopt(argc, argv, "m:d:v:l:fh?")) != -1)
 	{
 		switch(opt)
 		{
+		case 'm':
+		{
+			string mode = optarg;
+
+			transform(mode.begin(), mode.end(), mode.begin(),
+					  (int (*)(int))toupper);
+
+			if (mode == "DRM")
+			{
+				gDisplayMode = DisplayMode::DRM;
+			}
+			else if (mode == "WAYLAND")
+			{
+				gDisplayMode = DisplayMode::WAYLAND;
+			}
+			else
+			{
+				return false;
+			}
+
+			break;
+		}
+
+		case 'd':
+
+			gDrmDevice = optarg;
+
+			break;
+
 		case 'v':
 
 			if (!Log::setLogMask(string(optarg)))
@@ -143,15 +180,26 @@ bool commandLineOptions(int argc, char *argv[])
 }
 
 #ifdef WITH_DISPLAY
-DisplayItf::DisplayPtr getDisplay()
+DisplayItf::DisplayPtr getDisplay(DisplayMode mode)
 {
+	if (mode == DisplayMode::DRM)
+	{
 #ifdef WITH_DRM
-	// DRM
-	return Drm::DisplayPtr(new Drm::Display("/dev/dri/card0"));
-#elif defined WITH_WAYLAND
-	// Wayland
-	return Wayland::DisplayPtr(new Wayland::Display());
+		// DRM
+		return Drm::DisplayPtr(new Drm::Display(gDrmDevice));
+#else
+		throw DisplayItf::Exception("DRM mode is not supported");
 #endif
+	}
+	else
+	{
+#ifdef WITH_WAYLAND
+		// Wayland
+		return Wayland::DisplayPtr(new Wayland::Display());
+#else
+		throw DisplayItf::Exception("WAYLAND mode is not supported");
+#endif
+	}
 }
 #endif
 
@@ -193,9 +241,9 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef WITH_DISPLAY
-			auto display = getDisplay();
+			auto display = getDisplay(gDisplayMode);
 
-			DisplayBackend displayBackend(getDisplay(), XENDISPL_DRIVER_NAME);
+			DisplayBackend displayBackend(display, XENDISPL_DRIVER_NAME);
 			displayBackend.start();
 #endif
 
@@ -231,6 +279,8 @@ int main(int argc, char *argv[])
 			cout << "Usage: " << argv[0]
 				 << " [-l <file>] [-v <level>]"
 				 << endl;
+			cout << "\t-m -- mode: DRM or WAYLAND" << endl;
+			cout << "\t-d -- DRM device" << endl;
 			cout << "\t-l -- log file" << endl;
 			cout << "\t-v -- verbose level in format: "
 				 << "<module>:<level>;<module:<level>" << endl;
