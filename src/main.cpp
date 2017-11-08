@@ -49,6 +49,10 @@
 #include "input/InputManager.hpp"
 #endif
 
+#ifdef WITH_MOCKBELIB
+#include "MockBackend.hpp"
+#endif
+
 #include "Version.hpp"
 
 using std::cout;
@@ -274,6 +278,10 @@ int main(int argc, char *argv[])
 				logFile.open(gLogFileName);
 				Log::setStreamBuffer(logFile.rdbuf());
 			}
+
+#ifdef WITH_MOCKBELIB
+			MockBackend mockBackend(0, 1);
+#endif
 
 			ConfigPtr config(new Config(gCfgFileName));
 

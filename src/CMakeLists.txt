@@ -82,6 +82,12 @@ set(SOURCES
 	Config.cpp
 )
 
+if(WITH_MOCKBELIB)
+	list(APPEND SOURCES
+		MockBackend.cpp
+	)
+endif()
+
 ################################################################################
 # Targets
 ################################################################################
@@ -106,8 +112,15 @@ if(WITH_INPUT)
 	target_link_libraries(${PROJECT_NAME} input)
 endif()
 
+
+set(XENBE_LIB xenbe)
+
+if(WITH_MOCKBELIB)
+	set(XENBE_LIB xenbemock)
+endif()
+
 target_link_libraries(${PROJECT_NAME}
-	xenbe
+	${XENBE_LIB}
 	pthread
 	${CONFIG_LIBRARIES}
 )
