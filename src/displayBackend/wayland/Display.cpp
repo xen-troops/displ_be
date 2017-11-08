@@ -70,41 +70,6 @@ Display::~Display()
  * Public
  ******************************************************************************/
 
-DisplayItf::ConnectorPtr Display::createConnector(const string& name,
-												  uint32_t surfaceId)
-{
-	Connector* connector = nullptr;
-
-	if (mShell)
-	{
-		connector = new ShellConnector(name, mShell,
-									   mCompositor->createSurface());
-
-		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
-	}
-#ifdef WITH_IVI_EXTENSION
-	else if (mIviApplication)
-	{
-		connector = new IviConnector(name, mIviApplication,
-									 mCompositor->createSurface(), surfaceId);
-
-		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
-	}
-#endif
-	else
-	{
-		connector = new Connector(name, mCompositor->createSurface());
-
-		LOG(mLog, DEBUG) << "Create connector, name: " << name;
-	}
-
-	Wayland::ConnectorPtr connectorPtr(connector);
-
-	mConnectors.emplace(name, connectorPtr);
-
-	return connectorPtr;
-}
-
 void Display::start()
 {
 	LOG(mLog, DEBUG) << "Start";
@@ -140,14 +105,45 @@ bool Display::isZeroCopySupported() const
 
 DisplayItf::ConnectorPtr Display::getConnectorByName(const string& name)
 {
-	auto iter = mConnectors.find(name);
+	Connector* connector = nullptr;
 
-	if (iter == mConnectors.end())
+	if (mShell)
 	{
-		throw Exception("Wrong connector name: " + name);
+		connector = new ShellConnector(name, mShell,
+									   mCompositor->createSurface());
+
+		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
+	}
+#ifdef WITH_IVI_EXTENSION
+	else if (mIviApplication)
+	{
+		uint32_t surfaceId = 0;
+
+		try
+		{
+			surfaceId = stoi(name);
+		}
+		catch(const exception& e)
+		{
+			throw Exception("Can't create surface id: " + name);
+		}
+
+		connector = new IviConnector(name, mIviApplication,
+									 mCompositor->createSurface(), surfaceId);
+
+		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
+	}
+#endif
+	else
+	{
+		connector = new Connector(name, mCompositor->createSurface());
+
+		LOG(mLog, DEBUG) << "Create connector, name: " << name;
 	}
 
-	return iter->second;
+	Wayland::ConnectorPtr connectorPtr(connector);
+
+	return connectorPtr;
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
@@ -306,8 +302,6 @@ void Display::release()
 {
 	// clear connectors first as it keeps Surfaces which should be deleted
 	// prior IviApplication
-
-	mConnectors.clear();
 
 #ifdef WITH_IVI_EXTENSION
 	mIviApplication.reset();

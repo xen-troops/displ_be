@@ -62,15 +62,6 @@ public:
 	~Display();
 
 	/**
-	 * Creates virtual connector
-	 * @param name       connector name
-	 * @param surfaceId  surface id
-	 * @return created connector
-	 */
-	DisplayItf::ConnectorPtr createConnector(const std::string& name,
-											 uint32_t surfaceId = 0);
-
-	/**
 	 * Starts events handling
 	 */
 	void start() override;
@@ -136,8 +127,6 @@ private:
 	wl_registry* mWlRegistry;
 	wl_registry_listener mWlRegistryListener;
 	XenBackend::Log mLog;
-
-	std::unordered_map<std::string, Wayland::ConnectorPtr> mConnectors;
 
 	CompositorPtr mCompositor;
 	ShellPtr mShell;
