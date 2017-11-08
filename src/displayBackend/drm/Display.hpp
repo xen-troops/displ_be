@@ -65,28 +65,6 @@ public:
 	drm_magic_t getMagic();
 
 	/**
-	 * Returns number of supported CRTC's
-	 */
-	int getCtrcsCount() const { return (*mRes)->count_crtcs; }
-
-	/**
-	 * Returns CRTC id by index
-	 * @param index index in CRTC array
-	 */
-	uint32_t getCtrcIdByIndex(int index) const { return (*mRes)->crtcs[index]; }
-
-	/**
-	 * Returns connector by index
-	 * @param index index in arrays
-	 */
-	Drm::ConnectorPtr getConnectorByIndex(uint32_t index);
-
-	/**
-	 * Returns number of connectors
-	 */
-	size_t getConnectorsCount();
-
-	/**
 	 * Starts events handling
 	 */
 	void start() override;
@@ -144,24 +122,24 @@ public:
 
 private:
 
+	static std::unordered_map<int, std::string> sConnectorNames;
+
 	std::string mName;
 	int mFd;
 	int mZeroCopyFd;
 	std::atomic_bool mStarted;
 	XenBackend::Log mLog;
 
-	std::unique_ptr<ModeResource> mRes;
-
-	std::unordered_map<std::string, Drm::ConnectorPtr> mConnectors;
-
 	std::mutex mMutex;
 	std::thread mThread;
 
 	std::unique_ptr<XenBackend::PollFd> mPollFd;
 
+	std::unordered_map<std::string, uint32_t> mConnectorIds;
+
 	void init();
 	void release();
-	void createConnectors();
+	void getConnectorIds();
 	void eventThread();
 
 	static void handleFlipEvent(int fd, unsigned int sequence,
