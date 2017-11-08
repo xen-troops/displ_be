@@ -4,11 +4,6 @@
 
 include(FindPkgConfig)
 
-pkg_check_modules (CONFIG REQUIRED libconfig++)
-if (!CONFIG_FOUND)
-	message(FATAL_ERROR "No libconfig++ found")
-endif()
-
 if(WITH_DRM)
 	pkg_check_modules (DRM REQUIRED libdrm)
 	if (!DRM_FOUND)
@@ -46,7 +41,6 @@ endif()
 
 include_directories(
 	.
-	${CONFIG_INCLUDE_PATH}
 )
 
 if(WITH_DRM)
@@ -79,7 +73,6 @@ endif()
 
 set(SOURCES
 	main.cpp
-	Config.cpp
 )
 
 if(WITH_MOCKBELIB)
@@ -112,7 +105,6 @@ if(WITH_INPUT)
 	target_link_libraries(${PROJECT_NAME} input)
 endif()
 
-
 set(XENBE_LIB xenbe)
 
 if(WITH_MOCKBELIB)
@@ -122,5 +114,4 @@ endif()
 target_link_libraries(${PROJECT_NAME}
 	${XENBE_LIB}
 	pthread
-	${CONFIG_LIBRARIES}
 )

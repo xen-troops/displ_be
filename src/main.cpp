@@ -32,8 +32,6 @@
 
 #include <xen/be/Log.hpp>
 
-#include "Config.hpp"
-
 #ifdef WITH_DISPLAY
 #include "DisplayBackend.hpp"
 #ifdef WITH_DRM
@@ -68,7 +66,6 @@ using std::vector;
 using XenBackend::Log;
 using XenBackend::Utils;
 
-string gCfgFileName;
 string gLogFileName;
 
 /*******************************************************************************
@@ -124,12 +121,6 @@ bool commandLineOptions(int argc, char *argv[])
 
 			break;
 
-		case 'c':
-
-			gCfgFileName = optarg;
-
-			break;
-
 		case 'l':
 
 			gLogFileName = optarg;
@@ -152,32 +143,14 @@ bool commandLineOptions(int argc, char *argv[])
 }
 
 #ifdef WITH_DISPLAY
-DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
+DisplayItf::DisplayPtr getDisplay()
 {
 #ifdef WITH_DRM
 	// DRM
-	if (config->displayMode() == Config::DisplayMode::DRM)
-	{
-		return Drm::DisplayPtr(new Drm::Display("/dev/dri/card0"));
-	}
-#endif
-
-#ifdef WITH_WAYLAND
+	return Drm::DisplayPtr(new Drm::Display("/dev/dri/card0"));
+#elif defined WITH_WAYLAND
 	// Wayland
-	Wayland::DisplayPtr wlDisplay(new Wayland::Display());
-
-	vector<Config::Connector> connectors;
-
-	config->getConnectors(connectors);
-
-	for (auto connector : connectors)
-	{
-		wlDisplay->createConnector(connector.name, connector.surfaceId);
-	}
-
-	return wlDisplay;
-#else
-	throw DisplayItf::Exception("Wayland is not supported");
+	return Wayland::DisplayPtr(new Wayland::Display());
 #endif
 }
 #endif
@@ -185,75 +158,11 @@ DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
 #ifdef WITH_INPUT
 InputItf::InputManagerPtr getInputManager(
 #ifdef WITH_WAYLAND
-										  Wayland::DisplayPtr display,
+										  Wayland::DisplayPtr display
 #endif
-										  ConfigPtr config
 		)
 {
 	Input::InputManagerPtr inputManager(new Input::InputManager());
-
-	vector<Config::Input> inputs;
-
-	config->getKeyboards(inputs);
-
-	for (auto keyboard : inputs)
-	{
-		if (!keyboard.connector.empty())
-		{
-#ifdef WITH_WAYLAND
-			inputManager->createWlKeyboard(keyboard.id, keyboard.connector);
-#else
-			throw InputItf::Exception(
-					"Can't create wayland keyboard. Wayland is not supported.");
-#endif
-		}
-
-		if (!keyboard.device.empty())
-		{
-			inputManager->createInputKeyboard(keyboard.id, keyboard.device);
-		}
-	}
-
-	config->getPointers(inputs);
-
-	for (auto pointer : inputs)
-	{
-		if (!pointer.connector.empty())
-		{
-#ifdef WITH_WAYLAND
-			inputManager->createWlPointer(pointer.id, pointer.connector);
-#else
-			throw InputItf::Exception(
-					"Can't create wayland pointer. Wayland is not supported.");
-#endif
-		}
-
-		if (!pointer.device.empty())
-		{
-			inputManager->createInputPointer(pointer.id, pointer.device);
-		}
-
-	}
-
-	config->getTouches(inputs);
-
-	for (auto touch : inputs)
-	{
-		if (!touch.connector.empty())
-		{
-#ifdef WITH_WAYLAND
-			inputManager->createWlTouch(touch.id, touch.connector);
-#else
-			throw InputItf::Exception(
-					"Can't create wayland touch. Wayland is not supported.");
-#endif
-		}
-
-		if (!touch.device.empty())
-		{
-			inputManager->createInputTouch(touch.id, touch.device);
-		}
-	}
 
 	return inputManager;
 }
@@ -283,12 +192,10 @@ int main(int argc, char *argv[])
 			MockBackend mockBackend(0, 1);
 #endif
 
-			ConfigPtr config(new Config(gCfgFileName));
-
 #ifdef WITH_DISPLAY
-			DisplayItf::DisplayPtr display = getDisplay(config);
-			DisplayBackend displayBackend(config, display,
-										  XENDISPL_DRIVER_NAME);
+			auto display = getDisplay();
+
+			DisplayBackend displayBackend(getDisplay(), XENDISPL_DRIVER_NAME);
 			displayBackend.start();
 #endif
 
@@ -298,14 +205,12 @@ int main(int argc, char *argv[])
 			inputManager =
 #ifdef WITH_WAYLAND
 					getInputManager(
-							dynamic_pointer_cast<Wayland::Display>(display),
-							config);
+							dynamic_pointer_cast<Wayland::Display>(display));
 #else
-			getInputManager(config);
+			getInputManager();
 #endif
 
-			InputBackend inputBackend(config, inputManager,
-									  XENKBD_DRIVER_NAME);
+			InputBackend inputBackend(inputManager, XENKBD_DRIVER_NAME);
 
 			inputBackend.start();
 #endif //WITH_INPUT
@@ -324,9 +229,8 @@ int main(int argc, char *argv[])
 		else
 		{
 			cout << "Usage: " << argv[0]
-				 << " [-c <file>] [-l <file>] [-v <level>]"
+				 << " [-l <file>] [-v <level>]"
 				 << endl;
-			cout << "\t-c -- config file" << endl;
 			cout << "\t-l -- log file" << endl;
 			cout << "\t-v -- verbose level in format: "
 				 << "<module>:<level>;<module:<level>" << endl;

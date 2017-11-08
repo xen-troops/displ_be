@@ -40,10 +40,9 @@ using InputItf::InputManagerPtr;
  ******************************************************************************/
 
 InputFrontendHandler::InputFrontendHandler(
-		ConfigPtr config, InputManagerPtr inputManager, const string& devName,
+		InputManagerPtr inputManager, const string& devName,
 		domid_t beDomId, domid_t feDomId, uint16_t devId) :
 	FrontendHandlerBase("VkbdFrontend", devName, beDomId, feDomId, devId),
-	mConfig(config),
 	mInputManager(inputManager),
 	mLog("VkbdFrontend")
 {
@@ -121,6 +120,6 @@ void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer,
 void InputBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
 	addFrontendHandler(FrontendHandlerPtr(
-			new InputFrontendHandler(mConfig, mInputManager, getDeviceName(),
+			new InputFrontendHandler(mInputManager, getDeviceName(),
 									 getDomId(), domId, devId)));
 }
