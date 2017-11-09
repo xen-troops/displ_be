@@ -41,14 +41,12 @@ class InputFrontendHandler : public XenBackend::FrontendHandlerBase
 public:
 
 	/**
-	 * @param inputManager input manager instance
 	 * @param devName      device name
 	 * @param beDomId      backend domain id
 	 * @param feDomId      frontend domain id
 	 * @param devId        frontend device id
 	 */
-	InputFrontendHandler(InputItf::InputManagerPtr inputManager,
-						 const std::string& devName,
+	InputFrontendHandler(const std::string& devName,
 						 domid_t beDomId, domid_t feDomId, uint16_t devId);
 
 protected:
@@ -65,7 +63,6 @@ protected:
 
 private:
 
-	InputItf::InputManagerPtr mInputManager;
 	XenBackend::Log mLog;
 
 	std::unique_ptr<KeyboardHandler> mKeyboardHandler;
@@ -88,13 +85,10 @@ class InputBackend : public XenBackend::BackendBase
 {
 public:
 	/**
-	 * @param inputManager input manager instance
 	 * @param deviceName   device name
 	 */
-	InputBackend(InputItf::InputManagerPtr inputManager,
-				 const std::string& deviceName) :
-		BackendBase("VkbdBackend", deviceName),
-		mInputManager(inputManager)
+	InputBackend(const std::string& deviceName) :
+		BackendBase("VkbdBackend", deviceName)
 		{}
 
 protected:
@@ -105,10 +99,6 @@ protected:
 	 * @param devId device id
 	 */
 	void onNewFrontend(domid_t domId, uint16_t devId);
-
-private:
-
-	InputItf::InputManagerPtr mInputManager;
 };
 
 #endif /* INPUTBACKEND_HPP_ */

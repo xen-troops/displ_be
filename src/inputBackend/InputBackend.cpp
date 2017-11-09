@@ -33,17 +33,15 @@ using XenBackend::FrontendHandlerPtr;
 using XenBackend::Log;
 using XenBackend::RingBufferPtr;
 
-using InputItf::InputManagerPtr;
 
 /*******************************************************************************
  * InputFrontendHandler
  ******************************************************************************/
 
-InputFrontendHandler::InputFrontendHandler(
-		InputManagerPtr inputManager, const string& devName,
-		domid_t beDomId, domid_t feDomId, uint16_t devId) :
+InputFrontendHandler::InputFrontendHandler(const string& devName,
+										   domid_t beDomId, domid_t feDomId,
+										   uint16_t devId) :
 	FrontendHandlerBase("VkbdFrontend", devName, beDomId, feDomId, devId),
-	mInputManager(inputManager),
 	mLog("VkbdFrontend")
 {
 	setBackendState(XenbusStateInitWait);
@@ -83,34 +81,40 @@ void InputFrontendHandler::onClosing()
 void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer,
 												 const string& id)
 {
+#if 0
 	auto keyboard =  mInputManager->getKeyboard(id);
 
 	if (keyboard)
 	{
 		mKeyboardHandler.reset( new KeyboardHandler(keyboard, ringBuffer));
 	}
+#endif
 }
 
 void InputFrontendHandler::createPointerHandler(InputRingBufferPtr ringBuffer,
 												const string& id)
 {
+#if 0
 	auto pointer =  mInputManager->getPointer(id);
 
 	if (pointer)
 	{
 		mPointerHandler.reset(new PointerHandler(pointer, ringBuffer));
 	}
+#endif
 }
 
 void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer,
 											  const string& id)
 {
+#if 0
 	auto touch =  mInputManager->getTouch(id);
 
 	if (touch)
 	{
 		mTouchHandler.reset(new TouchHandler(touch, ringBuffer));
 	}
+#endif
 }
 
 /*******************************************************************************
@@ -120,6 +124,6 @@ void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer,
 void InputBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
 	addFrontendHandler(FrontendHandlerPtr(
-			new InputFrontendHandler(mInputManager, getDeviceName(),
-									 getDomId(), domId, devId)));
+			new InputFrontendHandler(getDeviceName(), getDomId(),
+									 domId, devId)));
 }

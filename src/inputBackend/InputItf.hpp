@@ -90,19 +90,6 @@ typedef std::shared_ptr<Keyboard> KeyboardPtr;
 typedef std::shared_ptr<Pointer> PointerPtr;
 typedef std::shared_ptr<Touch> TouchPtr;
 
-class InputManager
-{
-public:
-
-	virtual ~InputManager() {}
-
-	virtual KeyboardPtr getKeyboard(const std::string& id) = 0;
-	virtual PointerPtr getPointer(const std::string& id) = 0;
-	virtual TouchPtr getTouch(const std::string& id) = 0;
-};
-
-typedef std::shared_ptr<InputManager> InputManagerPtr;
-
 }
 
 #endif /* SRC_INPUTITF_HPP_ */

@@ -44,7 +44,6 @@
 
 #ifdef WITH_INPUT
 #include "InputBackend.hpp"
-#include "input/InputManager.hpp"
 #endif
 
 #ifdef WITH_MOCKBELIB
@@ -203,20 +202,6 @@ DisplayItf::DisplayPtr getDisplay(DisplayMode mode)
 }
 #endif
 
-#ifdef WITH_INPUT
-InputItf::InputManagerPtr getInputManager(
-#ifdef WITH_WAYLAND
-										  Wayland::DisplayPtr display
-#endif
-		)
-{
-	Input::InputManagerPtr inputManager(new Input::InputManager());
-
-	return inputManager;
-}
-
-#endif //WITH_INPUT
-
 int main(int argc, char *argv[])
 {
 	try
@@ -247,21 +232,9 @@ int main(int argc, char *argv[])
 			displayBackend.start();
 #endif
 
-#ifdef WITH_INPUT
-			InputItf::InputManagerPtr inputManager;
-
-			inputManager =
-#ifdef WITH_WAYLAND
-					getInputManager(
-							dynamic_pointer_cast<Wayland::Display>(display));
-#else
-			getInputManager();
-#endif
-
-			InputBackend inputBackend(inputManager, XENKBD_DRIVER_NAME);
+			InputBackend inputBackend(XENKBD_DRIVER_NAME);
 
 			inputBackend.start();
-#endif //WITH_INPUT
 
 			waitSignals();
 

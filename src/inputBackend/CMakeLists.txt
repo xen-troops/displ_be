@@ -8,7 +8,6 @@
 
 set(SOURCES
 	input/DevInput.cpp
-	input/InputManager.cpp
 	InputBackend.cpp
 	InputHandlers.cpp
 )
