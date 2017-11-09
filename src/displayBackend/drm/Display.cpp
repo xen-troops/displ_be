@@ -159,7 +159,7 @@ void Display::stop()
 	}
 }
 
-DisplayItf::ConnectorPtr Display::getConnectorByName(const string& name)
+DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -167,7 +167,7 @@ DisplayItf::ConnectorPtr Display::getConnectorByName(const string& name)
 
 	if (it == mConnectorIds.end())
 	{
-		throw Exception("Can't find connector: " + name);
+		throw Exception("Can't create connector: " + name);
 	}
 
 	return DisplayItf::ConnectorPtr(new Connector(name, mFd, it->second));

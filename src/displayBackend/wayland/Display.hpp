@@ -77,11 +77,10 @@ public:
 	bool isZeroCopySupported() const override;
 
 	/**
-	 * Returns connector by name
+	 * Creates connector
 	 * @param name connector name
 	 */
-	DisplayItf::ConnectorPtr getConnectorByName(
-			const std::string& name) override;
+	DisplayItf::ConnectorPtr createConnector(const std::string& name) override;
 
 	/**
 	 * Creates display buffer

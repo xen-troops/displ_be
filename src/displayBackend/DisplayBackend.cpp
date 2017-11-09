@@ -132,7 +132,7 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
 
 	auto id = getXenStore().readString(conPath + "id");
 
-	auto connector = mDisplay->getConnectorByName(id);
+	auto connector = mDisplay->createConnector(id);
 
 	CtrlRingBufferPtr ctrlRingBuffer(
 			new CtrlRingBuffer(connector,

@@ -103,7 +103,7 @@ bool Display::isZeroCopySupported() const
 	return false;
 }
 
-DisplayItf::ConnectorPtr Display::getConnectorByName(const string& name)
+DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 {
 	Connector* connector = nullptr;
 
