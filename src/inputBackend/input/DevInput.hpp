@@ -20,14 +20,15 @@
 
 // TODO: should be reimplemented to use libinput
 
-namespace Input {
-
 class InputBase
 {
 public:
 
 	InputBase(const std::string& name);
 	virtual ~InputBase();
+
+	void start();
+	void stop();
 
 protected:
 
@@ -65,6 +66,9 @@ public:
 
 		mCallbacks = callbacks;
 	}
+
+	void start() override { InputBase::start(); }
+	void stop() override { InputBase::stop(); }
 
 protected:
 
@@ -134,7 +138,5 @@ private:
 	void onSynEvent(const input_event& event);
 	void flushEvents();
 };
-
-}
 
 #endif /* SRC_INPUT_DEVINPUT_HPP_ */

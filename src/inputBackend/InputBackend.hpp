@@ -25,12 +25,60 @@
 #include <xen/be/FrontendHandlerBase.hpp>
 #include <xen/be/Log.hpp>
 
-#include "InputHandlers.hpp"
+#include <xen/io/kbdif.h>
+
+#include "InputItf.hpp"
 
 /***************************************************************************//**
  * @defgroup input_be Input backend
  * Backend related classes.
  ******************************************************************************/
+
+/***************************************************************************//**
+ * Ring buffer used to send events to the frontend.
+ * @ingroup input_be
+ ******************************************************************************/
+class InputRingBuffer : public XenBackend::RingBufferOutBase<xenkbd_page,
+		xenkbd_in_event>
+{
+public:
+	/**
+	 * @param domId     frontend domain id
+	 * @param port      event channel port number
+	 * @param ref       grant table reference
+	 * @param offset    start of the ring buffer inside the page
+	 * @param size      size of the ring buffer
+	 */
+	InputRingBuffer(InputItf::KeyboardPtr keyboard,
+					InputItf::PointerPtr pointer,
+					InputItf::TouchPtr touch,
+					domid_t domId, evtchn_port_t port, int ref,
+					int offset, size_t size);
+
+	~InputRingBuffer();
+
+private:
+
+	InputItf::KeyboardPtr mKeyboard;
+	InputItf::PointerPtr mPointer;
+	InputItf::TouchPtr mTouch;
+
+	XenBackend::Log mLog;
+
+	// keyboard
+	void onKey(uint32_t key, uint32_t state);
+	// pointer
+	void onMoveRel(int32_t x, int32_t y, int32_t z);
+	void onMoveAbs(int32_t x, int32_t y, int32_t z);
+	void onButton(uint32_t button, uint32_t state);
+	// touch
+	void onDown(int32_t id, int32_t x, int32_t y);
+	void onUp(int32_t id);
+	void onMotion(int32_t id, int32_t x, int32_t y);
+	void onFrame();
+};
+
+typedef std::shared_ptr<InputRingBuffer> InputRingBufferPtr;
 
 /***************************************************************************//**
  * Input frontend handler.
@@ -65,16 +113,12 @@ private:
 
 	XenBackend::Log mLog;
 
-	std::unique_ptr<KeyboardHandler> mKeyboardHandler;
-	std::unique_ptr<PointerHandler> mPointerHandler;
-	std::unique_ptr<TouchHandler> mTouchHandler;
+	void parseInputId(const std::string& id, std::string& keyboardId,
+					  std::string& pointerId, std::string& touchId);
 
-	void createKeyboardHandler(InputRingBufferPtr ringBuffer,
-							   const std::string& id);
-	void createPointerHandler(InputRingBufferPtr ringBuffer,
-							  const std::string& id);
-	void createTouchHandler(InputRingBufferPtr ringBuffer,
-							const std::string& id);
+	InputItf::KeyboardPtr createKeyboard(const std::string& id);
+	InputItf::PointerPtr createPointer(const std::string& id);
+	InputItf::TouchPtr createTouch(const std::string& id);
 };
 
 /***************************************************************************//**

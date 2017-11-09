@@ -10,7 +10,6 @@
 #include <fcntl.h>
 
 #include "DevInput.hpp"
-#include "Exception.hpp"
 
 using std::setfill;
 using std::setw;
@@ -19,11 +18,10 @@ using std::thread;
 
 using XenBackend::PollFd;
 
+using InputItf::Exception;
 using InputItf::KeyboardCallbacks;
 using InputItf::PointerCallbacks;
 using InputItf::TouchCallbacks;
-
-namespace Input {
 
 /*******************************************************************************
  * InputBase
@@ -48,7 +46,29 @@ InputBase::InputBase(const string& name) :
 
 InputBase::~InputBase()
 {
+	stop();
 	release();
+}
+
+void InputBase::start()
+{
+	if (!mThread.joinable())
+	{
+		mThread = thread(&InputBase::run, this);
+	}
+}
+
+void InputBase::stop()
+{
+	if (mPollFd)
+	{
+		mPollFd->stop();
+	}
+
+	if (mThread.joinable())
+	{
+		mThread.join();
+	}
 }
 
 /*******************************************************************************
@@ -73,23 +93,11 @@ void InputBase::init()
 
 	mPollFd.reset(new PollFd(mFd, POLLIN));
 
-	mThread = thread(&InputBase::run, this);
-
 	LOG(mLog, DEBUG) << "Create: " << mName;
 }
 
 void InputBase::release()
 {
-	if (mPollFd)
-	{
-		mPollFd->stop();
-	}
-
-	if (mThread.joinable())
-	{
-		mThread.join();
-	}
-
 	if (mFd >= 0)
 	{
 		close(mFd);
@@ -446,6 +454,4 @@ void InputTouch::flushEvents()
 						  mContacts[mCurrentSlot].absX,
 						  mContacts[mCurrentSlot].absY);
 	}
-}
-
 }

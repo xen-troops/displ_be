@@ -9,7 +9,6 @@
 set(SOURCES
 	input/DevInput.cpp
 	InputBackend.cpp
-	InputHandlers.cpp
 )
 
 ################################################################################
