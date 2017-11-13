@@ -117,7 +117,12 @@ public:
 			uint32_t width,uint32_t height, uint32_t pixelFormat) override;
 
 #ifdef WITH_INPUT
-	SeatPtr getSeat() const { return mSeat; }
+
+	template <typename T>
+	void setInputCallbacks(const std::string& connector, const T& callbacks);
+	template <typename T>
+	void clearInputCallbacks(const std::string& connector);
+
 #endif
 
 private:

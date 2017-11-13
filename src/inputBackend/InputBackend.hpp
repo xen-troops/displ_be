@@ -29,6 +29,10 @@
 
 #include "InputItf.hpp"
 
+#ifdef WITH_WAYLAND
+#include "wayland/Display.hpp"
+#endif
+
 /***************************************************************************//**
  * @defgroup input_be Input backend
  * Backend related classes.
@@ -97,6 +101,14 @@ public:
 	InputFrontendHandler(const std::string& devName,
 						 domid_t beDomId, domid_t feDomId, uint16_t devId);
 
+#ifdef WITH_WAYLAND
+	InputFrontendHandler(const std::string& devName,
+			 	 	 	 domid_t beDomId, domid_t feDomId, uint16_t devId,
+						 Wayland::DisplayPtr display) :
+		InputFrontendHandler(devName, beDomId, feDomId, devId)
+		{ mDisplay = display; }
+#endif
+
 protected:
 
 	/**
@@ -113,12 +125,16 @@ private:
 
 	XenBackend::Log mLog;
 
+#ifdef WITH_WAYLAND
+	Wayland::DisplayPtr mDisplay;
+#endif
+
 	void parseInputId(const std::string& id, std::string& keyboardId,
 					  std::string& pointerId, std::string& touchId);
 
-	InputItf::KeyboardPtr createKeyboard(const std::string& id);
-	InputItf::PointerPtr createPointer(const std::string& id);
-	InputItf::TouchPtr createTouch(const std::string& id);
+	template<typename T>
+	std::shared_ptr<InputItf::InputDevice<T>>
+			createInputDevice(const std::string& id);
 };
 
 /***************************************************************************//**
@@ -135,6 +151,12 @@ public:
 		BackendBase("VkbdBackend", deviceName)
 		{}
 
+#ifdef WITH_WAYLAND
+	InputBackend(const std::string& deviceName, Wayland::DisplayPtr display) :
+		InputBackend(deviceName)
+		{ mDisplay = display; }
+#endif
+
 protected:
 
 	/**
@@ -143,6 +165,12 @@ protected:
 	 * @param devId device id
 	 */
 	void onNewFrontend(domid_t domId, uint16_t devId);
+
+private:
+
+#ifdef WITH_WAYLAND
+	Wayland::DisplayPtr mDisplay;
+#endif
 };
 
 #endif /* INPUTBACKEND_HPP_ */

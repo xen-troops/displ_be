@@ -34,6 +34,12 @@ using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
 using DisplayItf::GrantRefs;
 
+#ifdef WITH_INPUT
+using InputItf::KeyboardCallbacks;
+using InputItf::PointerCallbacks;
+using InputItf::TouchCallbacks;
+#endif
+
 using XenBackend::PollFd;
 
 namespace Wayland {
@@ -198,6 +204,49 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 	throw Exception("Can't create frame buffer");
 }
 
+
+#ifdef WITH_INPUT
+
+template<>
+void Display::setInputCallbacks<KeyboardCallbacks>(
+		const string& connector, const KeyboardCallbacks& callbacks)
+{
+
+}
+
+template<>
+void Display::clearInputCallbacks<KeyboardCallbacks>(const string& connector)
+{
+
+}
+
+template<>
+void Display::setInputCallbacks<PointerCallbacks>(
+		const string& connector, const PointerCallbacks& callbacks)
+{
+
+}
+
+template<>
+void Display::clearInputCallbacks<PointerCallbacks>(const string& connector)
+{
+
+}
+
+template<>
+void Display::setInputCallbacks<TouchCallbacks>(
+		const string& connector, const TouchCallbacks& callbacks)
+{
+
+}
+
+template<>
+void Display::clearInputCallbacks<TouchCallbacks>(const string& connector)
+{
+
+}
+
+#endif
 /*******************************************************************************
  * Private
  ******************************************************************************/

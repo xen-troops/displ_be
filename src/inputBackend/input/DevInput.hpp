@@ -20,12 +20,12 @@
 
 // TODO: should be reimplemented to use libinput
 
-class InputBase
+class DevInputBase
 {
 public:
 
-	InputBase(const std::string& name);
-	virtual ~InputBase();
+	DevInputBase(const std::string& name);
+	virtual ~DevInputBase();
 
 	void start();
 	void stop();
@@ -53,12 +53,12 @@ private:
 	void run();
 };
 
-template <class T>
-class InputDevice : public InputBase, public InputItf::InputDevice<T>
+template <typename T>
+class DevInputCbk : public DevInputBase, public InputItf::InputDevice<T>
 {
 public:
 
-	InputDevice(const std::string& name) : InputBase(name) {}
+	DevInputCbk(const std::string& name) : DevInputBase(name) {}
 
 	void setCallbacks(const T& callbacks) override
 	{
@@ -67,32 +67,43 @@ public:
 		mCallbacks = callbacks;
 	}
 
-	void start() override { InputBase::start(); }
-	void stop() override { InputBase::stop(); }
-
 protected:
 
 	T mCallbacks;
 
-private:
-
 	std::mutex mMutex;
 };
 
-class InputKeyboard : public InputDevice<InputItf::KeyboardCallbacks>
+template <typename T>
+class DevInput : public DevInputCbk<T>
 {
 public:
 
-	using InputDevice<InputItf::KeyboardCallbacks>::InputDevice;
+	using DevInputCbk<T>::DevInputCbk;
 
 	void onEvent(const input_event& event) override;
 };
 
-class InputPointer : public InputDevice<InputItf::PointerCallbacks>
+template <>
+class DevInput<InputItf::KeyboardCallbacks> :
+	public DevInputCbk<InputItf::KeyboardCallbacks>
 {
 public:
 
-	InputPointer(const std::string& name);
+	DevInput(const std::string& name);
+	~DevInput();
+
+	void onEvent(const input_event& event) override;
+};
+
+template<>
+class DevInput<InputItf::PointerCallbacks> :
+	public DevInputCbk<InputItf::PointerCallbacks>
+{
+public:
+
+	DevInput(const std::string& name);
+	~DevInput();
 
 	void onEvent(const input_event& event) override;
 
@@ -107,11 +118,14 @@ private:
 	void onSynEvent(const input_event& event);
 };
 
-class InputTouch: public InputDevice<InputItf::TouchCallbacks>
+template<>
+class DevInput<InputItf::TouchCallbacks>:
+	public DevInputCbk<InputItf::TouchCallbacks>
 {
 public:
 
-	InputTouch(const std::string& name);
+	DevInput(const std::string& name);
+	~DevInput();
 
 	void onEvent(const input_event& event) override;
 

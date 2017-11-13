@@ -11,6 +11,8 @@
 
 #include "DevInput.hpp"
 
+using std::lock_guard;
+using std::mutex;
 using std::setfill;
 using std::setw;
 using std::string;
@@ -27,8 +29,8 @@ using InputItf::TouchCallbacks;
  * InputBase
  ******************************************************************************/
 
-InputBase::InputBase(const string& name) :
-	mLog("InputDevice"),
+DevInputBase::DevInputBase(const string& name) :
+	mLog("DevInputDevice"),
 	mName(name),
 	mFd(-1)
 {
@@ -44,21 +46,21 @@ InputBase::InputBase(const string& name) :
 	}
 }
 
-InputBase::~InputBase()
+DevInputBase::~DevInputBase()
 {
 	stop();
 	release();
 }
 
-void InputBase::start()
+void DevInputBase::start()
 {
 	if (!mThread.joinable())
 	{
-		mThread = thread(&InputBase::run, this);
+		mThread = thread(&DevInputBase::run, this);
 	}
 }
 
-void InputBase::stop()
+void DevInputBase::stop()
 {
 	if (mPollFd)
 	{
@@ -75,7 +77,7 @@ void InputBase::stop()
  * Private
  ******************************************************************************/
 
-void InputBase::init()
+void DevInputBase::init()
 {
 	mFd = open(mName.c_str(), O_RDONLY);
 
@@ -96,7 +98,7 @@ void InputBase::init()
 	LOG(mLog, DEBUG) << "Create: " << mName;
 }
 
-void InputBase::release()
+void DevInputBase::release()
 {
 	if (mFd >= 0)
 	{
@@ -106,7 +108,7 @@ void InputBase::release()
 	}
 }
 
-void InputBase::run()
+void DevInputBase::run()
 {
 	try
 	{
@@ -138,9 +140,20 @@ void InputBase::run()
 /*******************************************************************************
  * InputKeyboard
  ******************************************************************************/
-
-void InputKeyboard::onEvent(const input_event& event)
+DevInput<KeyboardCallbacks>::DevInput(const string& name) : DevInputCbk(name)
 {
+	start();
+}
+
+DevInput<KeyboardCallbacks>::~DevInput()
+{
+	stop();
+}
+
+void DevInput<KeyboardCallbacks>::onEvent(const input_event& event)
+{
+	lock_guard<mutex> lock(mMutex);
+
 	if (event.type == EV_KEY && mCallbacks.key)
 	{
 		LOG(mLog, DEBUG) << mName << ", key: " << event.code
@@ -154,13 +167,20 @@ void InputKeyboard::onEvent(const input_event& event)
  * InputPointer
  ******************************************************************************/
 
-InputPointer::InputPointer(const string& name) : InputDevice(name)
+DevInput<PointerCallbacks>::DevInput(const string& name) : DevInputCbk(name)
 {
 	mRelX = mRelY = mRelZ = mAbsX = mAbsY = 0;
 	mSendRel = mSendAbs = mSendWheel = false;
+
+	start();
 }
 
-void InputPointer::onEvent(const input_event& event)
+DevInput<PointerCallbacks>::~DevInput()
+{
+	stop();
+}
+
+void DevInput<PointerCallbacks>::onEvent(const input_event& event)
 {
 	switch(event.type)
 	{
@@ -185,7 +205,7 @@ void InputPointer::onEvent(const input_event& event)
 	}
 }
 
-void InputPointer::onRelEvent(const input_event& event)
+void DevInput<PointerCallbacks>::onRelEvent(const input_event& event)
 {
 	if (event.code == REL_X)
 	{
@@ -207,7 +227,7 @@ void InputPointer::onRelEvent(const input_event& event)
 	}
 }
 
-void InputPointer::onAbsEvent(const input_event& event)
+void DevInput<PointerCallbacks>::onAbsEvent(const input_event& event)
 {
 	if (event.code == ABS_X)
 	{
@@ -223,8 +243,10 @@ void InputPointer::onAbsEvent(const input_event& event)
 	}
 }
 
-void InputPointer::onKeyEvent(const input_event& event)
+void DevInput<PointerCallbacks>::onKeyEvent(const input_event& event)
 {
+	lock_guard<mutex> lock(mMutex);
+
 	if (mCallbacks.button)
 	{
 		LOG(mLog, DEBUG) << mName << ", key: " << event.code
@@ -234,8 +256,10 @@ void InputPointer::onKeyEvent(const input_event& event)
 	}
 }
 
-void InputPointer::onSynEvent(const input_event& event)
+void DevInput<PointerCallbacks>::onSynEvent(const input_event& event)
 {
+	lock_guard<mutex> lock(mMutex);
+
 	if ((mSendRel || mSendWheel) && mCallbacks.moveRelative)
 	{
 		LOG(mLog, DEBUG) << mName
@@ -269,7 +293,7 @@ void InputPointer::onSynEvent(const input_event& event)
  * InputTouch
  ******************************************************************************/
 
-InputTouch::InputTouch(const string& name) : InputDevice(name)
+DevInput<TouchCallbacks>::DevInput(const string& name) : DevInputCbk(name)
 {
 	mKey = 0;
 	mSendAbs = mSendKey = mMtReport = false;
@@ -278,9 +302,15 @@ InputTouch::InputTouch(const string& name) : InputDevice(name)
 	setCurrentSlot(0);
 	mContacts[mCurrentSlot].id = -1;
 
+	start();
 }
 
-void InputTouch::onEvent(const input_event& event)
+DevInput<TouchCallbacks>::~DevInput()
+{
+	stop();
+}
+
+void DevInput<TouchCallbacks>::onEvent(const input_event& event)
 {
 	switch(event.type)
 	{
@@ -301,7 +331,7 @@ void InputTouch::onEvent(const input_event& event)
 	}
 }
 
-void InputTouch::setCurrentSlot(uint32_t slot)
+void DevInput<TouchCallbacks>::setCurrentSlot(uint32_t slot)
 {
 	if (slot >= mContacts.size())
 	{
@@ -311,7 +341,7 @@ void InputTouch::setCurrentSlot(uint32_t slot)
 	mCurrentSlot = slot;
 }
 
-void InputTouch::onAbsEvent(const input_event& event)
+void DevInput<TouchCallbacks>::onAbsEvent(const input_event& event)
 {
 	switch(event.code)
 	{
@@ -350,13 +380,13 @@ void InputTouch::onAbsEvent(const input_event& event)
 	}
 }
 
-void InputTouch::onKeyEvent(const input_event& event)
+void DevInput<TouchCallbacks>::onKeyEvent(const input_event& event)
 {
 	mKey = event.value;
 	mSendKey = true;
 }
 
-void InputTouch::onSynEvent(const input_event& event)
+void DevInput<TouchCallbacks>::onSynEvent(const input_event& event)
 {
 	if (event.code == SYN_MT_REPORT)
 	{
@@ -399,6 +429,8 @@ void InputTouch::onSynEvent(const input_event& event)
 			mMtReport = false;
 		}
 
+		lock_guard<mutex> lock(mMutex);
+
 		flushEvents();
 
 		if (mCallbacks.frame)
@@ -410,7 +442,7 @@ void InputTouch::onSynEvent(const input_event& event)
 	}
 }
 
-void InputTouch::flushEvents()
+void DevInput<TouchCallbacks>::flushEvents()
 {
 	if (mSendKey)
 	{

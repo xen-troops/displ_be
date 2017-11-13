@@ -24,9 +24,13 @@
 #include <vector>
 
 #include "input/DevInput.hpp"
+#ifdef WITH_WAYLAND
+#include "input/WlInput.hpp"
+#endif
 
 using std::bind;
 using std::istringstream;
+using std::shared_ptr;
 using std::string;
 using std::to_string;
 using std::toupper;
@@ -40,8 +44,11 @@ using XenBackend::FrontendHandlerPtr;
 using XenBackend::Log;
 using XenBackend::RingBufferPtr;
 
+using InputItf::KeyboardCallbacks;
 using InputItf::KeyboardPtr;
+using InputItf::PointerCallbacks;
 using InputItf::PointerPtr;
+using InputItf::TouchCallbacks;
 using InputItf::TouchPtr;
 
 /*******************************************************************************
@@ -62,7 +69,6 @@ InputRingBuffer::InputRingBuffer(KeyboardPtr keyboard, PointerPtr pointer,
 	if (mKeyboard)
 	{
 		mKeyboard->setCallbacks({bind(&InputRingBuffer::onKey, this, _1, _2)});
-		mKeyboard->start();
 	}
 
 
@@ -73,7 +79,6 @@ InputRingBuffer::InputRingBuffer(KeyboardPtr keyboard, PointerPtr pointer,
 			bind(&InputRingBuffer::onMoveAbs, this, _1, _2, _3),
 			bind(&InputRingBuffer::onButton, this, _1, _2),
 		});
-		mPointer->start();
 	}
 
 
@@ -85,7 +90,6 @@ InputRingBuffer::InputRingBuffer(KeyboardPtr keyboard, PointerPtr pointer,
 			bind(&InputRingBuffer::onMotion, this, _1, _2, _3),
 			bind(&InputRingBuffer::onFrame, this),
 		});
-		mTouch->start();
 	}
 
 	LOG(mLog, DEBUG) << "Create";
@@ -93,21 +97,6 @@ InputRingBuffer::InputRingBuffer(KeyboardPtr keyboard, PointerPtr pointer,
 
 InputRingBuffer::~InputRingBuffer()
 {
-	if (mKeyboard)
-	{
-		mKeyboard->stop();
-	}
-
-	if (mPointer)
-	{
-		mPointer->stop();
-	}
-
-	if (mTouch)
-	{
-		mTouch->stop();
-	}
-
 	LOG(mLog, DEBUG) << "Delete";
 }
 
@@ -247,9 +236,9 @@ void InputFrontendHandler::onBind()
 	parseInputId(id, keyboardId, pointerId, touchId);
 
 	InputRingBufferPtr eventRingBuffer(
-			new InputRingBuffer(createKeyboard(keyboardId),
-								createPointer(pointerId),
-								createTouch(touchId),
+			new InputRingBuffer(createInputDevice<KeyboardCallbacks>(keyboardId),
+								createInputDevice<PointerCallbacks>(pointerId),
+								createInputDevice<TouchCallbacks>(touchId),
 								getDomId(), port, ref,
 								XENKBD_IN_RING_OFFS, XENKBD_IN_RING_SIZE));
 
@@ -294,40 +283,28 @@ void InputFrontendHandler::onClosing()
 	LOG(mLog, DEBUG) << "On frontend closing : " << getDomId();
 }
 
-KeyboardPtr InputFrontendHandler::createKeyboard(const string& id)
+template<typename T>
+shared_ptr<InputItf::InputDevice<T>>
+InputFrontendHandler::createInputDevice(const string& id)
 {
 	if (!id.empty())
 	{
-		LOG(mLog, DEBUG) << "Create keyboard : " << id;
+		LOG(mLog, DEBUG) << "Create input device : " << id;
 
-		return KeyboardPtr(new InputKeyboard(id));
+		if (id[0] == '/')
+		{
+			return shared_ptr<InputItf::InputDevice<T>>(new DevInput<T>(id));
+		}
+#ifdef WITH_WAYLAND
+		else if (mDisplay)
+		{
+			return shared_ptr<InputItf::InputDevice<T>>(new WlInput<T>(mDisplay,
+																	   id));
+		}
+#endif
 	}
 
-	return KeyboardPtr();
-}
-
-PointerPtr InputFrontendHandler::createPointer(const string& id)
-{
-	if (!id.empty())
-	{
-		LOG(mLog, DEBUG) << "Create pointer : " << id;
-
-		return PointerPtr(new InputPointer(id));
-	}
-
-	return PointerPtr();
-}
-
-TouchPtr InputFrontendHandler::createTouch(const string& id)
-{
-	if (!id.empty())
-	{
-		LOG(mLog, DEBUG) << "Create touch : " << id;
-
-		return TouchPtr(new InputTouch(id));
-	}
-
-	return TouchPtr();
+	return shared_ptr<InputItf::InputDevice<T>>();
 }
 
 /*******************************************************************************
@@ -336,7 +313,13 @@ TouchPtr InputFrontendHandler::createTouch(const string& id)
 
 void InputBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
+#ifdef WITH_WAYLAND
+	addFrontendHandler(FrontendHandlerPtr(
+			new InputFrontendHandler(getDeviceName(), getDomId(),
+									 domId, devId, mDisplay)));
+#else
 	addFrontendHandler(FrontendHandlerPtr(
 			new InputFrontendHandler(getDeviceName(), getDomId(),
 									 domId, devId)));
+#endif
 }
