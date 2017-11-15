@@ -46,6 +46,7 @@ private:
 	template <typename T> friend class SeatDevice;
 	friend class ShellSurface;
 	friend class Compositor;
+	friend class Connector;
 
 	Surface(wl_display* display, wl_compositor* compositor);
 

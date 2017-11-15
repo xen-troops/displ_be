@@ -27,6 +27,8 @@ using namespace std::placeholders;
 
 using std::bind;
 using std::exception;
+using std::lock_guard;
+using std::mutex;
 using std::string;
 using std::thread;
 
@@ -78,6 +80,8 @@ Display::~Display()
 
 void Display::start()
 {
+	lock_guard<mutex> lock(mMutex);
+
 	LOG(mLog, DEBUG) << "Start";
 
 	mThread = thread(&Display::dispatchThread, this);
@@ -85,6 +89,8 @@ void Display::start()
 
 void Display::stop()
 {
+	lock_guard<mutex> lock(mMutex);
+
 	LOG(mLog, DEBUG) << "Stop";
 
 	if (mPollFd)
@@ -100,6 +106,8 @@ void Display::stop()
 
 bool Display::isZeroCopySupported() const
 {
+	lock_guard<mutex> lock(mMutex);
+
 #ifdef WITH_DRM
 	if (mWaylandDrm && mWaylandDrm->isZeroCopySupported())
 	{
@@ -111,6 +119,8 @@ bool Display::isZeroCopySupported() const
 
 DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 {
+	lock_guard<mutex> lock(mMutex);
+
 	Connector* connector = nullptr;
 
 	if (mShell)
@@ -155,6 +165,8 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 DisplayBufferPtr Display::createDisplayBuffer(
 		uint32_t width, uint32_t height, uint32_t bpp)
 {
+	lock_guard<mutex> lock(mMutex);
+
 	if (mSharedMemory)
 	{
 		return mSharedMemory->createSharedFile(width, height, bpp);
@@ -167,6 +179,8 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		uint32_t width, uint32_t height, uint32_t bpp,
 		domid_t domId, GrantRefs& refs, bool allocRefs)
 {
+	lock_guard<mutex> lock(mMutex);
+
 #ifdef WITH_DRM
 	if (mWaylandDrm)
 	{
@@ -187,6 +201,8 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 										  uint32_t width, uint32_t height,
 										  uint32_t pixelFormat)
 {
+	lock_guard<mutex> lock(mMutex);
+
 #ifdef WITH_DRM
 	if (mWaylandDrm)
 	{
@@ -211,39 +227,135 @@ template<>
 void Display::setInputCallbacks<KeyboardCallbacks>(
 		const string& connector, const KeyboardCallbacks& callbacks)
 {
+	lock_guard<mutex> lock(mMutex);
 
+	LOG(mLog, DEBUG) << "Set keyboard callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto keyboard = mSeat->getKeyboard();
+
+		if (keyboard)
+		{
+			keyboard->setConnectorCallbacks(connector, callbacks);
+		}
+		else
+		{
+			LOG(mLog, WARNING) << "No keyboard for input callbacks";
+		}
+	}
+	else
+	{
+		LOG(mLog, WARNING) << "No seat for input callbacks";
+	}
 }
 
 template<>
 void Display::clearInputCallbacks<KeyboardCallbacks>(const string& connector)
 {
+	lock_guard<mutex> lock(mMutex);
 
+	LOG(mLog, DEBUG) << "Clear keyboard callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto keyboard = mSeat->getKeyboard();
+
+		if (keyboard)
+		{
+			keyboard->clearConnectorCallbacks(connector);
+		}
+	}
 }
 
 template<>
 void Display::setInputCallbacks<PointerCallbacks>(
 		const string& connector, const PointerCallbacks& callbacks)
 {
+	lock_guard<mutex> lock(mMutex);
 
+	LOG(mLog, DEBUG) << "Set pointer callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto pointer = mSeat->getPointer();
+
+		if (pointer)
+		{
+			pointer->setConnectorCallbacks(connector, callbacks);
+		}
+		else
+		{
+			LOG(mLog, WARNING) << "No pointer for input callbacks";
+		}
+	}
+	else
+	{
+		LOG(mLog, WARNING) << "No seat for input callbacks";
+	}
 }
 
 template<>
 void Display::clearInputCallbacks<PointerCallbacks>(const string& connector)
 {
+	lock_guard<mutex> lock(mMutex);
 
+	LOG(mLog, DEBUG) << "Clear pointer callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto pointer = mSeat->getPointer();
+
+		if (pointer)
+		{
+			pointer->clearConnectorCallbacks(connector);
+		}
+	}
 }
 
 template<>
 void Display::setInputCallbacks<TouchCallbacks>(
 		const string& connector, const TouchCallbacks& callbacks)
 {
+	lock_guard<mutex> lock(mMutex);
 
+	LOG(mLog, DEBUG) << "Set touch callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto touch = mSeat->getTouch();
+
+		if (touch)
+		{
+			touch->setConnectorCallbacks(connector, callbacks);
+		}
+		else
+		{
+			LOG(mLog, WARNING) << "No touch for input callbacks";
+		}
+	}
+	else
+	{
+		LOG(mLog, WARNING) << "No seat for input callbacks";
+	}
 }
 
 template<>
 void Display::clearInputCallbacks<TouchCallbacks>(const string& connector)
 {
+	lock_guard<mutex> lock(mMutex);
 
+	LOG(mLog, DEBUG) << "Clear touch callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto touch = mSeat->getTouch();
+
+		if (touch)
+		{
+			touch->clearConnectorCallbacks(connector);
+		}
+	}
 }
 
 #endif

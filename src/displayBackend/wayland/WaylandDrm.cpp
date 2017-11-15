@@ -143,7 +143,7 @@ void WaylandDrm::onFormat(uint32_t format)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	LOG(mLog, DEBUG) << "onFormat format: " << format;
+	LOG(mLog, DEBUG) << "onFormat format: 0x" << std::hex << format;
 }
 
 void WaylandDrm::onAuthenticated()

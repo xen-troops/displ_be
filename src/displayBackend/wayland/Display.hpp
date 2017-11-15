@@ -148,6 +148,7 @@ private:
 	WaylandDrmPtr mWaylandDrm;
 #endif
 
+	mutable std::mutex mMutex;
 	std::thread mThread;
 
 	std::unique_ptr<XenBackend::PollFd> mPollFd;
