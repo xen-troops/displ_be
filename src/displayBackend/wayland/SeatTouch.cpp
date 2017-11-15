@@ -86,13 +86,14 @@ void SeatTouch::onDown(uint32_t serial, uint32_t time, wl_surface* surface,
 	int32_t resX = wl_fixed_to_int(x);
 	int32_t resY = wl_fixed_to_int(y);
 
-	DLOG(mLog, DEBUG) << "onDown surface: " << surface
+	DLOG(mLog, DEBUG) << "onDown connector: "
+					  << ConnectorManager::getInstance().getNameBySurface(surface)
 					  << ", serial: " << serial << ", time: " << time
 					  << ", id: " << id << ", X: " << resX << ", Y: " << resY;
 
-	mCallbackIdMap[id] = mCallbacks.find(surface);
+	mCallbackIdMap[id] = mSurfaceCallbacks.find(surface);
 
-	if (mCallbackIdMap[id] != mCallbacks.end() &&
+	if (mCallbackIdMap[id] != mSurfaceCallbacks.end() &&
 		mCallbackIdMap[id]->second.down)
 	{
 		mCallbackIdMap[id]->second.down(id, resX, resY);
@@ -117,7 +118,7 @@ void SeatTouch::onUp(uint32_t serial, uint32_t time, int32_t id)
 		return;
 	}
 
-	if (mCallbackIdMap[id] != mCallbacks.end() &&
+	if (mCallbackIdMap[id] != mSurfaceCallbacks.end() &&
 		mCallbackIdMap[id]->second.up)
 	{
 		mCallbackIdMap[id]->second.up(id);
@@ -128,7 +129,7 @@ void SeatTouch::onUp(uint32_t serial, uint32_t time, int32_t id)
 		}
 	}
 
-	mCallbackIdMap[id] = mCallbacks.end();
+	mCallbackIdMap[id] = mSurfaceCallbacks.end();
 }
 
 void SeatTouch::onMotion(uint32_t time, int32_t id, wl_fixed_t x, wl_fixed_t y)
@@ -148,7 +149,7 @@ void SeatTouch::onMotion(uint32_t time, int32_t id, wl_fixed_t x, wl_fixed_t y)
 		return;
 	}
 
-	if (mCallbackIdMap[id] != mCallbacks.end() &&
+	if (mCallbackIdMap[id] != mSurfaceCallbacks.end() &&
 			mCallbackIdMap[id]->second.motion)
 	{
 		mCallbackIdMap[id]->second.motion(id, resX, resY);

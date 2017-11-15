@@ -39,6 +39,7 @@ using std::mutex;
 using std::string;
 using std::thread;
 using std::to_string;
+using std::unordered_map;
 
 using XenBackend::PollFd;
 
@@ -49,6 +50,27 @@ using DisplayItf::GrantRefs;
 namespace Drm {
 
 const uint32_t cInvalidId = 0;
+
+unordered_map<int, string> Display::sConnectorNames =
+{
+	{ DRM_MODE_CONNECTOR_Unknown,		"unknown" },
+	{ DRM_MODE_CONNECTOR_VGA,			"VGA" },
+	{ DRM_MODE_CONNECTOR_DVII,			"DVI-I" },
+	{ DRM_MODE_CONNECTOR_DVID,			"DVI-D" },
+	{ DRM_MODE_CONNECTOR_DVIA,			"DVI-A" },
+	{ DRM_MODE_CONNECTOR_Composite,		"composite" },
+	{ DRM_MODE_CONNECTOR_SVIDEO,		"s-video" },
+	{ DRM_MODE_CONNECTOR_LVDS,			"LVDS" },
+	{ DRM_MODE_CONNECTOR_Component,		"component" },
+	{ DRM_MODE_CONNECTOR_9PinDIN,		"9-pin DIN" },
+	{ DRM_MODE_CONNECTOR_DisplayPort,	"DP" },
+	{ DRM_MODE_CONNECTOR_HDMIA,			"HDMI-A" },
+	{ DRM_MODE_CONNECTOR_HDMIB,			"HDMI-B" },
+	{ DRM_MODE_CONNECTOR_TV,			"TV" },
+	{ DRM_MODE_CONNECTOR_eDP,			"eDP" },
+	{ DRM_MODE_CONNECTOR_VIRTUAL,		"Virtual" },
+	{ DRM_MODE_CONNECTOR_DSI,			"DSI" },
+};
 
 /*******************************************************************************
  * Device
@@ -102,29 +124,6 @@ drm_magic_t Display::getMagic()
 	return magic;
 }
 
-Drm::ConnectorPtr Display::getConnectorByIndex(uint32_t index)
-{
-	lock_guard<mutex> lock(mMutex);
-
-	if (index >= mConnectors.size())
-	{
-		throw Exception("Wrong connector index " + to_string(index));
-	}
-
-	auto iter = mConnectors.begin();
-
-	advance(iter, index);
-
-	return iter->second;
-}
-
-size_t Display::getConnectorsCount()
-{
-	lock_guard<mutex> lock(mMutex);
-
-	return mConnectors.size();
-}
-
 void Display::start()
 {
 	lock_guard<mutex> lock(mMutex);
@@ -160,18 +159,18 @@ void Display::stop()
 	}
 }
 
-DisplayItf::ConnectorPtr Display::getConnectorByName(const string& name)
+DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	auto iter = mConnectors.find(name);
+	auto it = mConnectorIds.find(name);
 
-	if (iter == mConnectors.end())
+	if (it == mConnectorIds.end())
 	{
-		throw Exception("Wrong connector name: " + name);
+		throw Exception("Can't create connector: " + name);
 	}
 
-	return iter->second;
+	return DisplayItf::ConnectorPtr(new Connector(name, mFd, it->second));
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
@@ -256,8 +255,6 @@ void Display::init()
 		throw Exception("Drm device does not support dumb buffers");
 	}
 
-	mRes.reset(new ModeResource(mFd));
-
 #ifdef WITH_ZCOPY
 	mZeroCopyFd = drmOpen(XENDRM_ZCOPY_DRIVER_NAME, NULL);
 
@@ -268,7 +265,7 @@ void Display::init()
 	}
 #endif
 
-	createConnectors();
+	getConnectorIds();
 
 	LOG(mLog, DEBUG) << "Create Drm card: " << mName << ", FD: " << mFd
 					 << ", ZCopyFD: " << mZeroCopyFd;
@@ -276,10 +273,6 @@ void Display::init()
 
 void Display::release()
 {
-	mRes.reset();
-
-	mConnectors.clear();
-
 	if (mZeroCopyFd >= 0)
 	{
 		drmClose(mZeroCopyFd);
@@ -291,14 +284,30 @@ void Display::release()
 	}
 }
 
-void Display::createConnectors()
+void Display::getConnectorIds()
 {
-	for (int i = 0; i < (*mRes)->count_connectors; i++)
-	{
-		Drm::ConnectorPtr connector(
-				new Connector(*this, (*mRes)->connectors[i]));
+	ModeResource resource(mFd);
 
-		mConnectors.emplace(connector->getName(), connector);
+	for (int i = 0; i < resource->count_connectors; i++)
+	{
+		ModeConnector connector(mFd, resource->connectors[i]);
+
+		string name = sConnectorNames.at(DRM_MODE_CONNECTOR_Unknown) + "-" +
+				to_string(connector->connector_type_id);
+
+		auto it = sConnectorNames.find(connector->connector_type);
+
+		if (it != sConnectorNames.end())
+		{
+			name = it->second  + "-" + to_string(connector->connector_type_id);
+		}
+
+		mConnectorIds[name] = connector->connector_id;
+
+		LOG(mLog, DEBUG) << "Connector id: " << connector->connector_id
+						 << ", name: " << name
+						 << ", connected: "
+						 << (connector->connection == DRM_MODE_CONNECTED);
 	}
 }
 

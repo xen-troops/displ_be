@@ -20,31 +20,201 @@
 
 #include "InputBackend.hpp"
 
+#include <sstream>
 #include <vector>
 
-#include "InputHandlers.hpp"
+#include "input/DevInput.hpp"
+#ifdef WITH_WAYLAND
+#include "input/WlInput.hpp"
+#endif
 
+using std::bind;
+using std::istringstream;
+using std::shared_ptr;
 using std::string;
 using std::to_string;
+using std::toupper;
+using std::transform;
 using std::vector;
+
+using namespace std::placeholders;
 
 using XenBackend::BackendBase;
 using XenBackend::FrontendHandlerPtr;
 using XenBackend::Log;
 using XenBackend::RingBufferPtr;
 
-using InputItf::InputManagerPtr;
+using InputItf::KeyboardCallbacks;
+using InputItf::KeyboardPtr;
+using InputItf::PointerCallbacks;
+using InputItf::PointerPtr;
+using InputItf::TouchCallbacks;
+using InputItf::TouchPtr;
+
+/*******************************************************************************
+ * InputRingBuffer
+ ******************************************************************************/
+
+InputRingBuffer::InputRingBuffer(KeyboardPtr keyboard, PointerPtr pointer,
+								 TouchPtr touch, domid_t domId,
+								 evtchn_port_t port, int ref,
+								 int offset, size_t size) :
+	RingBufferOutBase<xenkbd_page, xenkbd_in_event>(domId, port, ref,
+													offset, size),
+	mKeyboard(keyboard),
+	mPointer(pointer),
+	mTouch(touch),
+	mLog("InputRingBuffer")
+{
+	if (mKeyboard)
+	{
+		mKeyboard->setCallbacks({bind(&InputRingBuffer::onKey, this, _1, _2)});
+	}
+
+
+	if (mPointer)
+	{
+		mPointer->setCallbacks({
+			bind(&InputRingBuffer::onMoveRel, this, _1, _2, _3),
+			bind(&InputRingBuffer::onMoveAbs, this, _1, _2, _3),
+			bind(&InputRingBuffer::onButton, this, _1, _2),
+		});
+	}
+
+
+	if (mTouch)
+	{
+		mTouch->setCallbacks({
+			bind(&InputRingBuffer::onDown, this, _1, _2, _3),
+			bind(&InputRingBuffer::onUp, this, _1),
+			bind(&InputRingBuffer::onMotion, this, _1, _2, _3),
+			bind(&InputRingBuffer::onFrame, this),
+		});
+	}
+
+	LOG(mLog, DEBUG) << "Create";
+}
+
+InputRingBuffer::~InputRingBuffer()
+{
+	LOG(mLog, DEBUG) << "Delete";
+}
+
+void InputRingBuffer::onKey(uint32_t key, uint32_t state)
+{
+	DLOG(mLog, DEBUG) << "onKey key: " << key << ", state: " << state;
+
+	xenkbd_in_event event = {};
+
+	event.type = XENKBD_TYPE_KEY;
+	event.key.keycode = key;
+	event.key.pressed = state;
+
+	sendEvent(event);
+}
+
+void InputRingBuffer::onMoveRel(int32_t x, int32_t y, int32_t z)
+{
+	DLOG(mLog, DEBUG) << "onMoveRel x: " << x << ", y: " << y << ", z: " << z;
+
+	xenkbd_in_event event = {};
+
+	event.type = XENKBD_TYPE_MOTION;
+	event.motion.rel_x = x;
+	event.motion.rel_y = y;
+	event.motion.rel_z = z;
+
+	sendEvent(event);
+}
+
+void InputRingBuffer::onMoveAbs(int32_t x, int32_t y, int32_t z)
+{
+	DLOG(mLog, DEBUG) << "onMoveAbs x: " << x << ", y: " << y << ", z: " << z;
+
+	xenkbd_in_event event = {};
+
+	event.type = XENKBD_TYPE_POS;
+	event.pos.abs_x = x;
+	event.pos.abs_y = y;
+	event.pos.rel_z = z;
+
+	sendEvent(event);
+}
+
+void InputRingBuffer::onButton(uint32_t button, uint32_t state)
+{
+	DLOG(mLog, DEBUG) << "onButton button: " << button << ", state: " << state;
+
+	xenkbd_in_event event = {};
+
+	event.type = XENKBD_TYPE_KEY;
+	event.key.keycode = button;
+	event.key.pressed = state;
+
+	sendEvent(event);
+}
+
+void InputRingBuffer::onDown(int32_t id, int32_t x, int32_t y)
+{
+	DLOG(mLog, DEBUG) << "onDown id: " << id << ", x: " << x << ", y: " << y;
+
+	xenkbd_in_event event = {};
+
+	event.type = XENKBD_TYPE_MTOUCH;
+	event.mtouch.event_type = XENKBD_MT_EV_DOWN;
+	event.mtouch.contact_id = id;
+	event.mtouch.u.pos = {x, y};
+
+	sendEvent(event);
+}
+
+void InputRingBuffer::onUp(int32_t id)
+{
+	DLOG(mLog, DEBUG) << "onUp id: " << id;
+
+	xenkbd_in_event event = {};
+
+	event.type = XENKBD_TYPE_MTOUCH;
+	event.mtouch.event_type = XENKBD_MT_EV_UP;
+	event.mtouch.contact_id = id;
+
+	sendEvent(event);
+}
+
+void InputRingBuffer::onMotion(int32_t id, int32_t x, int32_t y)
+{
+	DLOG(mLog, DEBUG) << "onMotion id: " << id << ", x: " << x << ", y: " << y;
+
+	xenkbd_in_event event = {};
+
+	event.type = XENKBD_TYPE_MTOUCH;
+	event.mtouch.event_type = XENKBD_MT_EV_MOTION;
+	event.mtouch.contact_id = id;
+	event.mtouch.u.pos = {x, y};
+
+	sendEvent(event);
+}
+
+void InputRingBuffer::onFrame()
+{
+	DLOG(mLog, DEBUG) << "onFrame";
+
+	xenkbd_in_event event = {};
+
+	event.type = XENKBD_TYPE_MTOUCH;
+	event.mtouch.event_type = XENKBD_MT_EV_SYN;
+
+	sendEvent(event);
+}
 
 /*******************************************************************************
  * InputFrontendHandler
  ******************************************************************************/
 
-InputFrontendHandler::InputFrontendHandler(
-		ConfigPtr config, InputManagerPtr inputManager, const string& devName,
-		domid_t beDomId, domid_t feDomId, uint16_t devId) :
+InputFrontendHandler::InputFrontendHandler(const string& devName,
+										   domid_t beDomId, domid_t feDomId,
+										   uint16_t devId) :
 	FrontendHandlerBase("VkbdFrontend", devName, beDomId, feDomId, devId),
-	mConfig(config),
-	mInputManager(inputManager),
 	mLog("VkbdFrontend")
 {
 	setBackendState(XenbusStateInitWait);
@@ -59,59 +229,82 @@ void InputFrontendHandler::onBind()
 	grant_ref_t ref = getXenStore().readUint(
 			getXsFrontendPath() + "/" XENKBD_FIELD_RING_GREF);
 
+	auto id = getXenStore().readString(getXsFrontendPath() + "/id");
+
+	string keyboardId, pointerId, touchId;
+
+	parseInputId(id, keyboardId, pointerId, touchId);
+
 	InputRingBufferPtr eventRingBuffer(
-			new InputRingBuffer(getDomId(), port, ref,
+			new InputRingBuffer(createInputDevice<KeyboardCallbacks>(keyboardId),
+								createInputDevice<PointerCallbacks>(pointerId),
+								createInputDevice<TouchCallbacks>(touchId),
+								getDomId(), port, ref,
 								XENKBD_IN_RING_OFFS, XENKBD_IN_RING_SIZE));
 
 	addRingBuffer(eventRingBuffer);
+}
 
-	auto id = getXenStore().readString(getXsFrontendPath() + "/id");
+void InputFrontendHandler::parseInputId(const string& id, string& keyboardId,
+										string& pointerId, string& touchId)
+{
+	istringstream input(id);
+	string token;
 
-	createKeyboardHandler(eventRingBuffer, id);
-	createPointerHandler(eventRingBuffer, id);
-	createTouchHandler(eventRingBuffer, id);
+	while (getline(input, token, ';'))
+	{
+		auto pos = token.find(":");
+		auto key = token.substr(0, pos);
+		auto val =  token.substr(++pos);
+
+		transform(key.begin(), key.end(), key.begin(), (int (*)(int))toupper);
+
+		if (key == "K")
+		{
+			keyboardId = val;
+		}
+		else if (key == "P")
+		{
+			pointerId = val;
+		}
+		else if (key == "T")
+		{
+			touchId = val;
+		}
+		else
+		{
+			throw InputItf::Exception("Invalid key: " + key + " in id");
+		}
+	}
 }
 
 void InputFrontendHandler::onClosing()
 {
 	LOG(mLog, DEBUG) << "On frontend closing : " << getDomId();
-
-	mKeyboardHandler.reset();
-	mPointerHandler.reset();
-	mTouchHandler.reset();
 }
 
-void InputFrontendHandler::createKeyboardHandler(InputRingBufferPtr ringBuffer,
-												 const string& id)
+template<typename T>
+shared_ptr<InputItf::InputDevice<T>>
+InputFrontendHandler::createInputDevice(const string& id)
 {
-	auto keyboard =  mInputManager->getKeyboard(id);
-
-	if (keyboard)
+	if (!id.empty())
 	{
-		mKeyboardHandler.reset( new KeyboardHandler(keyboard, ringBuffer));
+		LOG(mLog, DEBUG) << "Create input device : " << id;
+
+		if (id[0] == '/')
+		{
+			return shared_ptr<InputItf::InputDevice<T>>(new DevInput<T>(id));
+		}
+#ifdef WITH_WAYLAND
+		else if (mDisplay)
+		{
+			return shared_ptr<InputItf::InputDevice<T>>(new WlInput<T>(mDisplay,
+																	   id));
+		}
+#endif
 	}
-}
 
-void InputFrontendHandler::createPointerHandler(InputRingBufferPtr ringBuffer,
-												const string& id)
-{
-	auto pointer =  mInputManager->getPointer(id);
-
-	if (pointer)
-	{
-		mPointerHandler.reset(new PointerHandler(pointer, ringBuffer));
-	}
-}
-
-void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer,
-											  const string& id)
-{
-	auto touch =  mInputManager->getTouch(id);
-
-	if (touch)
-	{
-		mTouchHandler.reset(new TouchHandler(touch, ringBuffer));
-	}
+	return shared_ptr<InputItf::InputDevice<T>>();
 }
 
 /*******************************************************************************
@@ -120,7 +313,13 @@ void InputFrontendHandler::createTouchHandler(InputRingBufferPtr ringBuffer,
 
 void InputBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
+#ifdef WITH_WAYLAND
 	addFrontendHandler(FrontendHandlerPtr(
-			new InputFrontendHandler(mConfig, mInputManager, getDeviceName(),
-									 getDomId(), domId, devId)));
+			new InputFrontendHandler(getDeviceName(), getDomId(),
+									 domId, devId, mDisplay)));
+#else
+	addFrontendHandler(FrontendHandlerPtr(
+			new InputFrontendHandler(getDeviceName(), getDomId(),
+									 domId, devId)));
+#endif
 }

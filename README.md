@@ -3,7 +3,6 @@
 ## Dependencies:
 ### Required:
 * libxenbe
-* libconfigc++
 ### Optional:
 * libdrm
 * wayland-client
@@ -27,7 +26,8 @@ Supported options:
 | `WITH_ZCOPY` | Enables zero copy functionality for DRM |
 | `WITH_WAYLAND` | Builds display backend with Wyaland framework (wayland-client) |
 | `WITH_IVI_EXTENSION` | Uses GENIVI IVI extension to set surface positions |
-| `WITH_INPUT` | Builds input backend | 
+| `WITH_INPUT` | Builds input backend |
+| `WITH_MOCKBELIB` | Use test mock backend library | 
 
 > If `WITH_DRM` and `WITH_WAYLAND` are disabled no display backend will be built.
 
@@ -40,9 +40,11 @@ Supported variables:
 | `XEN_INCLUDE_PATH` | Path to Xen tools includes if they are located in non standard place |
 | `XENBE_INCLUDE_PATH` | Path to libxenbe includes if they are located in non standard place |
 | `IF_INCLUDE_PATH` | Path to the interface headers if they are located in non standard place |
+| `XENBEMOCK_INCLUDE_PATH` | Path to the mock headers if they are located in non standard place |
 | `DRMZCOPY_INCLUDE_PATH` | Path to DRM zero copy header if it is located in non standard place |
 | `XEN_LIB_PATH` | Path to Xen tools libraries if they are located in non standard place |
 | `XENBE_LIB_PATH` | Path to libxenbe if it is located in non standard place |
+| `XENBEMOCK_LIB_PATH` | Path to libxenbemock if it is located in non standard place |
 
 Example:
 ```
@@ -63,10 +65,8 @@ make DESTDIR=${PATH_TO_INSTALL} install //to other location
 ```
 ## How to run:
 ```
-disple_be -c ${PATH_TO_CONFIG_FILE} -v${LOG_MASK}
+disple_be -m{MODE} -d{DRM_DEVICE} -l{LOG_FILE} -v${LOG_MASK}
 ```
-> For syntaxes of the config file see [displ_be.cfg](displ_be.cfg)
-
 Example:
 
 ```

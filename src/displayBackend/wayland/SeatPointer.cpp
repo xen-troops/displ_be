@@ -110,11 +110,12 @@ void SeatPointer::onEnter(uint32_t serial, wl_surface* surface,
 	int32_t resX = wl_fixed_to_int(x);
 	int32_t resY = wl_fixed_to_int(y);
 
-	DLOG(mLog, DEBUG) << "onEnter surface: " << surface
+	DLOG(mLog, DEBUG) << "onEnter connector: "
+					  << ConnectorManager::getInstance().getNameBySurface(surface)
 					  << ", serial: " << serial
 					  << ", X: " << resX << ", Y: " << resY;
 
-	mCurrentCallback = mCallbacks.find(surface);
+	mCurrentCallback = mSurfaceCallbacks.find(surface);
 
 	mLastX = resX;
 	mLastY = resY;
@@ -124,10 +125,11 @@ void SeatPointer::onLeave(uint32_t serial, wl_surface* surface)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	DLOG(mLog, DEBUG) << "onLeave surface: " << surface
+	DLOG(mLog, DEBUG) << "onLeave connector: "
+					  << ConnectorManager::getInstance().getNameBySurface(surface)
 					  << ", serial: " << serial;
 
-	mCurrentCallback = mCallbacks.end();
+	mCurrentCallback = mSurfaceCallbacks.end();
 }
 
 void SeatPointer::onMotion(uint32_t time, wl_fixed_t x, wl_fixed_t y)
@@ -140,7 +142,7 @@ void SeatPointer::onMotion(uint32_t time, wl_fixed_t x, wl_fixed_t y)
 	DLOG(mLog, DEBUG) << "onMotion time: " << time
 					  << ", X: " << resX << ", Y: " << resY;
 
-	if (mCurrentCallback != mCallbacks.end())
+	if (mCurrentCallback != mSurfaceCallbacks.end())
 	{
 		if (mCurrentCallback->second.moveRelative)
 		{
@@ -165,7 +167,7 @@ void SeatPointer::onButton(uint32_t serial, uint32_t time,
 	DLOG(mLog, DEBUG) << "onButton serial: " << serial << ", time: " << time
 					  << ", button: " << button << ", state: " << state;
 
-	if (mCurrentCallback != mCallbacks.end() &&
+	if (mCurrentCallback != mSurfaceCallbacks.end() &&
 		mCurrentCallback->second.button)
 	{
 		mCurrentCallback->second.button(button, state);
@@ -181,7 +183,7 @@ void SeatPointer::onAxis(uint32_t time, uint32_t axis, wl_fixed_t value)
 	DLOG(mLog, DEBUG) << "onAxis time: " << time << ", axis: " << axis
 					  << ", value: " << resValue;
 
-	if (mCurrentCallback != mCallbacks.end() &&
+	if (mCurrentCallback != mSurfaceCallbacks.end() &&
 		mCurrentCallback->second.moveRelative)
 	{
 		mCurrentCallback->second.moveRelative(0, 0, resValue);

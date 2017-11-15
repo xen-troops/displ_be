@@ -13,6 +13,7 @@ OPTION(WITH_ZCOPY "build with zero copy support" ON)
 OPTION(WITH_WAYLAND "build with wayland backend" ON)
 OPTION(WITH_IVI_EXTENSION "build with wayland IVI Extension" ON)
 OPTION(WITH_INPUT "build with input backend" ON)
+OPTION(WITH_MOCKBELIB "build with mock backend lib" OFF)
 OPTION(WITH_DOC "build with documenation" OFF)
 
 message(STATUS)
@@ -27,13 +28,23 @@ message(STATUS "WITH_WAYLAND                  = ${WITH_WAYLAND}")
 message(STATUS "WITH_IVI_EXTENSION            = ${WITH_IVI_EXTENSION}")
 message(STATUS "WITH_INPUT                    = ${WITH_INPUT}")
 message(STATUS)
+message(STATUS "WITH_MOCKBELIB                = ${WITH_MOCKBELIB}")
+message(STATUS)
 message(STATUS "XEN_INCLUDE_PATH              = ${XEN_INCLUDE_PATH}")
 message(STATUS "XENBE_INCLUDE_PATH            = ${XENBE_INCLUDE_PATH}")
 message(STATUS "IF_INCLUDE_PATH               = ${IF_INCLUDE_PATH}")
+if(WITH_ZCOPY)
 message(STATUS "DRMZCOPY_INCLUDE_PATH         = ${DRMZCOPY_INCLUDE_PATH}")
+endif()
+if(WITH_MOCKBELIB)
+message(STATUS "XENBEMOCK_INCLUDE_PATH        = ${XENBEMOCK_INCLUDE_PATH}")
+endif()
 message(STATUS)
 message(STATUS "XEN_LIB_PATH                  = ${XEN_LIB_PATH}")
 message(STATUS "XENBE_LIB_PATH                = ${XENBE_LIB_PATH}")
+if(WITH_MOCKBELIB)
+message(STATUS "XENBEMOCK_LIB_PATH            = ${XENBEMOCK_LIB_PATH}")
+endif()
 message(STATUS)
 
 if(NOT WITH_WAYLAND AND NOT WITH_DRM AND NOT WITH_INPUT)
@@ -73,6 +84,10 @@ if(WITH_INPUT)
 	add_definitions(-DWITH_INPUT)
 endif()
 
+if(WITH_MOCKBELIB)
+	add_definitions(-DWITH_MOCKBELIB)
+endif()
+
 ################################################################################
 # Includes
 ################################################################################
@@ -80,6 +95,7 @@ endif()
 include_directories(
 	${XEN_INCLUDE_PATH}
 	${XENBE_INCLUDE_PATH}
+	${XENBEMOCK_INCLUDE_PATH}
 	${DRMZCOPY_INCLUDE_PATH}
 	${CMAKE_CURRENT_BINARY_DIR}
 	.
@@ -92,6 +108,7 @@ include_directories(
 link_directories(
 	${XEN_LIB_PATH}
 	${XENBE_LIB_PATH}
+	${XENBEMOCK_LIB_PATH}
 )
 
 ################################################################################

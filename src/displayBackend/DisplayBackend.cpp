@@ -130,24 +130,9 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
 
 	ref = getXenStore().readInt(conPath + XENDISPL_FIELD_REQ_RING_REF);
 
-	vector<Config::Connector> connectors;
-
-	mConfig->getConnectors(connectors);
-
 	auto id = getXenStore().readString(conPath + "id");
 
-	auto it = find_if(begin(connectors), end(connectors),
-					  [&id](const Config::Connector& connector)
-					  { return connector.id == id; });
-
-	if (it == end(connectors))
-	{
-		LOG(mLog, WARNING) << "Connector: " << id << " is not configured";
-
-		return;
-	}
-
-	auto connector = mDisplay->getConnectorByName(it->name);
+	auto connector = mDisplay->createConnector(id);
 
 	CtrlRingBufferPtr ctrlRingBuffer(
 			new CtrlRingBuffer(connector,
@@ -162,11 +147,9 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
  * DisplayBackend
  ******************************************************************************/
 
-DisplayBackend::DisplayBackend(ConfigPtr config,
-							   DisplayPtr display,
+DisplayBackend::DisplayBackend(DisplayPtr display,
 							   const string& deviceName) :
 	BackendBase("DisplBackend", deviceName),
-	mConfig(config),
 	mDisplay(display)
 {
 	mDisplay->start();
@@ -175,6 +158,6 @@ DisplayBackend::DisplayBackend(ConfigPtr config,
 void DisplayBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
 	addFrontendHandler(FrontendHandlerPtr(
-			new DisplayFrontendHandler(mConfig, mDisplay, getDeviceName(),
+			new DisplayFrontendHandler(mDisplay, getDeviceName(),
 									   getDomId(), domId, devId)));
 }

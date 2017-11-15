@@ -23,7 +23,8 @@
 #define SRC_DRM_CONNECTOR_HPP_
 
 #include <atomic>
-#include <unordered_map>
+#include <list>
+#include <mutex>
 
 #include <xen/be/Log.hpp>
 
@@ -46,17 +47,13 @@ class Connector : public DisplayItf::Connector
 public:
 
 	/**
-	 * @param device DRM device
+	 * @param name   connector name
+	 * @param fd     DRM file descriptor
 	 * @param conId  connector id
 	 */
-	Connector(Display& device, int conId);
+	Connector(const std::string& name, int fd, int conId);
 
 	~Connector();
-
-	/**
-	 * Returns assigned CRTC id
-	 */
-	uint32_t getCrtcId() const { return mCrtcId; }
 
 	/**
 	 * Returns connector name
@@ -100,9 +97,10 @@ public:
 
 private:
 
-	static std::unordered_map<int, std::string> sConnectorNames;
+	static std::list<uint32_t> sCrtcIds;
+	static std::mutex sMutex;
 
-	Display& mDev;
+	std::string mName;
 	int mFd;
 	uint32_t mCrtcId;
 	ModeConnector mConnector;
@@ -110,14 +108,12 @@ private:
 	std::atomic_bool mFlipPending;
 	FlipCallback mFlipCallback;
 	XenBackend::Log mLog;
-	std::string mName;
 
 	uint32_t findCrtcId();
 	uint32_t getAssignedCrtcId();
 	uint32_t findMatchingCrtcId();
 	bool isCrtcIdUsedByOther(uint32_t crtcId);
 	drmModeModeInfoPtr findMode(uint32_t width, uint32_t height);
-
 
 	friend class Display;
 

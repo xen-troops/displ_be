@@ -3,6 +3,7 @@ add_subdirectory(protocols)
 set(SOURCES
 	Compositor.cpp
 	Connector.cpp
+	ConnectorManager.cpp
 	Display.cpp
 	SharedBuffer.cpp
 	SharedFile.cpp

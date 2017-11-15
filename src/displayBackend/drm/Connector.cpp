@@ -24,43 +24,27 @@
 #include "Display.hpp"
 
 using std::chrono::milliseconds;
+using std::list;
+using std::lock_guard;
+using std::mutex;
 using std::string;
 using std::this_thread::sleep_for;
 using std::to_string;
-using std::unordered_map;
 
 using DisplayItf::FrameBufferPtr;
 
 namespace Drm {
 
-unordered_map<int, string> Connector::sConnectorNames =
-{
-	{ DRM_MODE_CONNECTOR_Unknown,		"unknown" },
-	{ DRM_MODE_CONNECTOR_VGA,			"VGA" },
-	{ DRM_MODE_CONNECTOR_DVII,			"DVI-I" },
-	{ DRM_MODE_CONNECTOR_DVID,			"DVI-D" },
-	{ DRM_MODE_CONNECTOR_DVIA,			"DVI-A" },
-	{ DRM_MODE_CONNECTOR_Composite,		"composite" },
-	{ DRM_MODE_CONNECTOR_SVIDEO,		"s-video" },
-	{ DRM_MODE_CONNECTOR_LVDS,			"LVDS" },
-	{ DRM_MODE_CONNECTOR_Component,		"component" },
-	{ DRM_MODE_CONNECTOR_9PinDIN,		"9-pin DIN" },
-	{ DRM_MODE_CONNECTOR_DisplayPort,	"DP" },
-	{ DRM_MODE_CONNECTOR_HDMIA,			"HDMI-A" },
-	{ DRM_MODE_CONNECTOR_HDMIB,			"HDMI-B" },
-	{ DRM_MODE_CONNECTOR_TV,			"TV" },
-	{ DRM_MODE_CONNECTOR_eDP,			"eDP" },
-	{ DRM_MODE_CONNECTOR_VIRTUAL,		"Virtual" },
-	{ DRM_MODE_CONNECTOR_DSI,			"DSI" },
-};
+mutex Connector::sMutex;
+list<uint32_t> Connector::sCrtcIds;
 
 /*******************************************************************************
  * Connector
  ******************************************************************************/
 
-Connector::Connector(Display& device, int conId) :
-	mDev(device),
-	mFd(device.getFd()),
+Connector::Connector(const string& name, int fd, int conId) :
+	mName(name),
+	mFd(fd),
 	mCrtcId(cInvalidId),
 	mConnector(mFd, conId),
 	mSavedCrtc(nullptr),
@@ -68,17 +52,6 @@ Connector::Connector(Display& device, int conId) :
 	mFlipCallback(nullptr),
 	mLog("Connector")
 {
-	mName = sConnectorNames.at(DRM_MODE_CONNECTOR_Unknown) + "-" +
-			to_string(mConnector->connector_type_id);
-
-	auto connectorIt = sConnectorNames.find(mConnector->connector_type);
-
-	if (connectorIt != sConnectorNames.end())
-	{
-		mName = connectorIt->second  + "-" +
-				to_string(mConnector->connector_type_id);;
-	}
-
 	LOG(mLog, DEBUG) << "Create, name: " << mName
 					 << ", id: " << mConnector->connector_id
 					 << ", connected: " << isConnected();
@@ -108,6 +81,7 @@ Connector::~Connector()
 void Connector::init(uint32_t width, uint32_t height,
 					 FrameBufferPtr frameBuffer)
 {
+	lock_guard<mutex> lock(sMutex);
 
 	if (mConnector->connection != DRM_MODE_CONNECTED)
 	{
@@ -146,10 +120,16 @@ void Connector::init(uint32_t width, uint32_t height,
 	{
 		throw Exception("Cannot set CRTC for connector");
 	}
+
+	sCrtcIds.push_back(mCrtcId);
 }
 
 void Connector::release()
 {
+	lock_guard<mutex> lock(sMutex);
+
+	sCrtcIds.remove(mCrtcId);
+
 	mCrtcId = cInvalidId;
 
 	if (mSavedCrtc)
@@ -181,7 +161,7 @@ void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 
 	auto fbId = frameBuffer->getHandle();
 
-	auto ret = drmModePageFlip(mDev.getFd(), mCrtcId, fbId,
+	auto ret = drmModePageFlip(mFd, mCrtcId, fbId,
 							   DRM_MODE_PAGE_FLIP_EVENT, this);
 
 	if (ret)
@@ -211,15 +191,9 @@ uint32_t Connector::findCrtcId()
 
 bool Connector::isCrtcIdUsedByOther(uint32_t crtcId)
 {
-	for (size_t i = 0; i < mDev.getConnectorsCount(); i++)
+	if (find(sCrtcIds.begin(), sCrtcIds.end(), crtcId) != sCrtcIds.end())
 	{
-		if (crtcId == mDev.getConnectorByIndex(i)->getCrtcId())
-		{
-			LOG(mLog, DEBUG) << "Crtc id is used by other connector, con id"
-							 << mConnector->connector_id;
-
-			return true;
-		}
+		return true;
 	}
 
 	return false;
@@ -255,18 +229,20 @@ uint32_t Connector::getAssignedCrtcId()
 
 uint32_t Connector::findMatchingCrtcId()
 {
+	ModeResource resource(mFd);
+
 	for (int encIndex = 0; encIndex < mConnector->count_encoders; encIndex++)
 	{
 		ModeEncoder encoder(mFd, mConnector->encoders[encIndex]);
 
-		for (int crtcIndex = 0; crtcIndex < mDev.getCtrcsCount(); crtcIndex++)
+		for (int crtcIndex = 0; crtcIndex < resource->count_crtcs; crtcIndex++)
 		{
 			if (!(encoder->possible_crtcs & (1 << crtcIndex)))
 			{
 				continue;
 			}
 
-			auto crtcId = mDev.getCtrcIdByIndex(crtcIndex);
+			auto crtcId = resource->crtcs[crtcIndex];
 
 			if (isCrtcIdUsedByOther(crtcId))
 			{

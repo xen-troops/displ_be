@@ -77,9 +77,9 @@ template<typename T>
 class InputDevice
 {
 public:
-	virtual void setCallbacks(const T& callbacks) = 0;
-
 	virtual ~InputDevice() {}
+
+	virtual void setCallbacks(const T& callbacks) = 0;
 };
 
 typedef InputDevice<KeyboardCallbacks> Keyboard;
@@ -89,19 +89,6 @@ typedef InputDevice<TouchCallbacks> Touch;
 typedef std::shared_ptr<Keyboard> KeyboardPtr;
 typedef std::shared_ptr<Pointer> PointerPtr;
 typedef std::shared_ptr<Touch> TouchPtr;
-
-class InputManager
-{
-public:
-
-	virtual ~InputManager() {}
-
-	virtual KeyboardPtr getKeyboard(const std::string& id) = 0;
-	virtual PointerPtr getPointer(const std::string& id) = 0;
-	virtual TouchPtr getTouch(const std::string& id) = 0;
-};
-
-typedef std::shared_ptr<InputManager> InputManagerPtr;
 
 }
 

@@ -221,10 +221,10 @@ public:
 	virtual bool isZeroCopySupported() const = 0;
 
 	/**
-	 * Returns connector by name
+	 * Creates connector
 	 * @param name connector name
 	 */
-	virtual ConnectorPtr getConnectorByName(const std::string& name) = 0;
+	virtual ConnectorPtr createConnector(const std::string& name) = 0;
 
 	/**
 	 * Creates display buffer

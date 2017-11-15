@@ -20,7 +20,7 @@
  */
 
 #include "Connector.hpp"
-
+#include "ConnectorManager.hpp"
 #include "Exception.hpp"
 
 using DisplayItf::FrameBufferPtr;
@@ -38,10 +38,14 @@ Connector::Connector(const std::string& name, SurfacePtr surface) :
 	mLog("Connector")
 {
 	LOG(mLog, DEBUG) << "Create, name: "  << mName;
+
+	ConnectorManager::getInstance().createConnector(mName, mSurface->mWlSurface);
 }
 
 Connector::~Connector()
 {
+	ConnectorManager::getInstance().deleteConnector(mName, mSurface->mWlSurface);
+
 	LOG(mLog, DEBUG) << "Delete, name: " << mName;
 }
 

@@ -62,15 +62,6 @@ public:
 	~Display();
 
 	/**
-	 * Creates virtual connector
-	 * @param name       connector name
-	 * @param surfaceId  surface id
-	 * @return created connector
-	 */
-	DisplayItf::ConnectorPtr createConnector(const std::string& name,
-											 uint32_t surfaceId = 0);
-
-	/**
 	 * Starts events handling
 	 */
 	void start() override;
@@ -86,11 +77,10 @@ public:
 	bool isZeroCopySupported() const override;
 
 	/**
-	 * Returns connector by name
+	 * Creates connector
 	 * @param name connector name
 	 */
-	DisplayItf::ConnectorPtr getConnectorByName(
-			const std::string& name) override;
+	DisplayItf::ConnectorPtr createConnector(const std::string& name) override;
 
 	/**
 	 * Creates display buffer
@@ -127,7 +117,12 @@ public:
 			uint32_t width,uint32_t height, uint32_t pixelFormat) override;
 
 #ifdef WITH_INPUT
-	SeatPtr getSeat() const { return mSeat; }
+
+	template <typename T>
+	void setInputCallbacks(const std::string& connector, const T& callbacks);
+	template <typename T>
+	void clearInputCallbacks(const std::string& connector);
+
 #endif
 
 private:
@@ -136,8 +131,6 @@ private:
 	wl_registry* mWlRegistry;
 	wl_registry_listener mWlRegistryListener;
 	XenBackend::Log mLog;
-
-	std::unordered_map<std::string, Wayland::ConnectorPtr> mConnectors;
 
 	CompositorPtr mCompositor;
 	ShellPtr mShell;
@@ -155,6 +148,7 @@ private:
 	WaylandDrmPtr mWaylandDrm;
 #endif
 
+	mutable std::mutex mMutex;
 	std::thread mThread;
 
 	std::unique_ptr<XenBackend::PollFd> mPollFd;

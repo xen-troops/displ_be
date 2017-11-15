@@ -26,7 +26,6 @@
 #include <xen/be/RingBufferBase.hpp>
 #include <xen/be/Log.hpp>
 
-#include "Config.hpp"
 #include "DisplayCommandHandler.hpp"
 
 /***************************************************************************//**
@@ -74,19 +73,16 @@ class DisplayFrontendHandler : public XenBackend::FrontendHandlerBase
 public:
 
 	/**
-	 * @param config    global config
 	 * @param display   display
 	 * @param backend   backend instance
 	 * @param domId     frontend domain id
 	 * @param devId     frontend device id
 	 */
-	DisplayFrontendHandler(ConfigPtr config,
-						   DisplayItf::DisplayPtr display,
+	DisplayFrontendHandler(DisplayItf::DisplayPtr display,
 						   const std::string& devName,
 						   domid_t beDomId, domid_t feDomId, uint16_t devId) :
 		FrontendHandlerBase("DisplFrontend", devName,
 							beDomId, feDomId, devId),
-		mConfig(config),
 		mDisplay(display),
 		mLog("DisplFrontend") {}
 
@@ -104,7 +100,6 @@ protected:
 
 private:
 
-	ConfigPtr mConfig;
 	DisplayItf::DisplayPtr mDisplay;
 	XenBackend::Log mLog;
 
@@ -120,14 +115,12 @@ class DisplayBackend : public XenBackend::BackendBase
 {
 public:
 	/**
-	 * @param config        global config
 	 * @param display       display
 	 * @param deviceName    device name
 	 * @param domId         domain id
 	 * @param devId         device id
 	 */
-	DisplayBackend(ConfigPtr config,
-				   DisplayItf::DisplayPtr display,
+	DisplayBackend(DisplayItf::DisplayPtr display,
 				   const std::string& deviceName);
 
 protected:
@@ -141,7 +134,6 @@ protected:
 
 private:
 
-	ConfigPtr mConfig;
 	DisplayItf::DisplayPtr mDisplay;
 };
 

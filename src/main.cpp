@@ -32,8 +32,6 @@
 
 #include <xen/be/Log.hpp>
 
-#include "Config.hpp"
-
 #ifdef WITH_DISPLAY
 #include "DisplayBackend.hpp"
 #ifdef WITH_DRM
@@ -46,7 +44,10 @@
 
 #ifdef WITH_INPUT
 #include "InputBackend.hpp"
-#include "input/InputManager.hpp"
+#endif
+
+#ifdef WITH_MOCKBELIB
+#include "MockBackend.hpp"
 #endif
 
 #include "Version.hpp"
@@ -64,7 +65,14 @@ using std::vector;
 using XenBackend::Log;
 using XenBackend::Utils;
 
-string gCfgFileName;
+enum class DisplayMode
+{
+	WAYLAND,
+	DRM
+};
+
+DisplayMode gDisplayMode = DisplayMode::WAYLAND;
+string gDrmDevice = "/dev/dri/card0";
 string gLogFileName;
 
 /*******************************************************************************
@@ -107,22 +115,45 @@ bool commandLineOptions(int argc, char *argv[])
 {
 	int opt = -1;
 
-	while((opt = getopt(argc, argv, "c:v:l:fh?")) != -1)
+	while((opt = getopt(argc, argv, "m:d:v:l:fh?")) != -1)
 	{
 		switch(opt)
 		{
+		case 'm':
+		{
+			string mode = optarg;
+
+			transform(mode.begin(), mode.end(), mode.begin(),
+					  (int (*)(int))toupper);
+
+			if (mode == "DRM")
+			{
+				gDisplayMode = DisplayMode::DRM;
+			}
+			else if (mode == "WAYLAND")
+			{
+				gDisplayMode = DisplayMode::WAYLAND;
+			}
+			else
+			{
+				return false;
+			}
+
+			break;
+		}
+
+		case 'd':
+
+			gDrmDevice = optarg;
+
+			break;
+
 		case 'v':
 
 			if (!Log::setLogMask(string(optarg)))
 			{
 				return false;
 			}
-
-			break;
-
-		case 'c':
-
-			gCfgFileName = optarg;
 
 			break;
 
@@ -148,113 +179,28 @@ bool commandLineOptions(int argc, char *argv[])
 }
 
 #ifdef WITH_DISPLAY
-DisplayItf::DisplayPtr getDisplay(ConfigPtr config)
+DisplayItf::DisplayPtr getDisplay(DisplayMode mode)
 {
+	if (mode == DisplayMode::DRM)
+	{
 #ifdef WITH_DRM
-	// DRM
-	if (config->displayMode() == Config::DisplayMode::DRM)
-	{
-		return Drm::DisplayPtr(new Drm::Display("/dev/dri/card0"));
-	}
-#endif
-
-#ifdef WITH_WAYLAND
-	// Wayland
-	Wayland::DisplayPtr wlDisplay(new Wayland::Display());
-
-	vector<Config::Connector> connectors;
-
-	config->getConnectors(connectors);
-
-	for (auto connector : connectors)
-	{
-		wlDisplay->createConnector(connector.name, connector.surfaceId);
-	}
-
-	return wlDisplay;
+		// DRM
+		return Drm::DisplayPtr(new Drm::Display(gDrmDevice));
 #else
-	throw DisplayItf::Exception("Wayland is not supported");
+		throw DisplayItf::Exception("DRM mode is not supported");
 #endif
+	}
+	else
+	{
+#ifdef WITH_WAYLAND
+		// Wayland
+		return Wayland::DisplayPtr(new Wayland::Display());
+#else
+		throw DisplayItf::Exception("WAYLAND mode is not supported");
+#endif
+	}
 }
 #endif
-
-#ifdef WITH_INPUT
-InputItf::InputManagerPtr getInputManager(
-#ifdef WITH_WAYLAND
-										  Wayland::DisplayPtr display,
-#endif
-										  ConfigPtr config
-		)
-{
-	Input::InputManagerPtr inputManager(new Input::InputManager());
-
-	vector<Config::Input> inputs;
-
-	config->getKeyboards(inputs);
-
-	for (auto keyboard : inputs)
-	{
-		if (!keyboard.connector.empty())
-		{
-#ifdef WITH_WAYLAND
-			inputManager->createWlKeyboard(keyboard.id, keyboard.connector);
-#else
-			throw InputItf::Exception(
-					"Can't create wayland keyboard. Wayland is not supported.");
-#endif
-		}
-
-		if (!keyboard.device.empty())
-		{
-			inputManager->createInputKeyboard(keyboard.id, keyboard.device);
-		}
-	}
-
-	config->getPointers(inputs);
-
-	for (auto pointer : inputs)
-	{
-		if (!pointer.connector.empty())
-		{
-#ifdef WITH_WAYLAND
-			inputManager->createWlPointer(pointer.id, pointer.connector);
-#else
-			throw InputItf::Exception(
-					"Can't create wayland pointer. Wayland is not supported.");
-#endif
-		}
-
-		if (!pointer.device.empty())
-		{
-			inputManager->createInputPointer(pointer.id, pointer.device);
-		}
-
-	}
-
-	config->getTouches(inputs);
-
-	for (auto touch : inputs)
-	{
-		if (!touch.connector.empty())
-		{
-#ifdef WITH_WAYLAND
-			inputManager->createWlTouch(touch.id, touch.connector);
-#else
-			throw InputItf::Exception(
-					"Can't create wayland touch. Wayland is not supported.");
-#endif
-		}
-
-		if (!touch.device.empty())
-		{
-			inputManager->createInputTouch(touch.id, touch.device);
-		}
-	}
-
-	return inputManager;
-}
-
-#endif //WITH_INPUT
 
 int main(int argc, char *argv[])
 {
@@ -275,32 +221,25 @@ int main(int argc, char *argv[])
 				Log::setStreamBuffer(logFile.rdbuf());
 			}
 
-			ConfigPtr config(new Config(gCfgFileName));
+#ifdef WITH_MOCKBELIB
+			MockBackend mockBackend(0, 1);
+#endif
 
 #ifdef WITH_DISPLAY
-			DisplayItf::DisplayPtr display = getDisplay(config);
-			DisplayBackend displayBackend(config, display,
-										  XENDISPL_DRIVER_NAME);
+			auto display = getDisplay(gDisplayMode);
+
+			DisplayBackend displayBackend(display, XENDISPL_DRIVER_NAME);
+
 			displayBackend.start();
 #endif
 
-#ifdef WITH_INPUT
-			InputItf::InputManagerPtr inputManager;
-
-			inputManager =
 #ifdef WITH_WAYLAND
-					getInputManager(
-							dynamic_pointer_cast<Wayland::Display>(display),
-							config);
+			InputBackend inputBackend(XENKBD_DRIVER_NAME,
+					dynamic_pointer_cast<Wayland::Display>(display));
 #else
-			getInputManager(config);
+			InputBackend inputBackend(XENKBD_DRIVER_NAME);
 #endif
-
-			InputBackend inputBackend(config, inputManager,
-									  XENKBD_DRIVER_NAME);
-
 			inputBackend.start();
-#endif //WITH_INPUT
 
 			waitSignals();
 
@@ -316,9 +255,10 @@ int main(int argc, char *argv[])
 		else
 		{
 			cout << "Usage: " << argv[0]
-				 << " [-c <file>] [-l <file>] [-v <level>]"
+				 << " [-l <file>] [-v <level>]"
 				 << endl;
-			cout << "\t-c -- config file" << endl;
+			cout << "\t-m -- mode: DRM or WAYLAND" << endl;
+			cout << "\t-d -- DRM device" << endl;
 			cout << "\t-l -- log file" << endl;
 			cout << "\t-v -- verbose level in format: "
 				 << "<module>:<level>;<module:<level>" << endl;

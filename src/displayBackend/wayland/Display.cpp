@@ -27,12 +27,20 @@ using namespace std::placeholders;
 
 using std::bind;
 using std::exception;
+using std::lock_guard;
+using std::mutex;
 using std::string;
 using std::thread;
 
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
 using DisplayItf::GrantRefs;
+
+#ifdef WITH_INPUT
+using InputItf::KeyboardCallbacks;
+using InputItf::PointerCallbacks;
+using InputItf::TouchCallbacks;
+#endif
 
 using XenBackend::PollFd;
 
@@ -70,43 +78,10 @@ Display::~Display()
  * Public
  ******************************************************************************/
 
-DisplayItf::ConnectorPtr Display::createConnector(const string& name,
-												  uint32_t surfaceId)
-{
-	Connector* connector = nullptr;
-
-	if (mShell)
-	{
-		connector = new ShellConnector(name, mShell,
-									   mCompositor->createSurface());
-
-		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
-	}
-#ifdef WITH_IVI_EXTENSION
-	else if (mIviApplication)
-	{
-		connector = new IviConnector(name, mIviApplication,
-									 mCompositor->createSurface(), surfaceId);
-
-		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
-	}
-#endif
-	else
-	{
-		connector = new Connector(name, mCompositor->createSurface());
-
-		LOG(mLog, DEBUG) << "Create connector, name: " << name;
-	}
-
-	Wayland::ConnectorPtr connectorPtr(connector);
-
-	mConnectors.emplace(name, connectorPtr);
-
-	return connectorPtr;
-}
-
 void Display::start()
 {
+	lock_guard<mutex> lock(mMutex);
+
 	LOG(mLog, DEBUG) << "Start";
 
 	mThread = thread(&Display::dispatchThread, this);
@@ -114,6 +89,8 @@ void Display::start()
 
 void Display::stop()
 {
+	lock_guard<mutex> lock(mMutex);
+
 	LOG(mLog, DEBUG) << "Stop";
 
 	if (mPollFd)
@@ -129,6 +106,8 @@ void Display::stop()
 
 bool Display::isZeroCopySupported() const
 {
+	lock_guard<mutex> lock(mMutex);
+
 #ifdef WITH_DRM
 	if (mWaylandDrm && mWaylandDrm->isZeroCopySupported())
 	{
@@ -138,21 +117,56 @@ bool Display::isZeroCopySupported() const
 	return false;
 }
 
-DisplayItf::ConnectorPtr Display::getConnectorByName(const string& name)
+DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 {
-	auto iter = mConnectors.find(name);
+	lock_guard<mutex> lock(mMutex);
 
-	if (iter == mConnectors.end())
+	Connector* connector = nullptr;
+
+	if (mShell)
 	{
-		throw Exception("Wrong connector name: " + name);
+		connector = new ShellConnector(name, mShell,
+									   mCompositor->createSurface());
+
+		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
+	}
+#ifdef WITH_IVI_EXTENSION
+	else if (mIviApplication)
+	{
+		uint32_t surfaceId = 0;
+
+		try
+		{
+			surfaceId = stoi(name);
+		}
+		catch(const exception& e)
+		{
+			throw Exception("Can't create surface id: " + name);
+		}
+
+		connector = new IviConnector(name, mIviApplication,
+									 mCompositor->createSurface(), surfaceId);
+
+		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
+	}
+#endif
+	else
+	{
+		connector = new Connector(name, mCompositor->createSurface());
+
+		LOG(mLog, DEBUG) << "Create connector, name: " << name;
 	}
 
-	return iter->second;
+	Wayland::ConnectorPtr connectorPtr(connector);
+
+	return connectorPtr;
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
 		uint32_t width, uint32_t height, uint32_t bpp)
 {
+	lock_guard<mutex> lock(mMutex);
+
 	if (mSharedMemory)
 	{
 		return mSharedMemory->createSharedFile(width, height, bpp);
@@ -165,6 +179,8 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		uint32_t width, uint32_t height, uint32_t bpp,
 		domid_t domId, GrantRefs& refs, bool allocRefs)
 {
+	lock_guard<mutex> lock(mMutex);
+
 #ifdef WITH_DRM
 	if (mWaylandDrm)
 	{
@@ -185,6 +201,8 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 										  uint32_t width, uint32_t height,
 										  uint32_t pixelFormat)
 {
+	lock_guard<mutex> lock(mMutex);
+
 #ifdef WITH_DRM
 	if (mWaylandDrm)
 	{
@@ -202,6 +220,145 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 	throw Exception("Can't create frame buffer");
 }
 
+
+#ifdef WITH_INPUT
+
+template<>
+void Display::setInputCallbacks<KeyboardCallbacks>(
+		const string& connector, const KeyboardCallbacks& callbacks)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	LOG(mLog, DEBUG) << "Set keyboard callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto keyboard = mSeat->getKeyboard();
+
+		if (keyboard)
+		{
+			keyboard->setConnectorCallbacks(connector, callbacks);
+		}
+		else
+		{
+			LOG(mLog, WARNING) << "No keyboard for input callbacks";
+		}
+	}
+	else
+	{
+		LOG(mLog, WARNING) << "No seat for input callbacks";
+	}
+}
+
+template<>
+void Display::clearInputCallbacks<KeyboardCallbacks>(const string& connector)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	LOG(mLog, DEBUG) << "Clear keyboard callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto keyboard = mSeat->getKeyboard();
+
+		if (keyboard)
+		{
+			keyboard->clearConnectorCallbacks(connector);
+		}
+	}
+}
+
+template<>
+void Display::setInputCallbacks<PointerCallbacks>(
+		const string& connector, const PointerCallbacks& callbacks)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	LOG(mLog, DEBUG) << "Set pointer callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto pointer = mSeat->getPointer();
+
+		if (pointer)
+		{
+			pointer->setConnectorCallbacks(connector, callbacks);
+		}
+		else
+		{
+			LOG(mLog, WARNING) << "No pointer for input callbacks";
+		}
+	}
+	else
+	{
+		LOG(mLog, WARNING) << "No seat for input callbacks";
+	}
+}
+
+template<>
+void Display::clearInputCallbacks<PointerCallbacks>(const string& connector)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	LOG(mLog, DEBUG) << "Clear pointer callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto pointer = mSeat->getPointer();
+
+		if (pointer)
+		{
+			pointer->clearConnectorCallbacks(connector);
+		}
+	}
+}
+
+template<>
+void Display::setInputCallbacks<TouchCallbacks>(
+		const string& connector, const TouchCallbacks& callbacks)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	LOG(mLog, DEBUG) << "Set touch callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto touch = mSeat->getTouch();
+
+		if (touch)
+		{
+			touch->setConnectorCallbacks(connector, callbacks);
+		}
+		else
+		{
+			LOG(mLog, WARNING) << "No touch for input callbacks";
+		}
+	}
+	else
+	{
+		LOG(mLog, WARNING) << "No seat for input callbacks";
+	}
+}
+
+template<>
+void Display::clearInputCallbacks<TouchCallbacks>(const string& connector)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	LOG(mLog, DEBUG) << "Clear touch callback for connector: " << connector;
+
+	if (mSeat)
+	{
+		auto touch = mSeat->getTouch();
+
+		if (touch)
+		{
+			touch->clearConnectorCallbacks(connector);
+		}
+	}
+}
+
+#endif
 /*******************************************************************************
  * Private
  ******************************************************************************/
@@ -306,8 +463,6 @@ void Display::release()
 {
 	// clear connectors first as it keeps Surfaces which should be deleted
 	// prior IviApplication
-
-	mConnectors.clear();
 
 #ifdef WITH_IVI_EXTENSION
 	mIviApplication.reset();

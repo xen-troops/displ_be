@@ -8,55 +8,39 @@
 #ifndef SRC_INPUT_WLINPUT_HPP_
 #define SRC_INPUT_WLINPUT_HPP_
 
-#include "wayland/SeatKeyboard.hpp"
-#include "wayland/SeatPointer.hpp"
-#include "wayland/SeatTouch.hpp"
-#include "wayland/Surface.hpp"
+#include "wayland/Display.hpp"
 #include "InputItf.hpp"
 
-
-namespace Input {
-
-template <class S, class T>
+template <typename T>
 class WlInput : public InputItf::InputDevice<T>
 {
 public:
 
-	WlInput(S seat, Wayland::SurfacePtr surface) :
-		mSeat(seat),
-		mSurface(surface)
+	WlInput(Wayland::DisplayPtr display, const std::string& connector) :
+		mDisplay(display),
+		mConnector(connector)
 	{
-		if (!mSeat)
-		{
-			throw InputItf::Exception("No seat for device");
-		}
 	}
 
 	~WlInput()
 	{
-		mSeat->clearCallbacks(mSurface);
+		mDisplay->clearInputCallbacks<T>(mConnector);
 	}
 
 	void setCallbacks(const T& callbacks) override
 	{
-		mSeat->setCallbacks(mSurface, callbacks);
+		mDisplay->setInputCallbacks(mConnector, callbacks);
 	}
 
 private:
 
-	S mSeat;
-	Wayland::SurfacePtr mSurface;
+	Wayland::DisplayPtr mDisplay;
+	std::string mConnector;
+
 };
 
-typedef WlInput<std::shared_ptr<Wayland::SeatKeyboard>,
-				InputItf::KeyboardCallbacks> WlKeyboard;
-
-typedef WlInput<std::shared_ptr<Wayland::SeatPointer>,
-				InputItf::PointerCallbacks> WlPointer;
-
-typedef WlInput<std::shared_ptr<Wayland::SeatTouch>,
-				InputItf::TouchCallbacks> WlTouch;
-
-}
+typedef WlInput<InputItf::KeyboardCallbacks> WlKeyboard;
+typedef WlInput<InputItf::PointerCallbacks> WlPointer;
+typedef WlInput<InputItf::TouchCallbacks> WlTouch;
 
 #endif /* SRC_INPUT_WLINPUT_HPP_ */
