@@ -74,7 +74,7 @@ FrameBuffer::~FrameBuffer()
 
 void FrameBuffer::init(uint32_t pixelFormat)
 {
-	uint32_t handles[4], pitches[4], offsets[4] = {0};
+	uint32_t handles[4] = {0}, pitches[4] = {0}, offsets[4] = {0};
 
 	handles[0] = mDisplayBuffer->getHandle();
 	pitches[0] = mDisplayBuffer->getStride();
