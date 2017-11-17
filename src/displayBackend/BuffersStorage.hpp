@@ -110,7 +110,11 @@ private:
 
 	std::unordered_map<uint64_t, DisplayItf::FrameBufferPtr> mFrameBuffers;
 	std::unordered_map<uint64_t, DisplayItf::DisplayBufferPtr> mDisplayBuffers;
+	std::unordered_map<uint64_t, DisplayItf::GrantRefs> mPendingDisplayBuffers;
 
+	uint32_t getBpp(uint32_t format);
+	void handlePendingDisplayBuffers(uint64_t dbCookie, uint32_t width,
+									 uint32_t height, uint32_t pixelFormat);
 	DisplayItf::DisplayBufferPtr getDisplayBufferUnlocked(uint64_t dbCookie);
 	DisplayItf::FrameBufferPtr getFrameBufferUnlocked(uint64_t fbCookie);
 
