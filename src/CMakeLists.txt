@@ -4,11 +4,9 @@
 
 include(FindPkgConfig)
 
-if(WITH_DRM)
-	pkg_check_modules (DRM REQUIRED libdrm)
-	if (!DRM_FOUND)
-		message(FATAL_ERROR "No libdrm found")
-	endif()
+pkg_check_modules (DRM REQUIRED libdrm)
+if (!DRM_FOUND)
+	message(FATAL_ERROR "No libdrm found")
 endif()
 
 if(WITH_WAYLAND)
@@ -41,11 +39,8 @@ endif()
 
 include_directories(
 	.
-)
-
-if(WITH_DRM)
 	include_directories(${DRM_INCLUDE_DIRS})
-endif()
+)
 
 if (WITH_WAYLAND)
 	include_directories(${CMAKE_CURRENT_BINARY_DIR}/displayBackend/wayland/protocols)
