@@ -64,7 +64,7 @@ void BuffersStorage::createDisplayBuffer(uint64_t dbCookie, bool beAllocRefs,
 	DLOG(mLog, DEBUG) << "Create display buffer, w: "
 					  << width << ", h: " << height << ", bpp: " << bpp
 					  << ", start dir: " << startDirectory
-					  << ", size: " << size << ", DB cookie: "
+					  << ", size: " << size << ", DB cookie: 0x"
 					  << hex << setfill('0') << setw(16)
 					  << dbCookie;
 
@@ -95,7 +95,7 @@ void BuffersStorage::createFrameBuffer(uint64_t dbCookie, uint64_t fbCookie,
 
 	DLOG(mLog, DEBUG) << "Create frame buffer, w: " << width
 					  << ", h: " << height
-					  << ", pixel fmt: " << hex << setfill('0') << setw(8)
+					  << ", pixel fmt: 0x" << hex << setfill('0') << setw(8)
 					  << pixelFormat
 					  << ", DB cookie: " << setw(16) << dbCookie
 					  << ", FB cookie: " << setw(16) << fbCookie;
@@ -110,7 +110,7 @@ DisplayBufferPtr BuffersStorage::getDisplayBuffer(uint64_t dbCookie)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	DLOG(mLog, DEBUG) << "Get display buffer, DB cookie: "
+	DLOG(mLog, DEBUG) << "Get display buffer, DB cookie: 0x"
 					  << hex << setfill('0') << setw(16) << dbCookie;
 
 	return getDisplayBufferUnlocked(dbCookie);
@@ -120,7 +120,7 @@ FrameBufferPtr BuffersStorage::getFrameBufferAndCopy(uint64_t fbCookie)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	DLOG(mLog, DEBUG) << "Get frame buffer and copy, FB cookie: "
+	DLOG(mLog, DEBUG) << "Get frame buffer and copy, FB cookie: 0x"
 					  << hex << setfill('0') << setw(16) << fbCookie;
 
 	auto frameBuffer = getFrameBufferUnlocked(fbCookie);
@@ -137,7 +137,7 @@ void BuffersStorage::destroyDisplayBuffer(uint64_t dbCookie)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	DLOG(mLog, DEBUG) << "Destroy display buffer, DB cookie: "
+	DLOG(mLog, DEBUG) << "Destroy display buffer, DB cookie: 0x"
 					  << hex << setfill('0') << setw(16) << dbCookie;
 
 	mDisplayBuffers.erase(dbCookie);
@@ -147,7 +147,7 @@ void BuffersStorage::destroyFrameBuffer(uint64_t fbCookie)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	DLOG(mLog, DEBUG) << "Destroy frame buffer, FB cookie: "
+	DLOG(mLog, DEBUG) << "Destroy frame buffer, FB cookie: 0x"
 					  << hex << setfill('0') << setw(16) << fbCookie;
 
 	mFrameBuffers.erase(fbCookie);
