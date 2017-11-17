@@ -9,6 +9,10 @@
 
 #include "Exception.hpp"
 
+using std::hex;
+using std::setfill;
+using std::setw;
+
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::GrantRefs;
 
@@ -60,14 +64,25 @@ SharedBufferPtr SharedMemory::createSharedBuffer(
 	LOG(mLog, DEBUG) << "Create shared buffer";
 
 	return SharedBufferPtr(new SharedBuffer(mWlSharedMemory,
-													 displayBuffer,
-													 width, height,
-													 pixelFormat));
+											displayBuffer,
+											width, height,
+											pixelFormat));
 }
 
 /*******************************************************************************
  * Private
  ******************************************************************************/
+
+void SharedMemory::sFormatHandler(void *data, wl_shm *wlShm, uint32_t format)
+{
+	static_cast<SharedMemory*>(data)->formatHandler(format);
+}
+
+void SharedMemory::formatHandler(uint32_t format)
+{
+	LOG(mLog, DEBUG) << "Format: 0x" << hex << setfill('0') << setw(8)
+					 << format;
+}
 
 void SharedMemory::init()
 {
@@ -78,6 +93,13 @@ void SharedMemory::init()
 	if (!mWlSharedMemory)
 	{
 		throw Exception("Can't bind shared memory");
+	}
+
+	mWlListener = {sFormatHandler};
+
+	if (wl_shm_add_listener(mWlSharedMemory, &mWlListener, this) < 0)
+	{
+		throw Exception("Can't add listener");
 	}
 
 	LOG(mLog, DEBUG) << "Create";

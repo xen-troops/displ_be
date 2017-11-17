@@ -60,6 +60,12 @@ private:
 	wl_shm* mWlSharedMemory;
 	XenBackend::Log mLog;
 
+	wl_shm_listener mWlListener;
+
+	static void sFormatHandler(void *data, wl_shm *wlShm, uint32_t format);
+
+	void formatHandler(uint32_t format);
+
 	void init();
 	void release();
 };
