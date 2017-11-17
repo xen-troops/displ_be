@@ -105,13 +105,13 @@ int DisplayCommandHandler::processCommand(const xendispl_req& req)
 	{
 		LOG(mLog, ERROR) << e.what();
 
-		status = XEN_EINVAL;
+		status = -XEN_EINVAL;
 	}
 	catch(const std::exception& e)
 	{
 		LOG(mLog, ERROR) << e.what();
 
-		status = XEN_EIO;
+		status = -XEN_EIO;
 	}
 
 	DLOG(mLog, DEBUG) << "Return status: ["
