@@ -5,31 +5,15 @@
 include(FindPkgConfig)
 
 pkg_check_modules (DRM REQUIRED libdrm)
-if (!DRM_FOUND)
-	message(FATAL_ERROR "No libdrm found")
-endif()
 
 if(WITH_WAYLAND)
 	pkg_check_modules (WAYLAND REQUIRED wayland-client)
-	if(!WAYLAND_FOUND)
-		message(FATAL_ERROR "No wayland-client found")
-	endif()
 endif()
 
 if(WITH_IVI_EXTENSION AND WITH_WAYLAND)
 	pkg_check_modules (IVI_APP ivi-application)
-	if(!IVI_APP_FOUND)
-		message(WARNING "No ivi-application found")
-	endif()
-
-	pkg_check_modules (ILM_CTRL ilmControl)
-	if(!ILM_CTRL_FOUND)
-		message(WARNING "No ilmControl found")
-	endif()
-
-	pkg_check_modules (ILM_COMMON ilmCommon)
-	if(!ILM_COMMON_FOUND)
-		message(WARNING "No ilmCommon found")
+	if(NOT IVI_APP_FOUND)
+		set(IVI_APP_LIBRARIES ivi-application)
 	endif()
 endif()
 
