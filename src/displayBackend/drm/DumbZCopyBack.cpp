@@ -129,7 +129,7 @@ void DumbZCopyBack::createHandle()
 	mMappedHandle = prime.handle;
 }
 
-void DumbZCopyBack::getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs)
+void DumbZCopyBack::getGrantRefs(domid_t domId, GrantRefs& refs)
 {
 	drm_xen_zcopy_dumb_to_refs mapreq {0};
 
@@ -146,7 +146,7 @@ void DumbZCopyBack::getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs)
 	}
 }
 
-void DumbZCopyBack::init(uint32_t bpp, domid_t domId,  GrantRefs& refs)
+void DumbZCopyBack::init(uint32_t bpp, domid_t domId, GrantRefs& refs)
 {
 	createDumb(bpp);
 	createHandle();
