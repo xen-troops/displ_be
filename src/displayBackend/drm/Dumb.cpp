@@ -82,7 +82,7 @@ uint32_t Dumb::readName()
 
 		if (drmIoctl(mFd, DRM_IOCTL_GEM_FLINK, &req) < 0)
 		{
-			throw Exception("Cannot get name");
+			throw Exception("Cannot get name", -errno);
 		}
 
 		mName = req.name;
@@ -95,7 +95,7 @@ void Dumb::copy()
 {
 	if(!mGnttabBuffer)
 	{
-		throw Exception("There is no buffer to copy from");
+		throw Exception("There is no buffer to copy from", -EINVAL);
 	}
 
 	DLOG(mLog, DEBUG) << "Copy dumb, handle: " << mHandle;
@@ -117,7 +117,7 @@ void Dumb::createDumb(uint32_t bpp)
 
 	if (drmIoctl(mFd, DRM_IOCTL_MODE_CREATE_DUMB, &creq) < 0)
 	{
-		throw Exception("Cannot create dumb buffer");
+		throw Exception("Cannot create dumb buffer", -errno);
 	}
 
 	mStride = creq.pitch;
@@ -133,7 +133,7 @@ void Dumb::mapDumb()
 
 	if (drmIoctl(mFd, DRM_IOCTL_MODE_MAP_DUMB, &mreq) < 0)
 	{
-		throw Exception("Cannot map dumb buffer.");
+		throw Exception("Cannot map dumb buffer", -errno);
 	}
 
 	auto map = mmap(0, mSize, PROT_READ | PROT_WRITE, MAP_SHARED,
@@ -141,7 +141,7 @@ void Dumb::mapDumb()
 
 	if (map == MAP_FAILED)
 	{
-		throw Exception("Cannot mmap dumb buffer");
+		throw Exception("Cannot mmap dumb buffer", -errno);
 	}
 
 	mBuffer = map;

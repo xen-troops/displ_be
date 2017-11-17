@@ -62,7 +62,7 @@ void Compositor::init()
 
 	if (!mWlCompositor)
 	{
-		throw Exception("Can't bind compositor");
+		throw Exception("Can't bind compositor", -EINVAL);
 	}
 
 	LOG(mLog, DEBUG) << "Create";

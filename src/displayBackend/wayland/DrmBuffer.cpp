@@ -60,7 +60,7 @@ void DrmBuffer::init(wl_drm* wlDrm, uint32_t pixelFormat)
 
 	if (!mWlBuffer)
 	{
-		throw Exception("Can't create Drm buffer");
+		throw Exception("Can't create Drm buffer", -EINVAL);
 	}
 
 	LOG(mLog, DEBUG) << "Create, w: " << mWidth << ", h: " << mHeight

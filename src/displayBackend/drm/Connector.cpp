@@ -85,12 +85,12 @@ void Connector::init(uint32_t width, uint32_t height,
 
 	if (mConnector->connection != DRM_MODE_CONNECTED)
 	{
-		throw Exception("Connector is not connected");
+		throw Exception("Connector is not connected", -EINVAL);
 	}
 
 	if (mCrtcId != cInvalidId)
 	{
-		throw Exception("Already initialized");
+		throw Exception("Already initialized", -EINVAL);
 	}
 
 	auto fbId = frameBuffer->getHandle();
@@ -103,14 +103,14 @@ void Connector::init(uint32_t width, uint32_t height,
 
 	if (mCrtcId == cInvalidId)
 	{
-		throw Exception("Cannot find CRTC for connector");
+		throw Exception("Cannot find CRTC for connector", -EINVAL);
 	}
 
 	auto mode = findMode(width, height);
 
 	if (!mode)
 	{
-		throw Exception("Unsupported mode");
+		throw Exception("Unsupported mode", -EINVAL);
 	}
 
 	mSavedCrtc = drmModeGetCrtc(mFd, mCrtcId);
@@ -118,7 +118,7 @@ void Connector::init(uint32_t width, uint32_t height,
 	if (drmModeSetCrtc(mFd, mCrtcId, fbId, 0, 0,
 					   &mConnector->connector_id, 1, mode))
 	{
-		throw Exception("Cannot set CRTC for connector");
+		throw Exception("Cannot set CRTC for connector", -errno);
 	}
 
 	sCrtcIds.push_back(mCrtcId);
@@ -148,12 +148,12 @@ void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 {
 	if (!isInitialized())
 	{
-		throw Exception("Connector is not initialized");
+		throw Exception("Connector is not initialized", -EINVAL);
 	}
 
 	if (mFlipPending)
 	{
-		throw Exception("Page flip already scheduled");
+		throw Exception("Page flip already scheduled", -EINVAL);
 	}
 
 	mFlipPending = true;
@@ -166,7 +166,7 @@ void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 
 	if (ret)
 	{
-		throw Exception("Cannot flip CRTC: " + to_string(fbId));
+		throw Exception("Cannot flip CRTC: " + to_string(fbId), -errno);
 	}
 
 

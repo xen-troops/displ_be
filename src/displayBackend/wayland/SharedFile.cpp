@@ -63,7 +63,7 @@ void SharedFile::copy()
 {
 	if(!mGnttabBuffer)
 	{
-		throw Exception("There is no buffer to copy from");
+		throw Exception("There is no buffer to copy from", -EINVAL);
 	}
 
 	DLOG("Dumb", DEBUG) << "Copy dumb, handle: " << mFd;
@@ -86,7 +86,7 @@ void SharedFile::init(domid_t domId, const GrantRefs& refs)
 
 	if (map == MAP_FAILED)
 	{
-		throw Exception(string("Can't map shared file: ") + strerror(errno));
+		throw Exception("Can't map shared file", -errno);
 	}
 
 	mBuffer = map;
@@ -119,7 +119,7 @@ void SharedFile::createTmpFile()
 
 	if (templateName.empty())
 	{
-		throw Exception("Can't get XDG_RUNTIME_DIR environment var");
+		throw Exception("Can't get XDG_RUNTIME_DIR environment var", -EINVAL);
 	}
 
 	templateName += string(cFileNameTemplate);
@@ -132,14 +132,14 @@ void SharedFile::createTmpFile()
 
 	if (mFd < 0)
 	{
-		throw Exception("Can't create file: " + string(name));
+		throw Exception("Can't create file: " + string(name), -errno);
 	}
 
 	unlink(name);
 
 	if (ftruncate(mFd, mSize) < 0)
 	{
-		throw Exception("Can't truncate file: " + string(name));
+		throw Exception("Can't truncate file: " + string(name), -errno);
 	}
 
 	LOG(mLog, DEBUG) << "Create tmp file: " << name;

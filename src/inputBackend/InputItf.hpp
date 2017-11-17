@@ -39,9 +39,11 @@ class Exception : public std::exception
 {
 public:
 	/**
-	 * @param msg error message
+	 * @param msg     error message
+	 * @param errCode error code
 	 */
-	explicit Exception(const std::string& msg) : mMsg(msg) {};
+	explicit Exception(const std::string& msg, int errCode) :
+		mMsg(msg), mErrCode(errCode) {};
 	virtual ~Exception() {}
 
 	/**
@@ -49,8 +51,14 @@ public:
 	 */
 	const char* what() const throw() { return mMsg.c_str(); };
 
+	/**
+	 * returns error code
+	 */
+	int getErrno() const { return mErrCode; }
+
 private:
 	std::string mMsg;
+	int mErrCode;
 };
 
 struct KeyboardCallbacks

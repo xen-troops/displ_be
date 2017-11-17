@@ -29,7 +29,6 @@
 #include <xen/errno.h>
 
 using std::hex;
-using std::out_of_range;
 using std::setfill;
 using std::setw;
 using std::unordered_map;
@@ -101,7 +100,21 @@ int DisplayCommandHandler::processCommand(const xendispl_req& req)
 	{
 		(this->*sCmdTable.at(req.operation))(req);
 	}
-	catch(const out_of_range& e)
+	catch(const DisplayItf::Exception& e)
+	{
+		LOG(mLog, ERROR) << e.what();
+
+		status = e.getErrno();
+
+		if (status >= 0)
+		{
+			DLOG(mLog, WARNING) << "Positive error code: "
+								<< static_cast<signed int>(status);
+
+			status = -EINVAL;
+		}
+	}
+	catch(const std::out_of_range& e)
 	{
 		LOG(mLog, ERROR) << e.what();
 
