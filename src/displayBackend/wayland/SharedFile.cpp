@@ -79,11 +79,14 @@ void SharedFile::init(domid_t domId, const GrantRefs& refs)
 {
 	createTmpFile();
 
+	LOG(mLog, DEBUG) << "Create, w: " << mWidth << ", h: " << mHeight
+					 << ", stride: " << mStride << ", fd: " << mFd;
+
 	auto map = mmap(NULL, mSize, PROT_READ | PROT_WRITE, MAP_SHARED, mFd, 0);
 
 	if (map == MAP_FAILED)
 	{
-		throw Exception("Can't map shared file");
+		throw Exception(string("Can't map shared file: ") + strerror(errno));
 	}
 
 	mBuffer = map;
@@ -93,9 +96,6 @@ void SharedFile::init(domid_t domId, const GrantRefs& refs)
 		mGnttabBuffer.reset(
 				new XenGnttabBuffer(domId, refs.data(), refs.size()));
 	}
-
-	LOG(mLog, DEBUG) << "Create, w: " << mWidth << ", h: " << mHeight
-					 << ", stride: " << mStride << ", fd: " << mFd;
 }
 
 void SharedFile::release()
