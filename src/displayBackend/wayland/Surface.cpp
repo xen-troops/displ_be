@@ -80,14 +80,9 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 
 	wl_surface_commit(mWlSurface);
 
-	if (wl_display_dispatch_pending(mWlDisplay) == -1)
+	if (wl_display_flush(mWlDisplay) < 0)
 	{
-		throw Exception("Failed to dispatch pending events");
-	}
-
-	if (wl_display_flush(mWlDisplay) == -1)
-	{
-		throw Exception("Failed to flush display");
+		throw Exception("Failed to flush display");	
 	}
 }
 
