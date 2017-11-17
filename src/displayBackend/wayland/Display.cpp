@@ -511,7 +511,10 @@ void Display::dispatchThread()
 				DLOG(mLog, DEBUG) << "Dispatch events: " << val;
 			}
 
-			wl_display_flush(mWlDisplay);
+			if (wl_display_flush(mWlDisplay) < 0)
+			{
+				throw Exception("Can't flush events");
+			}
 
 			if (mPollFd->poll())
 			{
@@ -525,7 +528,23 @@ void Display::dispatchThread()
 	}
 	catch(const exception& e)
 	{
-		LOG(mLog, ERROR) << e.what();
+		int err = wl_display_get_error(mWlDisplay);
+
+		if (err == EPROTO)
+		{
+			const wl_interface *interface;
+			uint32_t id;
+
+			auto code = wl_display_get_protocol_error(mWlDisplay, &interface,
+													  &id);
+			LOG(mLog, ERROR) << "Wayland proto error, itd: "
+							 << interface->name
+							 << ", code: " << code;
+		}
+		else
+		{
+			LOG(mLog, ERROR) << "Wayland error, code: " << strerror(err);
+		}
 	}
 
 	wl_display_cancel_read(mWlDisplay);
