@@ -47,8 +47,6 @@ target_link_libraries(display_wayland ${WAYLAND_LIBRARIES})
 if(WITH_IVI_EXTENSION)
 	target_link_libraries(display_wayland
 		${IVI_APP_LIBRARIES}
-		${ILM_CTRL_LIBRARIES}
-		${ILM_COMMON_LIBRARIES}
 	)
 endif()
 
