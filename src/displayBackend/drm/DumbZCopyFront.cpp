@@ -69,7 +69,7 @@ uint32_t DumbZCopyFront::readName()
 
 		if (drmIoctl(mDrmFd, DRM_IOCTL_GEM_FLINK, &req) < 0)
 		{
-			throw Exception("Cannot get name");
+			throw Exception("Cannot get name", -errno);
 		}
 
 		mName = req.name;
@@ -80,7 +80,7 @@ uint32_t DumbZCopyFront::readName()
 
 void DumbZCopyFront::copy()
 {
-	throw Exception("There is no buffer to copy from");
+	throw Exception("There is no buffer to copy from", -EINVAL);
 }
 
 /*******************************************************************************
@@ -102,7 +102,7 @@ void DumbZCopyFront::createDumb(uint32_t bpp, domid_t domId,
 
 	if (drmIoctl(mZeroCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_FROM_REFS, &mapreq) < 0)
 	{
-		throw Exception("Cannot create mapped dumb buffer");
+		throw Exception("Cannot create mapped dumb buffer", -errno);
 	}
 
 	mStride = mapreq.dumb.pitch;
@@ -120,7 +120,7 @@ void DumbZCopyFront::createHandle()
 
 	if (drmIoctl(mZeroCopyFd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &prime) < 0)
 	{
-		throw Exception("Cannot export prime buffer.");
+		throw Exception("Cannot export prime buffer", -errno);
 	}
 
 	mMappedHandleFd = prime.fd;
@@ -129,7 +129,7 @@ void DumbZCopyFront::createHandle()
 
 	if (drmIoctl(mDrmFd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime) < 0)
 	{
-		throw Exception("Cannot import prime buffer.");
+		throw Exception("Cannot import prime buffer", -errno);
 	}
 
 	mHandle = prime.handle;

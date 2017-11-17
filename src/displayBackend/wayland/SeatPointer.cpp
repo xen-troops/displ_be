@@ -196,7 +196,7 @@ void SeatPointer::init(wl_seat* seat)
 
 	if (!mWlPointer)
 	{
-		throw Exception("Can't create pointer");
+		throw Exception("Can't create pointer", -EINVAL);
 	}
 
 	// Wayland 1.11
@@ -208,7 +208,7 @@ void SeatPointer::init(wl_seat* seat)
 
 	if (wl_pointer_add_listener(mWlPointer, &mListener, this))
 	{
-		throw Exception("Can't add listener");
+		throw Exception("Can't add listener", -EINVAL);
 	}
 
 	LOG(mLog, DEBUG) << "Create";

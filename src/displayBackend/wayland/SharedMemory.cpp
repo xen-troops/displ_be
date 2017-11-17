@@ -92,14 +92,14 @@ void SharedMemory::init()
 
 	if (!mWlSharedMemory)
 	{
-		throw Exception("Can't bind shared memory");
+		throw Exception("Can't bind shared memory", -EINVAL);
 	}
 
 	mWlListener = {sFormatHandler};
 
 	if (wl_shm_add_listener(mWlSharedMemory, &mWlListener, this) < 0)
 	{
-		throw Exception("Can't add listener");
+		throw Exception("Can't add listener", -EINVAL);
 	}
 
 	LOG(mLog, DEBUG) << "Create";

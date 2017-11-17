@@ -176,14 +176,14 @@ void SeatTouch::init(wl_seat* seat)
 
 	if (!mWlTouch)
 	{
-		throw Exception("Can't create pointer");
+		throw Exception("Can't create pointer", -EINVAL);
 	}
 
 	mListener = { sOnDown, sOnUp, sOnMotion, sOnFrame, sOnCancel };
 
 	if (wl_touch_add_listener(mWlTouch, &mListener, this))
 	{
-		throw Exception("Can't add listener");
+		throw Exception("Can't add listener", -EINVAL);
 	}
 
 	LOG(mLog, DEBUG) << "Create";

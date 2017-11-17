@@ -90,7 +90,7 @@ WaylandDrm::createDumb(uint32_t width, uint32_t height, uint32_t bpp,
 											   domId, refs, allocRefs);
 	}
 
-	throw Exception("Can't create dumb: no DRM device");
+	throw Exception("Can't create dumb: no DRM device", -EINVAL);
 }
 
 FrameBufferPtr
@@ -170,14 +170,14 @@ void WaylandDrm::init()
 
 	if (!mWlDrm)
 	{
-		throw Exception("Can't bind drm");
+		throw Exception("Can't bind drm", -EINVAL);
 	}
 
 	mWlListener = {sOnDevice, sOnFormat, sOnAuthenticated, sOnCapabilities};
 
 	if (wl_drm_add_listener(mWlDrm, &mWlListener, this) < 0)
 	{
-		throw Exception("Can't add listener");
+		throw Exception("Can't add listener", -EINVAL);
 	}
 
 	LOG(mLog, DEBUG) << "Create";

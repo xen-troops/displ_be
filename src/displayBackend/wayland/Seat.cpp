@@ -132,14 +132,14 @@ void Seat::init()
 
 	if (!mWlSeat)
 	{
-		throw Exception("Can't bind seat");
+		throw Exception("Can't bind seat", -EINVAL);
 	}
 
 	mWlListener = {sReadCapabilities, sReadName};
 
 	if (wl_seat_add_listener(mWlSeat, &mWlListener, this) < 0)
 	{
-		throw Exception("Can't add listener");
+		throw Exception("Can't add listener", -EINVAL);
 	}
 
 	LOG(mLog, DEBUG) << "Create";

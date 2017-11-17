@@ -83,12 +83,12 @@ void DevInputBase::init()
 
 	if (mFd < 0)
 	{
-		throw Exception(strerror(errno));
+		throw Exception("Can't open device: " + mName, -errno);
 	}
 
 	if (ioctl(mFd, EVIOCGRAB, reinterpret_cast<void*>(1)))
 	{
-		throw Exception("Grabbed by another process");
+		throw Exception("Grabbed by another process", -EBUSY);
 	}
 
 	ioctl(mFd, EVIOCGRAB, reinterpret_cast<void*>(0));
@@ -122,7 +122,7 @@ void DevInputBase::run()
 
 			if (readSize < static_cast<int>(sizeof(struct input_event)))
 			{
-				throw Exception("Read error");
+				throw Exception("Read error", -errno);
 			}
 
 			for(size_t i = 0; i < readSize/sizeof(input_event); i++)

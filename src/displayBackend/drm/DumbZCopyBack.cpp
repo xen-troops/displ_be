@@ -69,7 +69,7 @@ uint32_t DumbZCopyBack::readName()
 
 		if (drmIoctl(mDrmFd, DRM_IOCTL_GEM_FLINK, &req) < 0)
 		{
-			throw Exception("Cannot get name");
+			throw Exception("Cannot get name", -errno);
 		}
 
 		mName = req.name;
@@ -80,7 +80,7 @@ uint32_t DumbZCopyBack::readName()
 
 void DumbZCopyBack::copy()
 {
-	throw Exception("There is no buffer to copy from");
+	throw Exception("There is no buffer to copy from", -EINVAL);
 }
 
 /*******************************************************************************
@@ -97,7 +97,7 @@ void DumbZCopyBack::createDumb(uint32_t bpp)
 
 	if (drmIoctl(mDrmFd, DRM_IOCTL_MODE_CREATE_DUMB, &creq) < 0)
 	{
-		throw Exception("Cannot create dumb buffer");
+		throw Exception("Cannot create dumb buffer", -errno);
 	}
 
 	mStride = creq.pitch;
@@ -115,7 +115,7 @@ void DumbZCopyBack::createHandle()
 
 	if (drmIoctl(mDrmFd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &prime) < 0)
 	{
-		throw Exception("Cannot export prime buffer.");
+		throw Exception("Cannot export prime buffer", -errno);
 	}
 
 	mHandleFd = prime.fd;
@@ -123,7 +123,7 @@ void DumbZCopyBack::createHandle()
 
 	if (drmIoctl(mZeroCopyFd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime) < 0)
 	{
-		throw Exception("Cannot import prime buffer.");
+		throw Exception("Cannot import prime buffer", -errno);
 	}
 
 	mMappedHandle = prime.handle;
@@ -142,7 +142,7 @@ void DumbZCopyBack::getGrantRefs(domid_t domId, GrantRefs& refs)
 
 	if (drmIoctl(mZeroCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_TO_REFS, &mapreq) < 0)
 	{
-		throw Exception("Cannot convert dumb buffer to refs");
+		throw Exception("Cannot convert dumb buffer to refs", -errno);
 	}
 }
 

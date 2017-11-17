@@ -116,7 +116,7 @@ drm_magic_t Display::getMagic()
 
 	if (drmGetMagic(mFd, &magic) < 0)
 	{
-		throw Exception("Can't get magic");
+		throw Exception("Can't get magic", -errno);
 	}
 
 	LOG(mLog, DEBUG) << "Get magic: " << magic;
@@ -167,7 +167,7 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 
 	if (it == mConnectorIds.end())
 	{
-		throw Exception("Can't create connector: " + name);
+		throw Exception("Can't create connector: " + name, -EINVAL);
 	}
 
 	return DisplayItf::ConnectorPtr(new Connector(name, mFd, it->second));
@@ -214,7 +214,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 		if (allocRefs)
 		{
-			throw  Exception("Can't allocate refs. ZCopy disabled.");
+			throw  Exception("Can't allocate refs: ZCopy disabled", -EINVAL);
 		}
 
 		return DisplayBufferPtr(new Dumb(mFd, width, height, bpp, domId, refs));
@@ -243,7 +243,7 @@ void Display::init()
 
 	if (mFd < 0)
 	{
-		throw Exception("Cannot open DRM device: " + mName);
+		throw Exception("Cannot open DRM device: " + mName, -errno);
 	}
 
 	mPollFd.reset(new PollFd(mFd, POLLIN));
@@ -252,7 +252,7 @@ void Display::init()
 
 	if (drmGetCap(mFd, DRM_CAP_DUMB_BUFFER, &hasDumb) < 0 || !hasDumb)
 	{
-		throw Exception("Drm device does not support dumb buffers");
+		throw Exception("Drm device does not support dumb buffers", -errno);
 	}
 
 #ifdef WITH_ZCOPY

@@ -85,7 +85,7 @@ void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 
 	if (!mWlPool)
 	{
-		throw Exception("Can't create pool");
+		throw Exception("Can't create pool", -EINVAL);
 	}
 
 	mWlBuffer = wl_shm_pool_create_buffer(mWlPool, 0, mWidth, mHeight,
@@ -94,7 +94,7 @@ void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 
 	if (!mWlBuffer)
 	{
-		throw Exception("Can't create shared buffer");
+		throw Exception("Can't create shared buffer", -EINVAL);
 	}
 
 	wl_shm_pool_destroy(mWlPool);
