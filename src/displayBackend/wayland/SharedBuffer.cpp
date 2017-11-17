@@ -9,8 +9,11 @@
 
 #include "Exception.hpp"
 
-using DisplayItf::DisplayBufferPtr;
+using std::hex;
+using std::setfill;
+using std::setw;
 
+using DisplayItf::DisplayBufferPtr;
 
 #ifndef DRM_FORMAT_ARGB8888
 #define DRM_FORMAT_ARGB8888           0x34325241
@@ -101,7 +104,8 @@ void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 	LOG(mLog, DEBUG) << "Create, w: " << mWidth << ", h: " << mHeight
 					 << ", stride: " << mDisplayBuffer->getStride()
 					 << ", fd: " << mDisplayBuffer->getHandle()
-					 << ", format: " << pixelFormat;
+					 << ", format: 0x"  << hex << setfill('0') << setw(8)
+					 << pixelFormat;
 }
 
 void SharedBuffer::release()
