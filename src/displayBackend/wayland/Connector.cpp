@@ -20,8 +20,8 @@
  */
 
 #include "Connector.hpp"
-#include "ConnectorManager.hpp"
 #include "Exception.hpp"
+#include "SurfaceManager.hpp"
 
 using DisplayItf::FrameBufferPtr;
 
@@ -31,21 +31,17 @@ namespace Wayland {
  * Connector
  ******************************************************************************/
 
-Connector::Connector(const std::string& name, SurfacePtr surface) :
+Connector::Connector(const std::string& name, CompositorPtr compositor) :
+	mCompositor(compositor),
 	mName(name),
-	mSurface(surface),
 	mInitialized(false),
 	mLog("Connector")
 {
 	LOG(mLog, DEBUG) << "Create, name: "  << mName;
-
-	ConnectorManager::getInstance().createConnector(mName, mSurface->mWlSurface);
 }
 
 Connector::~Connector()
 {
-	ConnectorManager::getInstance().deleteConnector(mName, mSurface->mWlSurface);
-
 	LOG(mLog, DEBUG) << "Delete, name: " << mName;
 }
 
@@ -56,19 +52,12 @@ Connector::~Connector()
 void Connector::init(uint32_t width, uint32_t height,
 					 FrameBufferPtr frameBuffer)
 {
-	LOG(mLog, DEBUG) << "Init, name: " << mName
-					 << ", w: " << width << ", height: " << height;
-
-	mSurface->draw(frameBuffer);
-
-	mInitialized = true;
+	onInit(mCompositor->createSurface(), frameBuffer);
 }
 
 void Connector::release()
 {
-	LOG(mLog, DEBUG) << "Release, name: " << mName;
-
-	mInitialized = false;
+	onRelease();
 }
 
 void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
@@ -76,6 +65,39 @@ void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 	DLOG(mLog, DEBUG) << "Page flip, name: " << mName;
 
 	mSurface->draw(frameBuffer, cbk);
+}
+
+/*******************************************************************************
+ * Protected
+ ******************************************************************************/
+
+void Connector::onInit(SurfacePtr surface, FrameBufferPtr frameBuffer)
+{
+	LOG(mLog, DEBUG) << "Init, name: " << mName;
+
+	if (mInitialized)
+	{
+		throw Exception("Connector already initialized", -EINVAL);
+	}
+
+	mSurface = surface;
+
+	SurfaceManager::getInstance().createSurface(mName, mSurface->mWlSurface);
+
+	mSurface->draw(frameBuffer);
+
+	mInitialized = true;
+}
+
+void Connector::onRelease()
+{
+	LOG(mLog, DEBUG) << "Release, name: " << mName;
+
+	SurfaceManager::getInstance().deleteSurface(mName, mSurface->mWlSurface);
+
+	mInitialized = false;
+
+	mSurface.reset();
 }
 
 }

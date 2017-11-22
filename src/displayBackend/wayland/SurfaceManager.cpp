@@ -1,5 +1,5 @@
 /*
- *  ConnectorManager class
+ *  SurfaceManager class
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  *
  */
 
-#include "ConnectorManager.hpp"
+#include "SurfaceManager.hpp"
 
 #include "Exception.hpp"
 
@@ -35,14 +35,14 @@ namespace Wayland {
  * ConnectorManager
  ******************************************************************************/
 
-ConnectorManager& ConnectorManager::getInstance()
+SurfaceManager& SurfaceManager::getInstance()
 {
-	static ConnectorManager sConnectorManager;
+	static SurfaceManager sConnectorManager;
 
 	return sConnectorManager;
 }
 
-void ConnectorManager::createConnector(const string& name, wl_surface* surface)
+void SurfaceManager::createSurface(const string& name, wl_surface* surface)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -54,7 +54,7 @@ void ConnectorManager::createConnector(const string& name, wl_surface* surface)
 	}
 }
 
-void ConnectorManager::deleteConnector(const string& name, wl_surface* surface)
+void SurfaceManager::deleteSurface(const string& name, wl_surface* surface)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -66,11 +66,11 @@ void ConnectorManager::deleteConnector(const string& name, wl_surface* surface)
 	mSurfaces.erase(name);
 }
 
-wl_surface* ConnectorManager::getSurfaceByName(const string& name)
+wl_surface* SurfaceManager::getSurfaceByConnectorName(const string& connectorName)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	auto it = mSurfaces.find(name);
+	auto it = mSurfaces.find(connectorName);
 
 	if (it != mSurfaces.end())
 	{
@@ -80,7 +80,7 @@ wl_surface* ConnectorManager::getSurfaceByName(const string& name)
 	return nullptr;
 }
 
-string ConnectorManager::getNameBySurface(wl_surface* surface)
+string SurfaceManager::getConnectorNameBySurface(wl_surface* surface)
 {
 	lock_guard<mutex> lock(mMutex);
 

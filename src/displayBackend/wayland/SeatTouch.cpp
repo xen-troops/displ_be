@@ -87,7 +87,7 @@ void SeatTouch::onDown(uint32_t serial, uint32_t time, wl_surface* surface,
 	int32_t resY = wl_fixed_to_int(y);
 
 	DLOG(mLog, DEBUG) << "onDown connector: "
-					  << ConnectorManager::getInstance().getNameBySurface(surface)
+					  << SurfaceManager::getInstance().getConnectorNameBySurface(surface)
 					  << ", serial: " << serial << ", time: " << time
 					  << ", id: " << id << ", X: " << resX << ", Y: " << resY;
 

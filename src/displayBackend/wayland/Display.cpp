@@ -125,8 +125,7 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 
 	if (mShell)
 	{
-		connector = new ShellConnector(name, mShell,
-									   mCompositor->createSurface());
+		connector = new ShellConnector(name, mShell, mCompositor);
 
 		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
 	}
@@ -144,15 +143,15 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 			throw Exception("Can't create surface id: " + name, -EINVAL);
 		}
 
-		connector = new IviConnector(name, mIviApplication,
-									 mCompositor->createSurface(), surfaceId);
+		connector = new IviConnector(name, mIviApplication, mCompositor,
+									 surfaceId);
 
 		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
 	}
 #endif
 	else
 	{
-		connector = new Connector(name, mCompositor->createSurface());
+		connector = new Connector(name, mCompositor);
 
 		LOG(mLog, DEBUG) << "Create connector, name: " << name;
 	}

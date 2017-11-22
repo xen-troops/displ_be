@@ -111,7 +111,7 @@ void SeatPointer::onEnter(uint32_t serial, wl_surface* surface,
 	int32_t resY = wl_fixed_to_int(y);
 
 	DLOG(mLog, DEBUG) << "onEnter connector: "
-					  << ConnectorManager::getInstance().getNameBySurface(surface)
+					  << SurfaceManager::getInstance().getConnectorNameBySurface(surface)
 					  << ", serial: " << serial
 					  << ", X: " << resX << ", Y: " << resY;
 
@@ -126,7 +126,7 @@ void SeatPointer::onLeave(uint32_t serial, wl_surface* surface)
 	lock_guard<mutex> lock(mMutex);
 
 	DLOG(mLog, DEBUG) << "onLeave connector: "
-					  << ConnectorManager::getInstance().getNameBySurface(surface)
+					  << SurfaceManager::getInstance().getConnectorNameBySurface(surface)
 					  << ", serial: " << serial;
 
 	mCurrentCallback = mSurfaceCallbacks.end();

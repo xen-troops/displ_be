@@ -1,5 +1,5 @@
 /*
- *  ConnectorManager class
+ *  SurfaceManager class
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef SRC_WAYLAND_CONNECTORMANAGER_HPP_
-#define SRC_WAYLAND_CONNECTORMANAGER_HPP_
+#ifndef SRC_WAYLAND_SURFACEMANAGER_HPP_
+#define SRC_WAYLAND_SURFACEMANAGER_HPP_
 
 #include <list>
 #include <mutex>
@@ -31,43 +31,43 @@
 
 namespace Wayland {
 
-class ConnectorNotificationItf
+class SurfaceNotificationItf
 {
 public:
-	virtual ~ConnectorNotificationItf() {};
+	virtual ~SurfaceNotificationItf() {};
 	virtual void onConnectorCreate(const std::string& name,
 								   wl_surface* surface) = 0;
 	virtual void onConnectorDelete(const std::string& name,
 								   wl_surface* surface) = 0;
 };
 
-class ConnectorManager
+class SurfaceManager
 {
 public:
 
-	ConnectorManager(const ConnectorManager&) = delete;
-	void operator=(const ConnectorManager&) = delete;
+	SurfaceManager(const SurfaceManager&) = delete;
+	void operator=(const SurfaceManager&) = delete;
 
-	static ConnectorManager& getInstance();
+	static SurfaceManager& getInstance();
 
-	void createConnector(const std::string& name, wl_surface* surface);
-	void deleteConnector(const std::string& name, wl_surface* surface);
+	void createSurface(const std::string& connectorName, wl_surface* surface);
+	void deleteSurface(const std::string& connectorName, wl_surface* surface);
 
-	wl_surface* getSurfaceByName(const std::string& name);
-	std::string getNameBySurface(wl_surface* surface);
+	wl_surface* getSurfaceByConnectorName(const std::string& connectorName);
+	std::string getConnectorNameBySurface(wl_surface* surface);
 
-	void subscribe(ConnectorNotificationItf* subscriber);
-	void unsubscribe(ConnectorNotificationItf* subscriber);
+	void subscribe(SurfaceNotificationItf* subscriber);
+	void unsubscribe(SurfaceNotificationItf* subscriber);
 
 private:
 
-	ConnectorManager() = default;
+	SurfaceManager() = default;
 
-	std::list<ConnectorNotificationItf*> mSubscribers;
+	std::list<SurfaceNotificationItf*> mSubscribers;
 	std::unordered_map<std::string, wl_surface*> mSurfaces;
 	std::mutex mMutex;
 };
 
 }
 
-#endif /* SRC_WAYLAND_CONNECTORMANAGER_HPP_ */
+#endif /* SRC_WAYLAND_SURFACEMANAGER_HPP_ */
