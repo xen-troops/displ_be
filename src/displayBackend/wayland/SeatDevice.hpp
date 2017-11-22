@@ -11,13 +11,13 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "ConnectorManager.hpp"
 #include "Surface.hpp"
+#include "SurfaceManager.hpp"
 
 namespace Wayland {
 
 template<typename T>
-class SeatDevice : public ConnectorNotificationItf
+class SeatDevice : public SurfaceNotificationItf
 {
 public:
 
@@ -32,7 +32,7 @@ public:
 
 		mConnectorCallbacks[connector] = callbacks;
 
-		auto surface = ConnectorManager::getInstance().getSurfaceByName(connector);
+		auto surface = SurfaceManager::getInstance().getSurfaceByConnectorName(connector);
 
 		if (surface)
 		{
@@ -44,7 +44,7 @@ public:
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
 
-		auto surface = ConnectorManager::getInstance().getSurfaceByName(connector);
+		auto surface = SurfaceManager::getInstance().getSurfaceByConnectorName(connector);
 
 		if (surface)
 		{

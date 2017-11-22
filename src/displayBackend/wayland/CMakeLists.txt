@@ -3,7 +3,6 @@ add_subdirectory(protocols)
 set(SOURCES
 	Compositor.cpp
 	Connector.cpp
-	ConnectorManager.cpp
 	Display.cpp
 	SharedBuffer.cpp
 	SharedFile.cpp
@@ -11,6 +10,7 @@ set(SOURCES
 	Shell.cpp
 	ShellSurface.cpp
 	Surface.cpp
+	SurfaceManager.cpp
 )
 
 if(WITH_DRM)

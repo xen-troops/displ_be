@@ -26,6 +26,7 @@
 
 #include <xen/be/Log.hpp>
 
+#include "Compositor.hpp"
 #include "DisplayItf.hpp"
 #ifdef WITH_IVI_EXTENSION
 #include "IviApplication.hpp"
@@ -45,11 +46,6 @@ class Connector : public DisplayItf::Connector
 public:
 
 	virtual ~Connector();
-
-	/**
-	 * Returns Surface associated with this connector
-	 */
-	SurfacePtr getSurface() const { return mSurface; }
 
 	/**
 	 * Returns connector name
@@ -90,18 +86,26 @@ public:
 	void pageFlip(DisplayItf::FrameBufferPtr frameBuffer,
 				  FlipCallback cbk) override;
 
+protected:
+
+	CompositorPtr mCompositor;
+
+	void onInit(SurfacePtr surface, DisplayItf::FrameBufferPtr frameBuffer);
+	void onRelease();
+
 private:
 
 	friend class Display;
 	friend class ShellConnector;
 	friend class IviConnector;
 
-	Connector(const std::string& name, SurfacePtr surface);
+	Connector(const std::string& name, CompositorPtr compositor);
 
 	std::string mName;
-	SurfacePtr mSurface;
 	std::atomic_bool mInitialized;
 	XenBackend::Log mLog;
+
+	SurfacePtr mSurface;
 };
 
 /***************************************************************************//**
@@ -120,11 +124,11 @@ public:
 	void init(uint32_t width, uint32_t height,
 			  DisplayItf::FrameBufferPtr frameBuffer) override
 	{
-		mShellSurface = mShell->createShellSurface(getSurface());
+		mShellSurface = mShell->createShellSurface(mCompositor->createSurface());
 
 		mShellSurface->setTopLevel();
 
-		Connector::init(width, height, frameBuffer);
+		onInit(mShellSurface->getSurface(), frameBuffer);
 	}
 
 	/**
@@ -132,9 +136,9 @@ public:
 	 */
 	void release() override
 	{
-		Connector::release();
-
 		mShellSurface.reset();
+
+		onRelease();
 	}
 
 private:
@@ -142,8 +146,8 @@ private:
 	friend class Display;
 
 	ShellConnector(const std::string& name, ShellPtr shell,
-				   SurfacePtr surface) :
-		Connector(name, surface),
+				   CompositorPtr compositor) :
+		Connector(name, compositor),
 		mShell(shell) {}
 
 	ShellPtr mShell;
@@ -167,10 +171,10 @@ public:
 	void init(uint32_t width, uint32_t height,
 			  DisplayItf::FrameBufferPtr frameBuffer) override
 	{
-		mIviSurface = mIviApplication->createIviSurface(getSurface(),
-														mSurfaceId);
+		mIviSurface = mIviApplication->createIviSurface(
+				mCompositor->createSurface(), mSurfaceId);
 
-		Connector::init(width, height, frameBuffer);
+		onInit(mIviSurface->getSurface(), frameBuffer);
 	}
 
 	/**
@@ -178,8 +182,6 @@ public:
 	 */
 	void release() override
 	{
-		Connector::release();
-
 		mIviSurface.reset();
 	}
 
@@ -188,8 +190,8 @@ private:
 	friend class Display;
 
 	IviConnector(const std::string& name, IviApplicationPtr iviApplication,
-				 SurfacePtr surface, uint32_t surfaceId) :
-		Connector(name, surface),
+				 CompositorPtr compositor, uint32_t surfaceId) :
+		Connector(name, compositor),
 		mIviApplication(iviApplication),
 		mSurfaceId(surfaceId) {}
 
