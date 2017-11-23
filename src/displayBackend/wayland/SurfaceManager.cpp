@@ -23,6 +23,7 @@
 
 #include "Exception.hpp"
 
+using std::find;
 using std::find_if;
 using std::lock_guard;
 using std::mutex;
@@ -35,6 +36,12 @@ namespace Wayland {
  * ConnectorManager
  ******************************************************************************/
 
+SurfaceManager::SurfaceManager() :
+	mLog("SurfaceManager")
+{
+
+}
+
 SurfaceManager& SurfaceManager::getInstance()
 {
 	static SurfaceManager sConnectorManager;
@@ -42,28 +49,34 @@ SurfaceManager& SurfaceManager::getInstance()
 	return sConnectorManager;
 }
 
-void SurfaceManager::createSurface(const string& name, wl_surface* surface)
+void SurfaceManager::createSurface(const string& connectorName,
+								   wl_surface* surface)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	mSurfaces[name] = surface;
+	LOG(mLog, DEBUG) << "Create surface: " << connectorName;
+
+	mSurfaces[connectorName] = surface;
 
 	for(auto subscriber : mSubscribers)
 	{
-		subscriber->onConnectorCreate(name, surface);
+		subscriber->onSurfaceCreate(connectorName, surface);
 	}
 }
 
-void SurfaceManager::deleteSurface(const string& name, wl_surface* surface)
+void SurfaceManager::deleteSurface(const string& connectorName,
+								   wl_surface* surface)
 {
 	lock_guard<mutex> lock(mMutex);
 
+	LOG(mLog, DEBUG) << "Delete surface: " << connectorName;
+
 	for(auto subscriber : mSubscribers)
 	{
-		subscriber->onConnectorDelete(name, surface);
+		subscriber->onSurfaceDelete(connectorName, surface);
 	}
 
-	mSurfaces.erase(name);
+	mSurfaces.erase(connectorName);
 }
 
 wl_surface* SurfaceManager::getSurfaceByConnectorName(const string& connectorName)
@@ -96,6 +109,30 @@ string SurfaceManager::getConnectorNameBySurface(wl_surface* surface)
 	}
 
 	return result;
+}
+
+void SurfaceManager::subscribe(SurfaceNotificationItf* subscriber)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	if (find(mSubscribers.begin(), mSubscribers.end(), subscriber) ==
+		mSubscribers.end())
+	{
+		mSubscribers.push_back(subscriber);
+	}
+
+}
+
+void SurfaceManager::unsubscribe(SurfaceNotificationItf* subscriber)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	auto it = find(mSubscribers.begin(), mSubscribers.end(), subscriber);
+
+	if (it != mSubscribers.end())
+	{
+		mSubscribers.erase(it);
+	}
 }
 
 }

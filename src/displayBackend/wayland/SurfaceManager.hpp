@@ -35,10 +35,10 @@ class SurfaceNotificationItf
 {
 public:
 	virtual ~SurfaceNotificationItf() {};
-	virtual void onConnectorCreate(const std::string& name,
-								   wl_surface* surface) = 0;
-	virtual void onConnectorDelete(const std::string& name,
-								   wl_surface* surface) = 0;
+	virtual void onSurfaceCreate(const std::string& connectorName,
+								 wl_surface* surface) = 0;
+	virtual void onSurfaceDelete(const std::string& connectorName,
+								 wl_surface* surface) = 0;
 };
 
 class SurfaceManager
@@ -61,10 +61,13 @@ public:
 
 private:
 
-	SurfaceManager() = default;
+	SurfaceManager();
 
 	std::list<SurfaceNotificationItf*> mSubscribers;
 	std::unordered_map<std::string, wl_surface*> mSurfaces;
+
+	XenBackend::Log mLog;
+
 	std::mutex mMutex;
 };
 

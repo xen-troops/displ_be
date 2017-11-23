@@ -23,7 +23,14 @@ public:
 
 	SeatDevice()
 	{
+		SurfaceManager::getInstance().subscribe(this);
+
 		mCurrentCallback = mSurfaceCallbacks.end();
+	}
+
+	~SeatDevice()
+	{
+		SurfaceManager::getInstance().unsubscribe(this);
 	}
 
 	void setConnectorCallbacks(const std::string& connector, const T& callbacks)
@@ -65,11 +72,12 @@ protected:
 
 private:
 
-	void onConnectorCreate(const std::string& name, wl_surface* surface) override
+	void onSurfaceCreate(const std::string& connectorName,
+						 wl_surface* surface) override
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
 
-		auto it = mConnectorCallbacks.find(name);
+		auto it = mConnectorCallbacks.find(connectorName);
 
 		if (it != mConnectorCallbacks.end())
 		{
@@ -77,7 +85,7 @@ private:
 		}
 	}
 
-	void onConnectorDelete(const std::string& name, wl_surface* surface) override
+	void onSurfaceDelete(const std::string& name, wl_surface* surface) override
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
 
