@@ -56,6 +56,7 @@ public:
 	InputRingBuffer(InputItf::KeyboardPtr keyboard,
 					InputItf::PointerPtr pointer,
 					InputItf::TouchPtr touch,
+					bool featureAbs, bool featureMTouch,
 					domid_t domId, evtchn_port_t port, int ref,
 					int offset, size_t size);
 
