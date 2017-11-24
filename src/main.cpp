@@ -233,6 +233,7 @@ int main(int argc, char *argv[])
 			displayBackend.start();
 #endif
 
+#ifdef WITH_INPUT
 #ifdef WITH_WAYLAND
 			InputBackend inputBackend(XENKBD_DRIVER_NAME,
 					dynamic_pointer_cast<Wayland::Display>(display));
@@ -240,7 +241,7 @@ int main(int argc, char *argv[])
 			InputBackend inputBackend(XENKBD_DRIVER_NAME);
 #endif
 			inputBackend.start();
-
+#endif
 			waitSignals();
 
 #ifdef WITH_DISPLAY
