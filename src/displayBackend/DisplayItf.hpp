@@ -98,6 +98,11 @@ public:
 	virtual uintptr_t getHandle() const = 0;
 
 	/**
+	 * Gets fd
+	 */
+	virtual int getFd() const = 0;
+
+	/**
 	 * Reads name
 	 */
 	virtual uint32_t readName() = 0;

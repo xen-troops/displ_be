@@ -48,10 +48,15 @@ public:
 	/**
 	 * Get handle
 	 */
-	virtual uintptr_t getHandle() const override { return mHandle; }
+	virtual uintptr_t getHandle() const override { return mMappedHandle; }
 
 	/**
-	 * Gets name
+	 * Gets fd
+	 */
+	int getFd() const override { return mZeroCopyFd; };
+
+	/**
+	 * Reads name
 	 */
 	uint32_t readName() override;
 

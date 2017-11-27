@@ -80,7 +80,7 @@ uint32_t SharedBuffer::convertPixelFormat(uint32_t format)
 
 void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 {
-	mWlPool = wl_shm_create_pool(wlSharedMemory, mDisplayBuffer->getHandle(),
+	mWlPool = wl_shm_create_pool(wlSharedMemory, mDisplayBuffer->getFd(),
 							   mHeight * mDisplayBuffer->getStride());
 
 	if (!mWlPool)
@@ -103,7 +103,7 @@ void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 
 	LOG(mLog, DEBUG) << "Create, w: " << mWidth << ", h: " << mHeight
 					 << ", stride: " << mDisplayBuffer->getStride()
-					 << ", fd: " << mDisplayBuffer->getHandle()
+					 << ", fd: " << mDisplayBuffer->getFd()
 					 << ", format: 0x"  << hex << setfill('0') << setw(8)
 					 << pixelFormat;
 }

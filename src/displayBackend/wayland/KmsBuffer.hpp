@@ -1,5 +1,5 @@
 /*
- *  Drm buffer class
+ *  Kms buffer class
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,27 +19,27 @@
  *
  */
 
-#ifndef SRC_WAYLAND_DRMBUFFER_HPP_
-#define SRC_WAYLAND_DRMBUFFER_HPP_
+#ifndef SRC_WAYLAND_KMSBUFFER_HPP_
+#define SRC_WAYLAND_KMSBUFFER_HPP_
 
 #include <wayland-client.h>
 
 #include <xen/be/Log.hpp>
 
 #include "DisplayItf.hpp"
-#include "wayland-drm-client-protocol.h"
+#include "wayland-kms-client-protocol.h"
 
 namespace Wayland {
 
 /***************************************************************************//**
- * DRM buffer class.
+ * KMS buffer class.
  * @ingroup wayland
  ******************************************************************************/
-class DrmBuffer : public DisplayItf::FrameBuffer
+class KmsBuffer : public DisplayItf::FrameBuffer
 {
 public:
 
-	~DrmBuffer();
+	~KmsBuffer();
 
 	/**
 	 * Gets handle
@@ -69,9 +69,9 @@ public:
 
 private:
 
-	friend class WaylandDrm;
+	friend class WaylandKms;
 
-	DrmBuffer(wl_drm* wlDrm, DisplayItf::DisplayBufferPtr displayBuffer,
+	KmsBuffer(wl_kms* wlKms, DisplayItf::DisplayBufferPtr displayBuffer,
 			  uint32_t width, uint32_t height, uint32_t pixelFormat);
 
 	DisplayItf::DisplayBufferPtr mDisplayBuffer;
@@ -80,10 +80,10 @@ private:
 	uint32_t mHeight;
 	XenBackend::Log mLog;
 
-	void init(wl_drm* wlDrm, uint32_t pixelFormat);
+	void init(wl_kms* wlKms, uint32_t pixelFormat);
 	void release();
 };
 
 }
 
-#endif /* SRC_WAYLAND_DRMBUFFER_HPP_ */
+#endif /* SRC_WAYLAND_KMSBUFFER_HPP_ */
