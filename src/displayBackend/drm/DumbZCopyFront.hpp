@@ -51,6 +51,11 @@ public:
 	virtual uintptr_t getHandle() const override { return mHandle; }
 
 	/**
+	 * Gets fd
+	 */
+	int getFd() const override { return mDrmFd; };
+
+	/**
 	 * Gets name
 	 */
 	uint32_t readName() override;

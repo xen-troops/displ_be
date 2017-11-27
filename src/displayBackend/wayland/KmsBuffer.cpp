@@ -1,5 +1,5 @@
 /*
- *  Drm buffer class
+ *  Kms buffer class
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  *
  */
 
-#include "DrmBuffer.hpp"
+#include "KmsBuffer.hpp"
 
 #include "Exception.hpp"
 
@@ -31,7 +31,7 @@ namespace Wayland {
  * DrmBuffer
  ******************************************************************************/
 
-DrmBuffer::DrmBuffer(wl_drm* wlDrm,
+KmsBuffer::KmsBuffer(wl_kms* wlKms,
 					 DisplayBufferPtr displayBuffer,
 					 uint32_t width, uint32_t height,
 					 uint32_t pixelFormat) :
@@ -43,7 +43,7 @@ DrmBuffer::DrmBuffer(wl_drm* wlDrm,
 {
 	try
 	{
-		init(wlDrm, pixelFormat);
+		init(wlKms, pixelFormat);
 	}
 	catch(const std::exception& e)
 	{
@@ -53,7 +53,7 @@ DrmBuffer::DrmBuffer(wl_drm* wlDrm,
 	}
 }
 
-DrmBuffer::~DrmBuffer()
+KmsBuffer::~KmsBuffer()
 {
 	release();
 }
@@ -66,24 +66,25 @@ DrmBuffer::~DrmBuffer()
  * Private
  ******************************************************************************/
 
-void DrmBuffer::init(wl_drm* wlDrm, uint32_t pixelFormat)
+void KmsBuffer::init(wl_kms* wlKms, uint32_t pixelFormat)
 {
-	mWlBuffer = wl_drm_create_buffer(wlDrm, mDisplayBuffer->readName(),
+	mWlBuffer = wl_kms_create_buffer(wlKms, mDisplayBuffer->getFd(),
 									 mWidth, mHeight,
-									 mDisplayBuffer->getStride(), pixelFormat);
+									 mDisplayBuffer->getStride(), pixelFormat,
+									 mDisplayBuffer->getHandle());
 
 	if (!mWlBuffer)
 	{
-		throw Exception("Can't create DRM buffer", -EINVAL);
+		throw Exception("Can't create KMS buffer", -EINVAL);
 	}
 
-	LOG(mLog, DEBUG) << "Create, name: " << mDisplayBuffer->readName()
+	LOG(mLog, DEBUG) << "Create, fd: " << mDisplayBuffer->getFd()
 					 << ", w: " << mWidth << ", h: " << mHeight
 					 << ", stride: " << mDisplayBuffer->getStride()
 					 << ", format: " << pixelFormat;
 }
 
-void DrmBuffer::release()
+void KmsBuffer::release()
 {
 	if (mWlBuffer)
 	{
