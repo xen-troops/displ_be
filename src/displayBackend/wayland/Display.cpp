@@ -113,6 +113,10 @@ bool Display::isZeroCopySupported() const
 	{
 		return true;
 	}
+	if (mWaylandKms && mWaylandKms->isZeroCopySupported())
+	{
+		return true;
+	}
 #endif
 	return false;
 }
@@ -181,13 +185,21 @@ DisplayBufferPtr Display::createDisplayBuffer(
 	lock_guard<mutex> lock(mMutex);
 
 #ifdef WITH_DRM
-	if (mWaylandDrm)
+
+	if (mWaylandDrm && mWaylandDrm->isZeroCopySupported())
 	{
 		return mWaylandDrm->createDumb(width, height, bpp,
 									   domId, refs, allocRefs);
 	}
-	else
+
+	if (mWaylandKms && mWaylandKms->isZeroCopySupported())
+	{
+		return mWaylandKms->createDumb(width, height, bpp,
+									   domId, refs, allocRefs);
+	}
+
 #endif
+
 	if (mSharedMemory)
 	{
 		return mSharedMemory->createSharedFile(width, height, bpp, domId, refs);
@@ -203,13 +215,21 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 	lock_guard<mutex> lock(mMutex);
 
 #ifdef WITH_DRM
-	if (mWaylandDrm)
+
+	if (mWaylandDrm  && mWaylandDrm->isZeroCopySupported())
 	{
 		return mWaylandDrm->createDrmBuffer(displayBuffer, width, height,
 											pixelFormat);
 	}
-	else
+
+	if (mWaylandKms && mWaylandKms->isZeroCopySupported())
+	{
+		return mWaylandKms->createKmsBuffer(displayBuffer, width, height,
+											pixelFormat);
+	}
+
 #endif
+
 	if (mSharedMemory)
 	{
 		return mSharedMemory->createSharedBuffer(displayBuffer, width, height,
@@ -411,6 +431,10 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	if (interface == "wl_drm")
 	{
 		mWaylandDrm.reset(new WaylandDrm(registry, id, version));
+	}
+	if (interface == "wl_kms")
+	{
+		mWaylandKms.reset(new WaylandKms(registry, id, version));
 	}
 #endif
 }

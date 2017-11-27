@@ -1,5 +1,5 @@
 /*
- *  Drm class
+ *  Kms class
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
  *
  */
 
-#include "WaylandDrm.hpp"
+#include "WaylandKms.hpp"
 
-#include "DrmBuffer.hpp"
+#include "KmsBuffer.hpp"
 #include "Exception.hpp"
 
 using std::lock_guard;
@@ -35,15 +35,15 @@ using DisplayItf::GrantRefs;
 namespace Wayland {
 
 /*******************************************************************************
- * Drm
+ * Kms
  ******************************************************************************/
 
-WaylandDrm::WaylandDrm(wl_registry* registry,
+WaylandKms::WaylandKms(wl_registry* registry,
 					   uint32_t id, uint32_t version) :
 	Registry(registry, id, version),
-	mWlDrm(nullptr),
+	mWlKms(nullptr),
 	mIsAuthenticated(false),
-	mLog("WaylandDrm")
+	mLog("WaylandKms")
 {
 	try
 	{
@@ -57,7 +57,7 @@ WaylandDrm::WaylandDrm(wl_registry* registry,
 	}
 }
 
-WaylandDrm::~WaylandDrm()
+WaylandKms::~WaylandKms()
 {
 	release();
 }
@@ -66,7 +66,7 @@ WaylandDrm::~WaylandDrm()
  * Public
  ******************************************************************************/
 
-bool WaylandDrm::isZeroCopySupported()
+bool WaylandKms::isZeroCopySupported()
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -79,7 +79,7 @@ bool WaylandDrm::isZeroCopySupported()
 }
 
 DisplayBufferPtr
-WaylandDrm::createDumb(uint32_t width, uint32_t height, uint32_t bpp,
+WaylandKms::createDumb(uint32_t width, uint32_t height, uint32_t bpp,
 					   domid_t domId, GrantRefs& refs, bool allocRefs)
 {
 	lock_guard<mutex> lock(mMutex);
@@ -94,41 +94,36 @@ WaylandDrm::createDumb(uint32_t width, uint32_t height, uint32_t bpp,
 }
 
 FrameBufferPtr
-WaylandDrm::createDrmBuffer(DisplayBufferPtr displayBuffer,
+WaylandKms::createKmsBuffer(DisplayBufferPtr displayBuffer,
 							uint32_t width,uint32_t height,
 							uint32_t pixelFormat)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	return  FrameBufferPtr(new DrmBuffer(mWlDrm, displayBuffer, width,
-												height, pixelFormat));
+	return  FrameBufferPtr(new KmsBuffer(mWlKms, displayBuffer, width,
+										 height, pixelFormat));
 }
 
 /*******************************************************************************
  * Private
  ******************************************************************************/
 
-void WaylandDrm::sOnDevice(void *data, wl_drm *drm, const char *name)
+void WaylandKms::sOnDevice(void *data, wl_kms *kms, const char *name)
 {
-	static_cast<WaylandDrm*>(data)->onDevice(name);
+	static_cast<WaylandKms*>(data)->onDevice(name);
 }
 
-void WaylandDrm::sOnFormat(void *data, wl_drm *drm, uint32_t format)
+void WaylandKms::sOnFormat(void *data, wl_kms *kms, uint32_t format)
 {
-	static_cast<WaylandDrm*>(data)->onFormat(format);
+	static_cast<WaylandKms*>(data)->onFormat(format);
 }
 
-void WaylandDrm::sOnAuthenticated(void *data, wl_drm *drm)
+void WaylandKms::sOnAuthenticated(void *data, wl_kms *kms)
 {
-	static_cast<WaylandDrm*>(data)->onAuthenticated();
+	static_cast<WaylandKms*>(data)->onAuthenticated();
 }
 
-void WaylandDrm::sOnCapabilities(void *data, wl_drm *drm, uint32_t value)
-{
-	static_cast<WaylandDrm*>(data)->onCapabilities(value);
-}
-
-void WaylandDrm::onDevice(const string& name)
+void WaylandKms::onDevice(const string& name)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -138,18 +133,18 @@ void WaylandDrm::onDevice(const string& name)
 
 	if (mDrmDevice->isZeroCopySupported())
 	{
-		wl_drm_authenticate(mWlDrm, mDrmDevice->getMagic());
+		wl_kms_authenticate(mWlKms, mDrmDevice->getMagic());
 	}
 }
 
-void WaylandDrm::onFormat(uint32_t format)
+void WaylandKms::onFormat(uint32_t format)
 {
 	lock_guard<mutex> lock(mMutex);
 
 	LOG(mLog, DEBUG) << "onFormat format: 0x" << std::hex << format;
 }
 
-void WaylandDrm::onAuthenticated()
+void WaylandKms::onAuthenticated()
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -158,27 +153,20 @@ void WaylandDrm::onAuthenticated()
 	mIsAuthenticated = true;
 }
 
-void WaylandDrm::onCapabilities(uint32_t value)
+void WaylandKms::init()
 {
-	lock_guard<mutex> lock(mMutex);
-
-	LOG(mLog, DEBUG) << "onCapabilities value: " << value;
-}
-
-void WaylandDrm::init()
-{
-	mWlDrm = static_cast<wl_drm*>(
+	mWlKms = static_cast<wl_kms*>(
 			wl_registry_bind(getRegistry(), getId(),
-							 &wl_drm_interface, getVersion()));
+							 &wl_kms_interface, getVersion()));
 
-	if (!mWlDrm)
+	if (!mWlKms)
 	{
-		throw Exception("Can't bind drm", -EINVAL);
+		throw Exception("Can't bind kms", -EINVAL);
 	}
 
-	mWlListener = {sOnDevice, sOnFormat, sOnAuthenticated, sOnCapabilities};
+	mWlListener = {sOnDevice, sOnFormat, sOnAuthenticated};
 
-	if (wl_drm_add_listener(mWlDrm, &mWlListener, this) < 0)
+	if (wl_kms_add_listener(mWlKms, &mWlListener, this) < 0)
 	{
 		throw Exception("Can't add listener", -EINVAL);
 	}
@@ -186,11 +174,11 @@ void WaylandDrm::init()
 	LOG(mLog, DEBUG) << "Create";
 }
 
-void WaylandDrm::release()
+void WaylandKms::release()
 {
-	if (mWlDrm)
+	if (mWlKms)
 	{
-		wl_drm_destroy(mWlDrm);
+		wl_kms_destroy(mWlKms);
 
 		LOG(mLog, DEBUG) << "Delete";
 	}

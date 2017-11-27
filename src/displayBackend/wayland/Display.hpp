@@ -41,6 +41,7 @@
 #include "Shell.hpp"
 #ifdef WITH_DRM
 #include "WaylandDrm.hpp"
+#include "WaylandKms.hpp"
 #endif
 
 namespace Wayland {
@@ -146,6 +147,7 @@ private:
 
 #ifdef WITH_DRM
 	WaylandDrmPtr mWaylandDrm;
+	WaylandKmsPtr mWaylandKms;
 #endif
 
 	mutable std::mutex mMutex;
