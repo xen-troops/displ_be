@@ -72,6 +72,11 @@ public:
 	uintptr_t getHandle() const override { return mHandle; }
 
 	/**
+	 * Gets fd
+	 */
+	int getFd() const override { return mFd; };
+
+	/**
 	 * Gets name
 	 */
 	uint32_t readName() override;
