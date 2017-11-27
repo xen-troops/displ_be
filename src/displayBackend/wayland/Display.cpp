@@ -429,7 +429,7 @@ void Display::init()
 		throw Exception("Can't connect to display", -EINVAL);
 	}
 
-	mPollFd.reset(new PollFd(wl_display_get_fd(mWlDisplay), POLLIN | POLLOUT));
+	mPollFd.reset(new PollFd(wl_display_get_fd(mWlDisplay), POLLIN));
 
 	LOG(mLog, DEBUG) << "Connected";
 
