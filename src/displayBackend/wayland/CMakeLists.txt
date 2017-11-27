@@ -16,7 +16,9 @@ set(SOURCES
 if(WITH_DRM)
 	list(APPEND SOURCES
 		DrmBuffer.cpp
+		KmsBuffer.cpp
 		WaylandDrm.cpp
+		WaylandKms.cpp
 	)
 endif()
 
@@ -39,7 +41,10 @@ endif()
 add_library(display_wayland STATIC ${SOURCES})
 
 if(WITH_DRM)
-	target_link_libraries(display_wayland wayland_drm_protocol)
+	target_link_libraries(display_wayland
+		wayland_drm_protocol
+		wayland_kms_protocol
+	)
 endif()
 
 target_link_libraries(display_wayland ${WAYLAND_LIBRARIES})

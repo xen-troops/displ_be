@@ -57,7 +57,12 @@ public:
 	/**
 	 * Get handle
 	 */
-	virtual uintptr_t getHandle() const override { return mFd; }
+	virtual uintptr_t getHandle() const override { return 0; }
+
+	/**
+	 * Gets fd
+	 */
+	int getFd() const override { return mFd; };
 
 	/**
 	 * Reads name
