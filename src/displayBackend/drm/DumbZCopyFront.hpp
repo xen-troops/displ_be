@@ -48,7 +48,7 @@ public:
 	/**
 	 * Get handle
 	 */
-	virtual uintptr_t getHandle() const override { return mMappedHandle; }
+	virtual uintptr_t getHandle() const override { return mHandle; }
 
 	/**
 	 * Gets fd
