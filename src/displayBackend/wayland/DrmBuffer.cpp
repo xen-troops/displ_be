@@ -39,7 +39,7 @@ DrmBuffer::DrmBuffer(wl_drm* wlDrm,
 	mWlBuffer(nullptr),
 	mWidth(width),
 	mHeight(height),
-	mLog("SharedBuffer")
+	mLog("DrmBuffer")
 {
 	try
 	{

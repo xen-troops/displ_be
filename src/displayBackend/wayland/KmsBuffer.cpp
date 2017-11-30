@@ -39,7 +39,7 @@ KmsBuffer::KmsBuffer(wl_kms* wlKms,
 	mWlBuffer(nullptr),
 	mWidth(width),
 	mHeight(height),
-	mLog("SharedBuffer")
+	mLog("KmsBuffer")
 {
 	try
 	{
