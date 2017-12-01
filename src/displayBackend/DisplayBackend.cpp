@@ -54,14 +54,15 @@ using DisplayItf::DisplayPtr;
  * ConCtrlRingBuffer
  ******************************************************************************/
 
-CtrlRingBuffer::CtrlRingBuffer(ConnectorPtr connector,
+CtrlRingBuffer::CtrlRingBuffer(DisplayPtr display,
+							   ConnectorPtr connector,
 							   BuffersStoragePtr buffersStorage,
 							   EventRingBufferPtr eventBuffer,
 							   domid_t domId,
 							   evtchn_port_t port, grant_ref_t ref) :
 	RingBufferInBase<xen_displif_back_ring, xen_displif_sring,
 					 xendispl_req, xendispl_resp>(domId, port, ref),
-	mCommandHandler(connector, buffersStorage, eventBuffer),
+	mCommandHandler(display, connector, buffersStorage, eventBuffer),
 	mLog("ConCtrlRing")
 {
 	LOG(mLog, DEBUG) << "Create ctrl ring buffer";
@@ -135,7 +136,8 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
 	auto connector = mDisplay->createConnector(id);
 
 	CtrlRingBufferPtr ctrlRingBuffer(
-			new CtrlRingBuffer(connector,
+			new CtrlRingBuffer(mDisplay,
+							   connector,
 							   bufferStorage,
 							   eventRingBuffer,
 							   getDomId(), port, ref));

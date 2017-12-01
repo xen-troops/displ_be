@@ -47,7 +47,7 @@ SurfacePtr Compositor::createSurface()
 {
 	LOG(mLog, DEBUG) << "Create surface";
 
-	return SurfacePtr(new Surface(mWlDisplay, mWlCompositor));
+	return SurfacePtr(new Surface(mWlCompositor));
 }
 
 /*******************************************************************************

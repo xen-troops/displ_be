@@ -229,6 +229,11 @@ public:
 	virtual void stop() = 0;
 
 	/**
+	 * Flushes events
+	 */
+	virtual void flush() = 0;
+
+	/**
 	 * Returns if display supports zero copy buffers
 	 */
 	virtual bool isZeroCopySupported() const = 0;

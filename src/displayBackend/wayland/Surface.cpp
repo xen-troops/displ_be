@@ -17,8 +17,7 @@ namespace Wayland {
  * Surface
  ******************************************************************************/
 
-Surface::Surface(wl_display* display, wl_compositor* compositor) :
-	mWlDisplay(display),
+Surface::Surface(wl_compositor* compositor) :
 	mWlSurface(nullptr),
 	mWlFrameCallback(nullptr),
 	mLog("Surface")
@@ -80,11 +79,6 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 					  0, 0);
 
 	wl_surface_commit(mWlSurface);
-
-	if (wl_display_flush(mWlDisplay) < 0)
-	{
-		throw Exception("Failed to flush display", -EINVAL);
-	}
 }
 
 /*******************************************************************************

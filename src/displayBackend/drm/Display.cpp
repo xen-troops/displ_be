@@ -159,6 +159,13 @@ void Display::stop()
 	}
 }
 
+void Display::flush()
+{
+	lock_guard<mutex> lock(mMutex);
+
+	DLOG(mLog, DEBUG) << "flush";
+}
+
 DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 {
 	lock_guard<mutex> lock(mMutex);

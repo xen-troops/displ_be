@@ -48,9 +48,8 @@ private:
 	friend class Compositor;
 	friend class Connector;
 
-	Surface(wl_display* display, wl_compositor* compositor);
+	Surface(wl_compositor* compositor);
 
-	wl_display* mWlDisplay;
 	wl_surface* mWlSurface;
 	wl_callback *mWlFrameCallback;
 	XenBackend::Log mLog;
