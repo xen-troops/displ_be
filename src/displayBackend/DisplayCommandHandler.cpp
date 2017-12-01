@@ -37,6 +37,7 @@ using XenBackend::XenException;
 using XenBackend::XenGnttabBuffer;
 
 using DisplayItf::ConnectorPtr;
+using DisplayItf::DisplayPtr;
 
 unordered_map<int, DisplayCommandHandler::CommandFn>
 	DisplayCommandHandler::sCmdTable =
@@ -69,9 +70,11 @@ EventRingBuffer::EventRingBuffer(int conIndex, domid_t domId,
  ******************************************************************************/
 
 DisplayCommandHandler::DisplayCommandHandler(
+		DisplayPtr display,
 		ConnectorPtr connector,
 		BuffersStoragePtr buffersStorage,
 		EventRingBufferPtr eventBuffer) :
+	mDisplay(display),
 	mConnector(connector),
 	mBuffersStorage(buffersStorage),
 	mEventBuffer(eventBuffer),
@@ -99,6 +102,8 @@ int DisplayCommandHandler::processCommand(const xendispl_req& req)
 	try
 	{
 		(this->*sCmdTable.at(req.operation))(req);
+
+		mDisplay->flush();
 	}
 	catch(const DisplayItf::Exception& e)
 	{

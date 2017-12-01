@@ -42,6 +42,7 @@ class CtrlRingBuffer : public XenBackend::RingBufferInBase<
 {
 public:
 	/**
+	 * @param display        display object
 	 * @param connector      connector object
 	 * @param buffersStorage buffers storage
 	 * @param eventBuffer    event ring buffer
@@ -49,7 +50,8 @@ public:
 	 * @param port           event channel port number
 	 * @param ref            grant table reference
 	 */
-	CtrlRingBuffer(DisplayItf::ConnectorPtr connector,
+	CtrlRingBuffer(DisplayItf::DisplayPtr display,
+				   DisplayItf::ConnectorPtr connector,
 				   BuffersStoragePtr buffersStorage,
 				   EventRingBufferPtr eventBuffer,
 				   domid_t domId, evtchn_port_t port, grant_ref_t ref);

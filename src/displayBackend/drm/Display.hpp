@@ -75,6 +75,11 @@ public:
 	void stop() override;
 
 	/**
+	 * Flushes events
+	 */
+	void flush() override;
+
+	/**
 	 * Returns if display supports zero copy buffers
 	 */
 	bool isZeroCopySupported() const override { return (mZeroCopyFd >= 0); }

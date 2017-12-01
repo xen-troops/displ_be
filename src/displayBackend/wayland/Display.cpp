@@ -104,6 +104,23 @@ void Display::stop()
 	}
 }
 
+void Display::flush()
+{
+	lock_guard<mutex> lock(mMutex);
+
+	DLOG(mLog, DEBUG) << "Flush";
+
+	int result = 0;
+
+	while((result = wl_display_flush(mWlDisplay) < 0) && errno == EAGAIN);
+
+	if (result < 0)
+	{
+		throw Exception("Can't flush events",
+						-wl_display_get_error(mWlDisplay));
+	}
+}
+
 bool Display::isZeroCopySupported() const
 {
 	lock_guard<mutex> lock(mMutex);
@@ -530,7 +547,7 @@ void Display::dispatchThread()
 				DLOG(mLog, DEBUG) << "Dispatch events: " << val;
 			}
 
-			if (wl_display_flush(mWlDisplay) < 0)
+			if (wl_display_flush(mWlDisplay) < 0 && errno != EAGAIN)
 			{
 				throw Exception("Can't flush events",
 								-wl_display_get_error(mWlDisplay));

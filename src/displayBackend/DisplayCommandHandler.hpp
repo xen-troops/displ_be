@@ -65,11 +65,13 @@ class DisplayCommandHandler
 {
 public:
 	/**
+	 * @param display        display object
 	 * @param connector      connector object
 	 * @param buffersStorage buffers storage
 	 * @param eventBuffer    event ring buffer
 	 */
-	DisplayCommandHandler(DisplayItf::ConnectorPtr connector,
+	DisplayCommandHandler(DisplayItf::DisplayPtr display,
+						  DisplayItf::ConnectorPtr connector,
 						  BuffersStoragePtr buffersStorage,
 						  EventRingBufferPtr eventBuffer);
 	~DisplayCommandHandler();
@@ -86,6 +88,7 @@ private:
 
 	static std::unordered_map<int, CommandFn> sCmdTable;
 
+	DisplayItf::DisplayPtr mDisplay;
 	DisplayItf::ConnectorPtr mConnector;
 	BuffersStoragePtr mBuffersStorage;
 	EventRingBufferPtr mEventBuffer;
