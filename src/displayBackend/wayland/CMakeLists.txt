@@ -13,7 +13,7 @@ set(SOURCES
 	SurfaceManager.cpp
 )
 
-if(WITH_DRM)
+if(WITH_DRM AND WITH_ZCOPY)
 	list(APPEND SOURCES
 		DrmBuffer.cpp
 		KmsBuffer.cpp

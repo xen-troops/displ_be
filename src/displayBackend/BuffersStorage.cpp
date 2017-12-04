@@ -150,7 +150,7 @@ FrameBufferPtr BuffersStorage::getFrameBufferAndCopy(uint64_t fbCookie)
 
 	auto frameBuffer = getFrameBufferUnlocked(fbCookie);
 
-	if (!mDisplay->isZeroCopySupported())
+	if (frameBuffer->getDisplayBuffer()->getBuffer())
 	{
 		frameBuffer->getDisplayBuffer()->copy();
 	}

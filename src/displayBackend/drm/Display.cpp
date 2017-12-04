@@ -73,33 +73,30 @@ unordered_map<int, string> Display::sConnectorNames =
 };
 
 /*******************************************************************************
- * Device
+ * DisplayBase
  ******************************************************************************/
 
-Display::Display(const string& name) :
+DisplayBase::DisplayBase(const string& name) :
 	mName(name),
-	mFd(-1),
-	mZeroCopyFd(-1),
-	mStarted(false),
+	mDrmFd(-1),
 	mLog("Drm")
 {
-	try
-	{
-		init();
-	}
-	catch(const std::exception& e)
-	{
-		release();
+	mDrmFd = open(mName.c_str(), O_RDWR | O_CLOEXEC);
 
-		throw;
+	if (mDrmFd < 0)
+	{
+		throw Exception("Cannot open DRM device: " + mName, -errno);
 	}
+
+	LOG(mLog, DEBUG) << "Create Drm card: " << mName << ", FD: " << mDrmFd;
 }
 
-Display::~Display()
+DisplayBase::~DisplayBase()
 {
-	stop();
-
-	release();
+	if (mDrmFd >= 0)
+	{
+		drmClose(mDrmFd);
+	}
 
 	LOG(mLog, DEBUG) << "Delete Drm card: " << mName;
 }
@@ -108,13 +105,13 @@ Display::~Display()
  * Public
  ******************************************************************************/
 
-drm_magic_t Display::getMagic()
+drm_magic_t DisplayBase::getMagic()
 {
 	lock_guard<mutex> lock(mMutex);
 
 	drm_magic_t magic = 0;
 
-	if (drmGetMagic(mFd, &magic) < 0)
+	if (drmGetMagic(mDrmFd, &magic) < 0)
 	{
 		throw Exception("Can't get magic", -errno);
 	}
@@ -123,6 +120,88 @@ drm_magic_t Display::getMagic()
 
 	return magic;
 }
+
+#ifdef WITH_ZCOPY
+/*******************************************************************************
+ * DisplayZCopy
+ ******************************************************************************/
+
+DisplayZCopy::DisplayZCopy(const string& name) :
+	DisplayBase(name),
+	mZCopyFd(-1)
+{
+	mZCopyFd = drmOpen(XENDRM_ZCOPY_DRIVER_NAME, NULL);
+
+	if (mZCopyFd < 0)
+	{
+		LOG(mLog, WARNING) << "Can't open zero copy driver: "
+						   << "zero copy functionality will be disabled";
+	}
+
+	LOG(mLog, DEBUG) << "Create Drm ZCopy: " << mZCopyFd;
+}
+
+DisplayZCopy::~DisplayZCopy()
+{
+	LOG(mLog, DEBUG) << "Delete Drm ZCopy: " << mZCopyFd;
+}
+
+/*******************************************************************************
+ * Public
+ ******************************************************************************/
+
+DisplayBufferPtr DisplayZCopy::createZCopyBuffer(
+		uint32_t width, uint32_t height, uint32_t bpp,
+		domid_t domId, DisplayItf::GrantRefs& refs, bool allocRefs)
+{
+	LOG(mLog, DEBUG) << "Create display buffer with zero copy";
+
+	if (allocRefs)
+	{
+		return DisplayBufferPtr(new DumbZCopyBack(mDrmFd, mZCopyFd,
+												  width, height, bpp,
+												  domId, refs));
+	}
+
+	return DisplayBufferPtr(new DumbZCopyFront(mDrmFd, mZCopyFd,
+											   width, height, bpp,
+											   domId, refs));
+}
+
+#endif
+
+/*******************************************************************************
+ * Display
+ ******************************************************************************/
+
+Display::Display(const string& name) :
+#ifdef WITH_ZCOPY
+	DisplayZCopy(name),
+#else
+	DisplayBase(name),
+#endif
+	mStarted(false)
+{
+	mPollFd.reset(new PollFd(mDrmFd, POLLIN));
+
+	uint64_t hasDumb = false;
+
+	if (drmGetCap(mDrmFd, DRM_CAP_DUMB_BUFFER, &hasDumb) < 0 || !hasDumb)
+	{
+		throw Exception("Drm device does not support dumb buffers", -errno);
+	}
+
+	getConnectorIds();
+}
+
+Display::~Display()
+{
+	stop();
+}
+
+/*******************************************************************************
+ * Public
+ ******************************************************************************/
 
 void Display::start()
 {
@@ -177,7 +256,7 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 		throw Exception("Can't create connector: " + name, -EINVAL);
 	}
 
-	return DisplayItf::ConnectorPtr(new Connector(name, mFd, it->second));
+	return DisplayItf::ConnectorPtr(new Connector(name, mDrmFd, it->second));
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
@@ -187,7 +266,7 @@ DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
 
 	LOG(mLog, DEBUG) << "Create display buffer";
 
-	return DisplayBufferPtr(new Dumb(mFd, width, height, bpp));
+	return DisplayBufferPtr(new Dumb(mDrmFd, width, height, bpp));
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
@@ -203,13 +282,13 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 		if (allocRefs)
 		{
-			return DisplayBufferPtr(new DumbZCopyBack(mFd, mZeroCopyFd,
+			return DisplayBufferPtr(new DumbZCopyBack(mDrmFd, mZCopyFd,
 													  width, height, bpp,
 													  domId, refs));
 		}
 		else
 		{
-			return DisplayBufferPtr(new DumbZCopyFront(mFd, mZeroCopyFd,
+			return DisplayBufferPtr(new DumbZCopyFront(mDrmFd, mZCopyFd,
 													   width, height, bpp,
 													   domId, refs));
 		}
@@ -224,7 +303,8 @@ DisplayBufferPtr Display::createDisplayBuffer(
 			throw  Exception("Can't allocate refs: ZCopy disabled", -EINVAL);
 		}
 
-		return DisplayBufferPtr(new Dumb(mFd, width, height, bpp, domId, refs));
+		return DisplayBufferPtr(new Dumb(mDrmFd, width, height, bpp,
+										 domId, refs));
 	}
 }
 
@@ -236,7 +316,7 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 
 	LOG(mLog, DEBUG) << "Create frame buffer";
 
-	return FrameBufferPtr(new FrameBuffer(mFd, displayBuffer, width,
+	return FrameBufferPtr(new FrameBuffer(mDrmFd, displayBuffer, width,
 										  height, pixelFormat));
 }
 
@@ -244,60 +324,13 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
  * Private
  ******************************************************************************/
 
-void Display::init()
-{
-	mFd = open(mName.c_str(), O_RDWR | O_CLOEXEC);
-
-	if (mFd < 0)
-	{
-		throw Exception("Cannot open DRM device: " + mName, -errno);
-	}
-
-	mPollFd.reset(new PollFd(mFd, POLLIN));
-
-	uint64_t hasDumb = false;
-
-	if (drmGetCap(mFd, DRM_CAP_DUMB_BUFFER, &hasDumb) < 0 || !hasDumb)
-	{
-		throw Exception("Drm device does not support dumb buffers", -errno);
-	}
-
-#ifdef WITH_ZCOPY
-	mZeroCopyFd = drmOpen(XENDRM_ZCOPY_DRIVER_NAME, NULL);
-
-	if (mZeroCopyFd < 0)
-	{
-		LOG(mLog, WARNING) << "Can't open zero copy driver. "
-						   << "Zero copy functionality will be disabled.";
-	}
-#endif
-
-	getConnectorIds();
-
-	LOG(mLog, DEBUG) << "Create Drm card: " << mName << ", FD: " << mFd
-					 << ", ZCopyFD: " << mZeroCopyFd;
-}
-
-void Display::release()
-{
-	if (mZeroCopyFd >= 0)
-	{
-		drmClose(mZeroCopyFd);
-	}
-
-	if (mFd >= 0)
-	{
-		drmClose(mFd);
-	}
-}
-
 void Display::getConnectorIds()
 {
-	ModeResource resource(mFd);
+	ModeResource resource(mDrmFd);
 
 	for (int i = 0; i < resource->count_connectors; i++)
 	{
-		ModeConnector connector(mFd, resource->connectors[i]);
+		ModeConnector connector(mDrmFd, resource->connectors[i]);
 
 		string name = sConnectorNames.at(DRM_MODE_CONNECTOR_Unknown) + "-" +
 				to_string(connector->connector_type_id);
@@ -329,7 +362,7 @@ void Display::eventThread()
 
 		while(mPollFd->poll())
 		{
-			drmHandleEvent(mFd, &ev);
+			drmHandleEvent(mDrmFd, &ev);
 		}
 	}
 	catch(const std::exception& e)

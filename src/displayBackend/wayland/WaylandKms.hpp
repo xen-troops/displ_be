@@ -63,7 +63,7 @@ private:
 	bool mIsAuthenticated;
 	XenBackend::Log mLog;
 
-	std::unique_ptr<Drm::Display> mDrmDevice;
+	std::unique_ptr<Drm::DisplayZCopy> mDrmDevice;
 	wl_kms_listener mWlListener;
 
 	std::mutex mMutex;

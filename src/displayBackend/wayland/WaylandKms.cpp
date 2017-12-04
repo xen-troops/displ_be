@@ -86,8 +86,8 @@ WaylandKms::createDumb(uint32_t width, uint32_t height, uint32_t bpp,
 
 	if (mDrmDevice && mDrmDevice->isZeroCopySupported())
 	{
-		return mDrmDevice->createDisplayBuffer(width, height, bpp,
-											   domId, refs, allocRefs);
+		return mDrmDevice->createZCopyBuffer(width, height, bpp,
+											 domId, refs, allocRefs);
 	}
 
 	throw Exception("Can't create dumb: no DRM device", -EINVAL);
@@ -129,7 +129,7 @@ void WaylandKms::onDevice(const string& name)
 
 	LOG(mLog, DEBUG) << "onDevice name: " << name;
 
-	mDrmDevice.reset(new Drm::Display(name));
+	mDrmDevice.reset(new Drm::DisplayZCopy(name));
 
 	if (mDrmDevice->isZeroCopySupported())
 	{
