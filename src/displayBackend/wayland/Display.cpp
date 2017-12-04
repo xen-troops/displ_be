@@ -121,23 +121,6 @@ void Display::flush()
 	}
 }
 
-bool Display::isZeroCopySupported() const
-{
-	lock_guard<mutex> lock(mMutex);
-
-#ifdef WITH_DRM
-	if (mWaylandDrm && mWaylandDrm->isZeroCopySupported())
-	{
-		return true;
-	}
-	if (mWaylandKms && mWaylandKms->isZeroCopySupported())
-	{
-		return true;
-	}
-#endif
-	return false;
-}
-
 DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 {
 	lock_guard<mutex> lock(mMutex);
@@ -201,7 +184,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 {
 	lock_guard<mutex> lock(mMutex);
 
-#ifdef WITH_DRM
+#ifdef WITH_ZCOPY
 
 	if (mWaylandDrm && mWaylandDrm->isZeroCopySupported())
 	{
@@ -231,7 +214,7 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 {
 	lock_guard<mutex> lock(mMutex);
 
-#ifdef WITH_DRM
+#ifdef WITH_ZCOPY
 
 	if (mWaylandDrm  && mWaylandDrm->isZeroCopySupported())
 	{
@@ -444,7 +427,7 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 		mSeat.reset(new Seat(registry, id, version));
 	}
 #endif
-#ifdef WITH_DRM
+#ifdef WITH_ZCOPY
 	if (interface == "wl_drm")
 	{
 		mWaylandDrm.reset(new WaylandDrm(registry, id, version));
@@ -508,8 +491,9 @@ void Display::release()
 #ifdef WITH_INPUT
 	mSeat.reset();
 #endif
-#ifdef WITH_DRM
+#ifdef WITH_ZCOPY
 	mWaylandDrm.reset();
+	mWaylandKms.reset();
 #endif
 
 	if (mWlRegistry)

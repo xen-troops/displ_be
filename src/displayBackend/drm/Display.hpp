@@ -40,10 +40,85 @@ namespace Drm {
  ******************************************************************************/
 
 /***************************************************************************//**
+ * DRM DisplayBase class.
+ * @ingroup drm
+ ******************************************************************************/
+class DisplayBase
+{
+public:
+
+	/**
+	 * @param name device name
+	 */
+	explicit DisplayBase(const std::string& name);
+
+	virtual ~DisplayBase();
+
+	/**
+	 * Returns DRM magic
+	 */
+	drm_magic_t getMagic();
+
+protected:
+
+	std::string mName;
+	int mDrmFd;
+	XenBackend::Log mLog;
+
+	std::mutex mMutex;
+};
+
+#ifdef WITH_ZCOPY
+/***************************************************************************//**
+ * DRM DisplayZCopy class.
+ * @ingroup drm
+ ******************************************************************************/
+class DisplayZCopy : public DisplayBase
+{
+public:
+
+	/**
+	 * @param name device name
+	 */
+	explicit DisplayZCopy(const std::string& name);
+
+	virtual ~DisplayZCopy();
+
+	/**
+	 * Returns if display supports zero copy buffers
+	 */
+	bool isZeroCopySupported() const { return (mZCopyFd >= 0); }
+
+	/**
+	 * Creates display zero copy buffer with associated grand table buffer
+	 * @param width  width
+	 * @param height height
+	 * @param bpp    bits per pixel
+	 * @param domId  domain id
+	 * @param refs   grant table references
+	 * @return shared pointer to the display buffer
+	 */
+	DisplayItf::DisplayBufferPtr createZCopyBuffer(
+			uint32_t width, uint32_t height, uint32_t bpp,
+			domid_t domId, DisplayItf::GrantRefs& refs,
+			bool allocRefs);
+
+protected:
+
+	int mZCopyFd;
+};
+
+#endif
+
+/***************************************************************************//**
  * DRM Display class.
  * @ingroup drm
  ******************************************************************************/
-class Display : public DisplayItf::Display
+#ifdef WITH_ZCOPY
+class Display : public DisplayItf::Display, public DisplayZCopy
+#else
+class Display : public DisplayItf::Display, public DisplayBase
+#endif
 {
 public:
 
@@ -53,16 +128,6 @@ public:
 	explicit Display(const std::string& name);
 
 	~Display();
-
-	/**
-	 * Returns opened DRM file descriptor
-	 */
-	int getFd() const { return mFd; }
-
-	/**
-	 * Returns DRM magic
-	 */
-	drm_magic_t getMagic();
 
 	/**
 	 * Starts events handling
@@ -78,11 +143,6 @@ public:
 	 * Flushes events
 	 */
 	void flush() override;
-
-	/**
-	 * Returns if display supports zero copy buffers
-	 */
-	bool isZeroCopySupported() const override { return (mZeroCopyFd >= 0); }
 
 	/**
 	 * Creates connector
@@ -105,6 +165,8 @@ public:
 	 * @param width  width
 	 * @param height height
 	 * @param bpp    bits per pixel
+	 * @param domId  domain id
+	 * @param refs   grant table references
 	 * @return shared pointer to the display buffer
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
@@ -128,21 +190,14 @@ private:
 
 	static std::unordered_map<int, std::string> sConnectorNames;
 
-	std::string mName;
-	int mFd;
-	int mZeroCopyFd;
 	std::atomic_bool mStarted;
-	XenBackend::Log mLog;
 
-	std::mutex mMutex;
 	std::thread mThread;
 
 	std::unique_ptr<XenBackend::PollFd> mPollFd;
 
 	std::unordered_map<std::string, uint32_t> mConnectorIds;
 
-	void init();
-	void release();
 	void getConnectorIds();
 	void eventThread();
 

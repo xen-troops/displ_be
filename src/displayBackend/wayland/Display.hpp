@@ -78,11 +78,6 @@ public:
 	void flush() override;
 
 	/**
-	 * Returns if display supports zero copy buffers
-	 */
-	bool isZeroCopySupported() const override;
-
-	/**
 	 * Creates connector
 	 * @param name connector name
 	 */
@@ -150,7 +145,7 @@ private:
 	SeatPtr mSeat;
 #endif
 
-#ifdef WITH_DRM
+#ifdef WITH_ZCOPY
 	WaylandDrmPtr mWaylandDrm;
 	WaylandKmsPtr mWaylandKms;
 #endif

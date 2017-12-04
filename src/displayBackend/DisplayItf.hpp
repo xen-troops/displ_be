@@ -234,11 +234,6 @@ public:
 	virtual void flush() = 0;
 
 	/**
-	 * Returns if display supports zero copy buffers
-	 */
-	virtual bool isZeroCopySupported() const = 0;
-
-	/**
 	 * Creates connector
 	 * @param name connector name
 	 */
