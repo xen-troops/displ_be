@@ -15,8 +15,7 @@ set(SOURCES
 
 if(WITH_DRM AND WITH_ZCOPY)
 	list(APPEND SOURCES
-		WaylandDrm.cpp
-		WaylandKms.cpp
+		WaylandZCopy.cpp
 	)
 endif()
 
