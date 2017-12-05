@@ -12,8 +12,8 @@
 
 #include <xen/be/Log.hpp>
 
+#include "FrameBuffer.hpp"
 #include "Registry.hpp"
-#include "SharedBuffer.hpp"
 #include "SharedFile.hpp"
 
 namespace Wayland {

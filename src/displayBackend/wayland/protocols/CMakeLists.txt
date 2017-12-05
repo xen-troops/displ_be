@@ -1,6 +1,6 @@
 find_program(WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
 
-if(WITH_DRM)
+if(WITH_ZCOPY)
 	add_custom_command(
 		OUTPUT  wayland-drm-client-protocol.h
 		COMMAND ${WAYLAND_SCANNER_EXECUTABLE} client-header

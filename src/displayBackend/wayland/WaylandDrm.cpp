@@ -21,8 +21,8 @@
 
 #include "WaylandDrm.hpp"
 
-#include "DrmBuffer.hpp"
 #include "Exception.hpp"
+#include "FrameBuffer.hpp"
 
 using std::lock_guard;
 using std::mutex;
