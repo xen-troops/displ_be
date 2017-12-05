@@ -34,8 +34,6 @@
 
 namespace Drm {
 
-extern const uint32_t cInvalidId;
-
 class Display;
 
 /***************************************************************************//**
@@ -96,6 +94,8 @@ public:
 						  FlipCallback cbk) override;
 
 private:
+
+	const uint32_t cInvalidId = 0;
 
 	static std::list<uint32_t> sCrtcIds;
 	static std::mutex sMutex;

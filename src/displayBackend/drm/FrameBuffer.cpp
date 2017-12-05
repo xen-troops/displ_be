@@ -37,14 +37,14 @@ namespace Drm {
  * FrameBuffer
  ******************************************************************************/
 
-FrameBuffer::FrameBuffer(int fd, DisplayBufferPtr displayBuffer,
+FrameBuffer::FrameBuffer(int drmFd, DisplayBufferPtr displayBuffer,
 						 uint32_t width, uint32_t height,
 						 uint32_t pixelFormat) :
-	mFd(fd),
+	mDrmFd(drmFd),
 	mDisplayBuffer(displayBuffer),
 	mWidth(width),
 	mHeight(height),
-	mId(cInvalidId),
+	mId(0),
 	mLog("FrameBuffer")
 {
 	try
@@ -79,7 +79,7 @@ void FrameBuffer::init(uint32_t pixelFormat)
 	handles[0] = mDisplayBuffer->getHandle();
 	pitches[0] = mDisplayBuffer->getStride();
 
-	auto ret = drmModeAddFB2(mFd, mWidth, mHeight, pixelFormat,
+	auto ret = drmModeAddFB2(mDrmFd, mWidth, mHeight, pixelFormat,
 							 handles, pitches, offsets, &mId, 0);
 
 	if (ret)
@@ -93,11 +93,11 @@ void FrameBuffer::init(uint32_t pixelFormat)
 
 void FrameBuffer::release()
 {
-	if (mId != cInvalidId)
+	if (mId)
 	{
 		DLOG("FrameBuffer", DEBUG) << "Delete frame buffer, id: " << mId;
 
-		drmModeRmFB(mFd, mId);
+		drmModeRmFB(mDrmFd, mId);
 	}
 }
 

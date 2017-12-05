@@ -29,27 +29,22 @@
 
 namespace Drm {
 
-extern const uint32_t cInvalidId;
-
 /***************************************************************************//**
  * Provides DRM dumb functionality.
  * @ingroup drm
  ******************************************************************************/
-class Dumb : public DisplayItf::DisplayBuffer
+class DumbBase : public DisplayItf::DisplayBuffer
 {
 public:
 
 	/**
-	 * @param fd     DRM file descriptor
+	 * @param drmFd  DRM file descriptor
 	 * @param width  dumb width
 	 * @param height dumb height
-	 * @param bpp    bits per pixel
 	 */
-	Dumb(int fd, uint32_t width, uint32_t height, uint32_t bpp,
-		 domid_t domId = 0,
-		 const DisplayItf::GrantRefs& refs = DisplayItf::GrantRefs());
+	DumbBase(int drmFd, uint32_t width, uint32_t height);
 
-	~Dumb();
+	virtual ~DumbBase() {};
 
 	/**
 	 * Returns dumb size
@@ -59,7 +54,7 @@ public:
 	/**
 	 * Returns pointer to the dumb buffer
 	 */
-	void* getBuffer() const override { return mBuffer; }
+	void* getBuffer() const override { return nullptr; }
 
 	/**
 	 * Gets stride
@@ -67,19 +62,75 @@ public:
 	uint32_t getStride() const override { return mStride; }
 
 	/**
+	 * Gets name
+	 */
+	uint32_t readName() override;
+
+	/**
+	 * Indicates if copy operation shall be applied
+	 */
+	bool needsCopy() override { return false; };
+
+	/**
+	 * Copies data from associated grant table buffer
+	 */
+	void copy() override;
+
+protected:
+
+	int mDrmFd;
+	uint32_t mBufDrmHandle;
+	uint32_t mStride;
+	uint32_t mWidth;
+	uint32_t mHeight;
+	uint32_t mName;
+	size_t mSize;
+	XenBackend::Log mLog;
+
+	void createDumb(uint32_t bpp);
+};
+
+/***************************************************************************//**
+ * Provides DRM dumb functionality.
+ * @ingroup drm
+ ******************************************************************************/
+class DumbDrm : public DumbBase
+{
+public:
+
+	/**
+	 * @param fd     DRM file descriptor
+	 * @param width  dumb width
+	 * @param height dumb height
+	 * @param bpp    bits per pixel
+	 * @param domId  domain id
+	 * @param refs   grant table refs
+	 */
+	DumbDrm(int fd, uint32_t width, uint32_t height,
+			uint32_t bpp, domid_t domId = 0,
+			const DisplayItf::GrantRefs& refs = DisplayItf::GrantRefs());
+
+	~DumbDrm();
+
+	/**
+	 * Returns pointer to the dumb buffer
+	 */
+	void* getBuffer() const override { return mBuffer; }
+
+	/**
 	 * Gets handle
 	 */
-	uintptr_t getHandle() const override { return mHandle; }
+	uintptr_t getHandle() const override { return mBufDrmHandle; }
 
 	/**
 	 * Gets fd
 	 */
-	int getFd() const override { return mFd; };
+	virtual int getFd() const { return mDrmFd; }
 
 	/**
-	 * Gets name
+	 * Indicates if copy operation shall be applied
 	 */
-	uint32_t readName() override;
+	bool needsCopy() override { return static_cast<bool>(mGnttabBuffer); };
 
 	/**
 	 * Copies data from associated grant table buffer
@@ -90,24 +141,160 @@ private:
 
 	friend class FrameBuffer;
 
-	int mFd;
-	uint32_t mHandle;
-	uint32_t mStride;
-	uint32_t mWidth;
-	uint32_t mHeight;
-	uint32_t mName;
-	size_t mSize;
 	void* mBuffer;
-	XenBackend::Log mLog;
 
 	std::unique_ptr<XenBackend::XenGnttabBuffer> mGnttabBuffer;
 
-	void createDumb(uint32_t bpp);
 	void mapDumb();
 
 	void init(uint32_t bpp, domid_t domId, const DisplayItf::GrantRefs& refs);
 	void release();
 };
+
+#ifdef WITH_ZCOPY
+
+/***************************************************************************//**
+ * Provides DRM ZCopy front dumb functionality.
+ * @ingroup drm
+ ******************************************************************************/
+class DumbZCopyFront : public DumbBase
+{
+public:
+
+	/**
+	 * @param drmFd    DRM file descriptor
+	 * @param zCopyFd  ZCopy file descriptor
+	 * @param width    dumb width
+	 * @param height   dumb height
+	 * @param bpp      bits per pixel
+	 */
+	DumbZCopyFront(int drmFd, int zCopyFd,
+				   uint32_t width, uint32_t height, uint32_t bpp,
+				   domid_t domId, const DisplayItf::GrantRefs& refs);
+
+	~DumbZCopyFront();
+
+	/**
+	 * Get handle
+	 */
+	virtual uintptr_t getHandle() const override { return mBufZCopyHandle; }
+
+	/**
+	 * Gets fd
+	 */
+	int getFd() const override { return mBufZCopyFd; };
+
+private:
+
+	int mZCopyFd;
+	uint32_t mBufZCopyHandle;
+	uint32_t mBufZCopyFd;
+
+	void createDumb(uint32_t bpp, domid_t domId,
+					const DisplayItf::GrantRefs& refs);
+	void getBufFd();
+
+	void init(uint32_t bpp, domid_t domId, const DisplayItf::GrantRefs& refs);
+	void release();
+};
+
+/***************************************************************************//**
+ * Provides DRM ZCopy front DRM dumb functionality.
+ * @ingroup drm
+ ******************************************************************************/
+class DumbZCopyFrontDrm : public DumbZCopyFront
+{
+public:
+
+	/**
+	 * @param drmFd    DRM file descriptor
+	 * @param zCopyFd  ZCopy file descriptor
+	 * @param width    dumb width
+	 * @param height   dumb height
+	 * @param bpp      bits per pixel
+	 */
+	DumbZCopyFrontDrm(int drmFd, int zCopyFd,
+					  uint32_t width, uint32_t height, uint32_t bpp,
+					  domid_t domId, const DisplayItf::GrantRefs& refs);
+
+	~DumbZCopyFrontDrm();
+
+	/**
+	 * Get handle
+	 */
+	virtual uintptr_t getHandle() const override { return mBufDrmHandle; }
+
+	/**
+	 * Gets fd
+	 */
+	int getFd() const override { return mDrmFd; };
+
+protected:
+
+	uint32_t mBufZCopyHandle;
+	uint32_t mBufZCopyFd;
+
+private:
+
+	int mZCopyFd;
+
+	void createDumb(uint32_t bpp, domid_t domId,
+					const DisplayItf::GrantRefs& refs);
+	void createHandle();
+
+	void init(uint32_t bpp, domid_t domId, const DisplayItf::GrantRefs& refs);
+	void release();
+};
+
+/***************************************************************************//**
+ * Provides DRM ZCopy back dumb functionality.
+ * @ingroup drm
+ ******************************************************************************/
+class DumbZCopyBack : public DumbBase
+{
+public:
+
+	/**
+	 * @param drmFd    DRM file descriptor
+	 * @param zCopyFd  ZCopy file descriptor
+	 * @param width    dumb width
+	 * @param height   dumb height
+	 * @param bpp      bits per pixel
+	 */
+	DumbZCopyBack(int drmFd, int zCopyFd,
+				  uint32_t width, uint32_t height, uint32_t bpp,
+				  domid_t domId, DisplayItf::GrantRefs& refs);
+
+	~DumbZCopyBack();
+
+	/**
+	 * Get handle
+	 */
+	virtual uintptr_t getHandle() const override { return mBufDrmHandle; }
+
+	/**
+	 * Gets fd
+	 */
+	int getFd() const override { return mBufDrmFd; };
+
+protected:
+
+	uint32_t mBufZCopyHandle;
+	uint32_t mBufDrmFd;
+
+private:
+
+	int mZCopyFd;
+
+	void createHandle();
+
+	void getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs);
+
+	void init(uint32_t bpp, domid_t domId, DisplayItf::GrantRefs& refs);
+	void release();
+};
+
+#endif
 
 }
 
