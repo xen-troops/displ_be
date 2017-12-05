@@ -4,7 +4,7 @@ set(SOURCES
 	Compositor.cpp
 	Connector.cpp
 	Display.cpp
-	SharedBuffer.cpp
+	FrameBuffer.cpp
 	SharedFile.cpp
 	SharedMemory.cpp
 	Shell.cpp
@@ -15,8 +15,6 @@ set(SOURCES
 
 if(WITH_DRM AND WITH_ZCOPY)
 	list(APPEND SOURCES
-		DrmBuffer.cpp
-		KmsBuffer.cpp
 		WaylandDrm.cpp
 		WaylandKms.cpp
 	)

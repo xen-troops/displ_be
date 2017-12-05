@@ -51,6 +51,10 @@ if(NOT WITH_WAYLAND AND NOT WITH_DRM AND NOT WITH_INPUT)
 	message(FATAL_ERROR "At least one backend should be specified: WITH_DRM, WITH_WAYLAND, WITH_INPUT")
 endif()
 
+if(NOT WITH_DRM AND WITH_ZCOPY)
+	message(FATAL_ERROR "Can't enable zero copy without DRM.")
+endif()
+
 ################################################################################
 # Compiler flags
 ################################################################################
