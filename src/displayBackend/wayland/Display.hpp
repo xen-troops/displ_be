@@ -40,8 +40,7 @@
 #include "SharedMemory.hpp"
 #include "Shell.hpp"
 #ifdef WITH_DRM
-#include "WaylandDrm.hpp"
-#include "WaylandKms.hpp"
+#include "WaylandZCopy.hpp"
 #endif
 
 namespace Wayland {
