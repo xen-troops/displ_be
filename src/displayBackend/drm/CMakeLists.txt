@@ -14,13 +14,6 @@ set(SOURCES
 	Modes.cpp
 )
 
-if(WITH_ZCOPY)
-	list(APPEND SOURCES
-		DumbZCopyBack.cpp
-		DumbZCopyFront.cpp
-	)
-endif()
-
 ################################################################################
 # Targets
 ################################################################################

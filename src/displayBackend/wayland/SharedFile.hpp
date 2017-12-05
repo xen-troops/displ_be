@@ -65,6 +65,11 @@ public:
 	int getFd() const override { return mFd; };
 
 	/**
+	 * Indicates if copy operation shall be applied
+	 */
+	bool needsCopy() override { return true; };
+
+	/**
 	 * Reads name
 	 */
 	uint32_t readName() override { return 0; }

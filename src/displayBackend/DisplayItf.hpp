@@ -108,6 +108,11 @@ public:
 	virtual uint32_t readName() = 0;
 
 	/**
+	 * Indicates if copy operation shall be applied
+	 */
+	virtual bool needsCopy() = 0;
+
+	/**
 	 * Copies data from associated grant table buffer
 	 */
 	virtual void copy() = 0;

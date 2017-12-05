@@ -31,8 +31,6 @@
 #include <xen/be/Log.hpp>
 
 #include "Dumb.hpp"
-#include "DumbZCopyBack.hpp"
-#include "DumbZCopyFront.hpp"
 
 using std::lock_guard;
 using std::mutex;
@@ -48,8 +46,6 @@ using DisplayItf::FrameBufferPtr;
 using DisplayItf::GrantRefs;
 
 namespace Drm {
-
-const uint32_t cInvalidId = 0;
 
 unordered_map<int, string> Display::sConnectorNames =
 {
@@ -266,7 +262,7 @@ DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
 
 	LOG(mLog, DEBUG) << "Create display buffer";
 
-	return DisplayBufferPtr(new Dumb(mDrmFd, width, height, bpp));
+	return DisplayBufferPtr(new DumbDrm(mDrmFd, width, height, bpp));
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
@@ -288,9 +284,9 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		}
 		else
 		{
-			return DisplayBufferPtr(new DumbZCopyFront(mDrmFd, mZCopyFd,
-													   width, height, bpp,
-													   domId, refs));
+			return DisplayBufferPtr(new DumbZCopyFrontDrm(mDrmFd, mZCopyFd,
+														  width, height, bpp,
+														  domId, refs));
 		}
 	}
 	else
@@ -303,8 +299,8 @@ DisplayBufferPtr Display::createDisplayBuffer(
 			throw  Exception("Can't allocate refs: ZCopy disabled", -EINVAL);
 		}
 
-		return DisplayBufferPtr(new Dumb(mDrmFd, width, height, bpp,
-										 domId, refs));
+		return DisplayBufferPtr(new DumbDrm(mDrmFd, width, height, bpp,
+											domId, refs));
 	}
 }
 
