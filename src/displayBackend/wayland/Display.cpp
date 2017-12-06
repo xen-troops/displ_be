@@ -424,7 +424,7 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 #ifdef WITH_INPUT
 	if (interface == "wl_seat")
 	{
-		mSeat.reset(new Seat(registry, id, version));
+		mSeat.reset(new Seat(registry, id, Seat::cVersion));
 	}
 #endif
 #ifdef WITH_ZCOPY

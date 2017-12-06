@@ -28,6 +28,9 @@ namespace Wayland {
 class Seat : public Registry
 {
 public:
+	//  Wayland 1.11
+	//	static const int cVersion = 5;
+	static const int cVersion = 4;
 
 	~Seat();
 
@@ -36,10 +39,6 @@ public:
 	SeatTouchPtr getTouch();
 
 private:
-
-//  Wayland 1.11
-//	static const int cVersion = 5;
-	static const int cVersion = 4;
 
 	friend class Display;
 
@@ -56,9 +55,9 @@ private:
 
 	std::mutex mMutex;
 
-	static void sReadCapabilities(void *data, wl_seat* seat,
+	static void sReadCapabilities(void* data, wl_seat* seat,
 								  uint32_t capabilities);
-	static void sReadName(void *data, wl_seat* seat, const char *name);
+	static void sReadName(void* data, wl_seat* seat, const char* name);
 
 	void readCapabilities(uint32_t capabilities);
 	void readName(const std::string& name);

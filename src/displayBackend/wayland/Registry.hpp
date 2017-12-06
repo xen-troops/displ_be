@@ -43,6 +43,14 @@ protected:
 	 */
 	uint32_t getVersion() const { return mVersion; }
 
+	/**
+	 * Binds registry
+	 */
+	void* bind(const wl_interface *interface)
+	{
+		return wl_registry_bind(mWlRegistry, mId, interface, mVersion);
+	}
+
 private:
 
 	wl_registry* mWlRegistry;
