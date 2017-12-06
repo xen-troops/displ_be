@@ -193,9 +193,7 @@ void WaylandDrm::authenticate()
 
 void WaylandDrm::init()
 {
-	mWlDrm = static_cast<wl_drm*>(
-			wl_registry_bind(getRegistry(), getId(),
-							 &wl_drm_interface, getVersion()));
+	mWlDrm = static_cast<wl_drm*>(bind(&wl_drm_interface));
 
 	if (!mWlDrm)
 	{
@@ -289,9 +287,7 @@ void WaylandKms::authenticate()
 
 void WaylandKms::init()
 {
-	mWlKms = static_cast<wl_kms*>(
-			wl_registry_bind(getRegistry(), getId(),
-							 &wl_kms_interface, getVersion()));
+	mWlKms = static_cast<wl_kms*>(bind(&wl_kms_interface));
 
 	if (!mWlKms)
 	{

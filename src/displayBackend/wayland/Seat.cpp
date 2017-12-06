@@ -74,13 +74,13 @@ SeatTouchPtr Seat::getTouch()
  * Private
  ******************************************************************************/
 
-void Seat::sReadCapabilities(void *data, wl_seat* seat,
+void Seat::sReadCapabilities(void* data, wl_seat* seat,
 							 uint32_t capabilities)
 {
 	static_cast<Seat*>(data)->readCapabilities(capabilities);
 }
 
-void Seat::sReadName(void *data, wl_seat* seat, const char *name)
+void Seat::sReadName(void* data, wl_seat* seat, const char* name)
 {
 	static_cast<Seat*>(data)->readName(string(name));
 }
@@ -127,8 +127,7 @@ void Seat::readName(const std::string& name)
 
 void Seat::init()
 {
-	mWlSeat = static_cast<wl_seat*>(wl_registry_bind(getRegistry(), getId(),
-									&wl_seat_interface, cVersion));
+	mWlSeat = static_cast<wl_seat*>(bind(&wl_seat_interface));
 
 	if (!mWlSeat)
 	{

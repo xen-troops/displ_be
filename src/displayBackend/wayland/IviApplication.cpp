@@ -59,8 +59,7 @@ IviSurfacePtr IviApplication::createIviSurface(SurfacePtr surface,
 void IviApplication::init()
 {
 	mWlIviApplication = static_cast<ivi_application*>(
-			wl_registry_bind(getRegistry(), getId(),
-							 &ivi_application_interface, getVersion()));
+			bind(&ivi_application_interface));
 
 	if (!mWlIviApplication)
 	{
