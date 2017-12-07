@@ -166,6 +166,7 @@ void BuffersStorage::destroyDisplayBuffer(uint64_t dbCookie)
 					  << hex << setfill('0') << setw(16) << dbCookie;
 
 	mDisplayBuffers.erase(dbCookie);
+	mPendingDisplayBuffers.erase(dbCookie);
 }
 
 void BuffersStorage::destroyFrameBuffer(uint64_t fbCookie)
