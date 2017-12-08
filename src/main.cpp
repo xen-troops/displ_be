@@ -30,6 +30,10 @@
 #include <getopt.h>
 #include <unistd.h>
 
+#ifdef WITH_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
 #include <xen/be/Log.hpp>
 
 #ifdef WITH_DISPLAY
@@ -78,6 +82,25 @@ string gLogFileName;
 /*******************************************************************************
  *
  ******************************************************************************/
+#ifdef WITH_SYSTEMD
+#define NOTIFY_SYSTEMD(...)														\
+																				\
+{																				\
+	int status = sd_notifyf(0, __VA_ARGS__);									\
+																				\
+	if (status < 0)																\
+	{																			\
+		throw DisplayItf::Exception("Can't notify systemd", -errno);			\
+	}																			\
+	else if (status == 0)														\
+	{																			\
+		LOG("Main", WARNING) << "systemd: NOTIFY_SOCKET is not set";			\
+	}																			\
+}
+
+#else
+#define NOTIFY_SYSTEMD(...)
+#endif
 
 void segmentationHandler(int sig)
 {
@@ -242,7 +265,12 @@ int main(int argc, char *argv[])
 #endif
 			inputBackend.start();
 #endif
+
+			NOTIFY_SYSTEMD("READY=1");
+
 			waitSignals();
+
+			NOTIFY_SYSTEMD("STOPPING=1");
 
 #ifdef WITH_DISPLAY
 			displayBackend.stop();
@@ -267,11 +295,23 @@ int main(int argc, char *argv[])
 				 << " *:Debug,Mod*:Info" << endl;
 		}
 	}
+	catch(const DisplayItf::Exception& e)
+	{
+		LOG("Main", ERROR) << e.what();
+
+		NOTIFY_SYSTEMD("ERRNO=%d", -e.getErrno());
+	}
+	catch(const InputItf::Exception& e)
+	{
+		LOG("Main", ERROR) << e.what();
+
+		NOTIFY_SYSTEMD("ERRNO=%d", -e.getErrno());
+	}
 	catch(const std::exception& e)
 	{
-		Log::setStreamBuffer(cout.rdbuf());
-
 		LOG("Main", ERROR) << e.what();
+
+		NOTIFY_SYSTEMD("ERRNO=%d", EIO);
 	}
 
 	return 0;

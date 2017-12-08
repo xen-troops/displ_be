@@ -8,6 +8,7 @@ project(${PROJECT_NAME})
 # Options
 ################################################################################
 
+OPTION(WITH_SYSTEMD "build with systemd notifications" ON)
 OPTION(WITH_DRM "build with DRM backend" ON)
 OPTION(WITH_ZCOPY "build with zero copy support" ON)
 OPTION(WITH_WAYLAND "build with wayland backend" ON)
@@ -21,6 +22,7 @@ message(STATUS "${PROJECT_NAME} Configuration:")
 message(STATUS "CMAKE_BUILD_TYPE              = ${CMAKE_BUILD_TYPE}")
 message(STATUS "CMAKE_INSTALL_PREFIX          = ${CMAKE_INSTALL_PREFIX}")
 message(STATUS)
+message(STATUS "WITH_SYSTEMD                  = ${WITH_SYSTEMD}")
 message(STATUS "WITH_DOC                      = ${WITH_DOC}")
 message(STATUS "WITH_DRM                      = ${WITH_DRM}")
 message(STATUS "WITH_ZCOPY                    = ${WITH_ZCOPY}")
@@ -61,6 +63,10 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 ################################################################################
 # Definitions
 ################################################################################
+
+if(WITH_SYSTEMD)
+	add_definitions(-DWITH_SYSTEMD)
+endif()
 
 if(WITH_DRM OR WITH_WAYLAND)
 	add_definitions(-DWITH_DISPLAY)

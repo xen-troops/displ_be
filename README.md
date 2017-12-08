@@ -21,6 +21,7 @@ Supported options:
 
 | Option | Description |
 | --- | --- |
+| `WITH_SYSTEMD` | Builds display backend with systemd notifications |
 | `WITH_DOC` | Creates target to build documentation. It required Doxygen to be installed. If configured, documentation can be create with `make doc` |
 | `WITH_DRM` | Builds display backend with DRM framework (libdrm) |
 | `WITH_ZCOPY` | Enables zero copy functionality for DRM |

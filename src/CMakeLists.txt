@@ -4,6 +4,10 @@
 
 include(FindPkgConfig)
 
+if(WITH_SYSTEMD)
+	pkg_check_modules (SYSTEMD REQUIRED libsystemd)
+endif()
+
 pkg_check_modules (DRM REQUIRED libdrm)
 
 if(WITH_WAYLAND)
@@ -92,5 +96,6 @@ endif()
 
 target_link_libraries(${PROJECT_NAME}
 	${XENBE_LIB}
+	${SYSTEMD_LIBRARIES}
 	pthread
 )
