@@ -260,6 +260,7 @@ void DumbZCopyFront::createDumb(uint32_t bpp, domid_t domId,
 	mStride = mapreq.dumb.pitch;
 	mSize = mapreq.dumb.size;
 	mBufZCopyHandle = mapreq.dumb.handle;
+	mBufZCopyWaitHandle = mapreq.wait_handle;
 }
 
 void DumbZCopyFront::getBufFd()
@@ -302,9 +303,26 @@ void DumbZCopyFront::release()
 
 		close(mBufZCopyFd);
 
+		drm_xen_zcopy_dumb_wait_free waitReq {};
+
+		waitReq.wait_handle = mBufZCopyWaitHandle;
+		waitReq.wait_to_ms = cBufZCopyWaitHandleToMs;
+
+		int ret = drmIoctl(mZCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_WAIT_FREE, &waitReq);
+
+		if (ret < 0 && errno != ENOENT)
+		{
+			DLOG(mLog, ERROR) << "Wait for buffer failed, force releasing"
+							  << ", error: " << strerror(errno)
+							  << ", handle: " << mBufZCopyHandle
+							  << ", fd: " << mBufZCopyFd
+							  << ", wait handle: " << mBufZCopyWaitHandle;
+		}
+
 		DLOG(mLog, DEBUG) << "Delete ZCopy front dumb"
 						  << ", handle: " << mBufZCopyHandle
-						  << ", fd: " << mBufZCopyFd;
+						  << ", fd: " << mBufZCopyFd
+						  << ", wait handle: " << mBufZCopyWaitHandle;
 	}
 }
 

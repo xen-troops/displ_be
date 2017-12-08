@@ -186,9 +186,16 @@ public:
 
 private:
 
+	/**
+	 * Ideally this time-out should be less than the default
+	 * time-out used by the frontend driver to wait for our response
+	 */
+	const int cBufZCopyWaitHandleToMs = 2000;
+
 	int mZCopyFd;
 	uint32_t mBufZCopyHandle;
 	uint32_t mBufZCopyFd;
+	uint32_t mBufZCopyWaitHandle;
 
 	void createDumb(uint32_t bpp, domid_t domId,
 					const DisplayItf::GrantRefs& refs);
