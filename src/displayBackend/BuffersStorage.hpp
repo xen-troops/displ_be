@@ -100,6 +100,16 @@ public:
 	 */
 	void destroyFrameBuffer(uint64_t fbCookie);
 
+	/**
+	 * Destroys frame buffers
+	 */
+	void destroyFrameBuffers();
+
+	/**
+	 * Destroys display buffers
+	 */
+	void destroyDisplayBuffers();
+
 private:
 
 	domid_t mDomId;

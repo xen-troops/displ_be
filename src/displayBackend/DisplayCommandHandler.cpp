@@ -89,6 +89,13 @@ DisplayCommandHandler::~DisplayCommandHandler()
 {
 	LOG(mLog, DEBUG) << "Delete command handler, connector name: "
 					 << mConnector->getName();
+
+	mConnector.reset();
+	mBuffersStorage->destroyFrameBuffers();
+
+	mDisplay->flush();
+
+	mBuffersStorage->destroyDisplayBuffers();
 }
 
 /*******************************************************************************
