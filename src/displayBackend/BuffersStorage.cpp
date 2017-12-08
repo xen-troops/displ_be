@@ -179,6 +179,17 @@ void BuffersStorage::destroyFrameBuffer(uint64_t fbCookie)
 	mFrameBuffers.erase(fbCookie);
 }
 
+void BuffersStorage::destroyFrameBuffers()
+{
+	mFrameBuffers.clear();
+}
+
+void BuffersStorage::destroyDisplayBuffers()
+{
+	mDisplayBuffers.clear();
+	mPendingDisplayBuffers.clear();
+}
+
 /*******************************************************************************
  * Private
  ******************************************************************************/
