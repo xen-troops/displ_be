@@ -112,7 +112,7 @@ void Display::flush()
 
 	int result = 0;
 
-	while((result = wl_display_flush(mWlDisplay) < 0) && errno == EAGAIN);
+	while((result = wl_display_flush(mWlDisplay) < 0) && (errno == EAGAIN));
 
 	if (result < 0)
 	{
@@ -531,7 +531,7 @@ void Display::dispatchThread()
 				DLOG(mLog, DEBUG) << "Dispatch events: " << val;
 			}
 
-			if (wl_display_flush(mWlDisplay) < 0 && errno != EAGAIN)
+			if ((wl_display_flush(mWlDisplay) < 0) && (errno != EAGAIN))
 			{
 				throw Exception("Can't flush events",
 								-wl_display_get_error(mWlDisplay));
