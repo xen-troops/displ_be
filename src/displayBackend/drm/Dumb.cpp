@@ -310,7 +310,7 @@ void DumbZCopyFront::release()
 
 		int ret = drmIoctl(mZCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_WAIT_FREE, &waitReq);
 
-		if (ret < 0 && errno != ENOENT)
+		if ((ret < 0) && (errno != ENOENT))
 		{
 			DLOG(mLog, ERROR) << "Wait for buffer failed, force releasing"
 							  << ", error: " << strerror(errno)
