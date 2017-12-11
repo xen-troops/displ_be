@@ -308,12 +308,18 @@ void DumbZCopyFront::release()
 		waitReq.wait_handle = mBufZCopyWaitHandle;
 		waitReq.wait_to_ms = cBufZCopyWaitHandleToMs;
 
-		int ret = drmIoctl(mZCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_WAIT_FREE, &waitReq);
+		auto ret = drmIoctl(mZCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_WAIT_FREE,
+							&waitReq);
 
-		if ((ret < 0) && (errno != ENOENT))
+		if (ret < 0)
+		{
+			ret = errno;
+		}
+
+		if (ret && ret != ENOENT)
 		{
 			DLOG(mLog, ERROR) << "Wait for buffer failed, force releasing"
-							  << ", error: " << strerror(errno)
+							  << ", error: " << strerror(ret)
 							  << ", handle: " << mBufZCopyHandle
 							  << ", fd: " << mBufZCopyFd
 							  << ", wait handle: " << mBufZCopyWaitHandle;
