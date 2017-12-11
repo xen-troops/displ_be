@@ -107,11 +107,6 @@ void DisplayFrontendHandler::onBind()
 	}
 }
 
-void DisplayFrontendHandler::onClosing()
-{
-	LOG(mLog, DEBUG) << "On frontend closing : " << getDomId();
-}
-
 void DisplayFrontendHandler::createConnector(const string& conPath,
 											 int conIndex,
 											 BuffersStoragePtr bufferStorage)
