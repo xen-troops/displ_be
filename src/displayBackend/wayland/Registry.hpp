@@ -28,6 +28,8 @@ protected:
 	Registry(wl_registry* registry, uint32_t id, uint32_t version) :
 		mWlRegistry(registry), mId(id), mVersion(version) {}
 
+	virtual ~Registry() {}
+
 	/**
 	 * Returns registry id
 	 */
