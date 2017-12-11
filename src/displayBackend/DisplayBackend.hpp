@@ -95,11 +95,6 @@ protected:
 	 */
 	void onBind() override;
 
-	/**
-	 * Is called on closing state when ring buffers releases are required.
-	 */
-	void onClosing() override;
-
 private:
 
 	DisplayItf::DisplayPtr mDisplay;

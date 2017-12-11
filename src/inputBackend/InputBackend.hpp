@@ -117,11 +117,6 @@ protected:
 	 */
 	void onBind() override;
 
-	/**
-	 * Is called on connected state when ring buffers releases are required.
-	 */
-	void onClosing() override;
-
 private:
 
 	XenBackend::Log mLog;

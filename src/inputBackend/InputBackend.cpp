@@ -318,11 +318,6 @@ void InputFrontendHandler::parseInputId(const string& id, string& keyboardId,
 	}
 }
 
-void InputFrontendHandler::onClosing()
-{
-	LOG(mLog, DEBUG) << "On frontend closing : " << getDomId();
-}
-
 template<typename T>
 shared_ptr<InputItf::InputDevice<T>>
 InputFrontendHandler::createInputDevice(const string& id)
