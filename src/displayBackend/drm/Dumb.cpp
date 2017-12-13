@@ -208,6 +208,9 @@ void DumbDrm::release()
 	DLOG(mLog, DEBUG) << "Delete dumb, handle: " << mBufDrmHandle;
 }
 
+
+#ifdef WITH_ZCOPY
+
 /*******************************************************************************
  * DumbZCopyFront
  ******************************************************************************/
@@ -484,5 +487,7 @@ void DumbZCopyBack::release()
 						  << ", fd: " << mBufDrmFd;
 	}
 }
+
+#endif
 
 }
