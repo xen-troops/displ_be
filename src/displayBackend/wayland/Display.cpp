@@ -382,6 +382,17 @@ void Display::clearInputCallbacks<TouchCallbacks>(const string& connector)
  * Private
  ******************************************************************************/
 
+void Display::sWaylandLog(const char* fmt, va_list arg)
+{
+	auto len = vsnprintf(nullptr, 0, fmt, arg);
+
+	char message[len + 1];
+
+	vsprintf(message, fmt, arg);
+
+	LOG("Wayland", ERROR) << message;
+}
+
 void Display::sRegistryHandler(void *data, wl_registry *registry, uint32_t id,
 							   const char *interface, uint32_t version)
 {
@@ -446,6 +457,8 @@ void Display::registryRemover(wl_registry *registry, uint32_t id)
 
 void Display::init()
 {
+	wl_log_set_handler_client(sWaylandLog);
+
 	mWlDisplay = wl_display_connect(nullptr);
 
 	if (!mWlDisplay)
