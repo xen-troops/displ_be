@@ -39,7 +39,7 @@
 #endif
 #include "SharedMemory.hpp"
 #include "Shell.hpp"
-#ifdef WITH_DRM
+#ifdef WITH_ZCOPY
 #include "WaylandZCopy.hpp"
 #endif
 
