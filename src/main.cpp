@@ -90,7 +90,7 @@ void segmentationHandler(int sig)
 
 	backtrace_symbols_fd(array, size, STDERR_FILENO);
 
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 void registerSignals()
@@ -204,6 +204,8 @@ DisplayItf::DisplayPtr getDisplay(DisplayMode mode)
 
 int main(int argc, char *argv[])
 {
+	int ret = EXIT_SUCCESS;
+
 	try
 	{
 		registerSignals();
@@ -265,6 +267,8 @@ int main(int argc, char *argv[])
 				 << "<module>:<level>;<module:<level>" << endl;
 			cout << "\t      use * for mask selection:"
 				 << " *:Debug,Mod*:Info" << endl;
+
+			ret = EXIT_FAILURE;
 		}
 	}
 	catch(const std::exception& e)
@@ -272,7 +276,9 @@ int main(int argc, char *argv[])
 		Log::setStreamBuffer(cout.rdbuf());
 
 		LOG("Main", ERROR) << e.what();
+
+		ret = EXIT_FAILURE;
 	}
 
-	return 0;
+	return ret;
 }
