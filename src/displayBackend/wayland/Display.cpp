@@ -551,20 +551,27 @@ void Display::dispatchThread()
 	{
 		auto err = wl_display_get_error(mWlDisplay);
 
-		if (err == EPROTO)
+		if (err)
 		{
-			const wl_interface *interface;
-			uint32_t id;
+			if (err == EPROTO)
+			{
+				const wl_interface *interface;
+				uint32_t id;
 
-			auto code = wl_display_get_protocol_error(mWlDisplay, &interface,
-													  &id);
-			LOG(mLog, ERROR) << "Wayland proto error, itd: "
-							 << interface->name
-							 << ", code: " << code;
+				auto code = wl_display_get_protocol_error(mWlDisplay, &interface,
+														  &id);
+				LOG(mLog, ERROR) << "Wayland proto error, itf: "
+								 << interface->name
+								 << ", code: " << code;
+			}
+			else
+			{
+				LOG(mLog, ERROR) << "Wayland error, code: " << strerror(err);
+			}
 		}
 		else
 		{
-			LOG(mLog, ERROR) << "Wayland error, code: " << strerror(err);
+			LOG(mLog, ERROR) << e.what();
 		}
 	}
 
