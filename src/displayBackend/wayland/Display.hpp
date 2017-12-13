@@ -154,6 +154,8 @@ private:
 
 	std::unique_ptr<XenBackend::PollFd> mPollFd;
 
+	static void sWaylandLog(const char* fmt, va_list arg);
+
 	static void sRegistryHandler(void *data, wl_registry *registry,
 								 uint32_t id, const char *interface,
 								 uint32_t version);
