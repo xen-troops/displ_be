@@ -62,7 +62,7 @@ public:
 	 * Checks if the connector is initialized
 	 * @return <i>true</i> if initialized
 	 */
-	bool isInitialized() const override { return mInitialized; }
+	bool isInitialized() const override { return mSurface != nullptr; }
 
 	/**
 	 * Initializes connector
@@ -102,7 +102,6 @@ private:
 	Connector(const std::string& name, CompositorPtr compositor);
 
 	std::string mName;
-	std::atomic_bool mInitialized;
 	XenBackend::Log mLog;
 
 	SurfacePtr mSurface;
@@ -124,9 +123,12 @@ public:
 	void init(uint32_t width, uint32_t height,
 			  DisplayItf::FrameBufferPtr frameBuffer) override
 	{
-		mShellSurface = mShell->createShellSurface(mCompositor->createSurface());
+		if (!mShellSurface)
+		{
+			mShellSurface = mShell->createShellSurface(mCompositor->createSurface());
 
-		mShellSurface->setTopLevel();
+			mShellSurface->setTopLevel();
+		}
 
 		onInit(mShellSurface->getSurface(), frameBuffer);
 	}
@@ -171,8 +173,11 @@ public:
 	void init(uint32_t width, uint32_t height,
 			  DisplayItf::FrameBufferPtr frameBuffer) override
 	{
-		mIviSurface = mIviApplication->createIviSurface(
-				mCompositor->createSurface(), mSurfaceId);
+		if (!mIviSurface)
+		{
+			mIviSurface = mIviApplication->createIviSurface(
+					mCompositor->createSurface(), mSurfaceId);
+		}
 
 		onInit(mIviSurface->getSurface(), frameBuffer);
 	}

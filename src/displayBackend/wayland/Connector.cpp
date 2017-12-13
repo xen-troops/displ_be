@@ -34,7 +34,6 @@ namespace Wayland {
 Connector::Connector(const std::string& name, CompositorPtr compositor) :
 	mCompositor(compositor),
 	mName(name),
-	mInitialized(false),
 	mLog("Connector")
 {
 	LOG(mLog, DEBUG) << "Create, name: "  << mName;
@@ -75,7 +74,7 @@ void Connector::onInit(SurfacePtr surface, FrameBufferPtr frameBuffer)
 {
 	LOG(mLog, DEBUG) << "Init, name: " << mName;
 
-	if (mInitialized)
+	if (isInitialized())
 	{
 		throw Exception("Connector already initialized", -EINVAL);
 	}
@@ -85,8 +84,6 @@ void Connector::onInit(SurfacePtr surface, FrameBufferPtr frameBuffer)
 	SurfaceManager::getInstance().createSurface(mName, mSurface->mWlSurface);
 
 	mSurface->draw(frameBuffer);
-
-	mInitialized = true;
 }
 
 void Connector::onRelease()
@@ -94,8 +91,6 @@ void Connector::onRelease()
 	LOG(mLog, DEBUG) << "Release, name: " << mName;
 
 	SurfaceManager::getInstance().deleteSurface(mName, mSurface->mWlSurface);
-
-	mInitialized = false;
 
 	mSurface.reset();
 }
