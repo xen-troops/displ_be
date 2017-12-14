@@ -25,7 +25,6 @@
 
 #include "Exception.hpp"
 
-using std::exception;
 using std::lock_guard;
 using std::mutex;
 using std::string;
@@ -137,7 +136,7 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 		{
 			surfaceId = stoi(name);
 		}
-		catch(const exception& e)
+		catch(const std::exception& e)
 		{
 			throw Exception("Can't create surface id: " + name, -EINVAL);
 		}
@@ -577,7 +576,7 @@ void Display::dispatchThread()
 			}
 		}
 	}
-	catch(const exception& e)
+	catch(const std::exception& e)
 	{
 		if (!checkWaylandError())
 		{
