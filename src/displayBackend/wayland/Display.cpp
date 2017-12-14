@@ -23,9 +23,6 @@
 
 #include "Exception.hpp"
 
-using namespace std::placeholders;
-
-using std::bind;
 using std::exception;
 using std::lock_guard;
 using std::mutex;

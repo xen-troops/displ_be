@@ -22,19 +22,10 @@
 
 #include <iomanip>
 
-#include <cstddef>
-#include <cstring>
-#include <sys/mman.h>
-
-#include <xen/errno.h>
-
 using std::hex;
 using std::setfill;
 using std::setw;
 using std::unordered_map;
-
-using XenBackend::XenException;
-using XenBackend::XenGnttabBuffer;
 
 using DisplayItf::ConnectorPtr;
 using DisplayItf::DisplayPtr;
@@ -130,13 +121,13 @@ int DisplayCommandHandler::processCommand(const xendispl_req& req)
 	{
 		LOG(mLog, ERROR) << e.what();
 
-		status = -XEN_EINVAL;
+		status = -EINVAL;
 	}
 	catch(const std::exception& e)
 	{
 		LOG(mLog, ERROR) << e.what();
 
-		status = -XEN_EIO;
+		status = -EIO;
 	}
 
 	DLOG(mLog, DEBUG) << "Return status: ["
