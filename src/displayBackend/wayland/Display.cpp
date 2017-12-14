@@ -21,6 +21,8 @@
 
 #include "Display.hpp"
 
+#include <signal.h>
+
 #include "Exception.hpp"
 
 using namespace std::placeholders;
@@ -584,6 +586,8 @@ void Display::dispatchThread()
 		{
 			LOG(mLog, ERROR) << e.what();
 		}
+
+		kill(getpid(), SIGTERM);
 	}
 
 	wl_display_cancel_read(mWlDisplay);

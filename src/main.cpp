@@ -75,6 +75,8 @@ DisplayMode gDisplayMode = DisplayMode::WAYLAND;
 string gDrmDevice = "/dev/dri/card0";
 string gLogFileName;
 
+int gRetStatus = EXIT_SUCCESS;
+
 /*******************************************************************************
  *
  ******************************************************************************/
@@ -109,6 +111,11 @@ void waitSignals()
 	sigprocmask(SIG_BLOCK, &set, nullptr);
 
 	sigwait(&set,&signal);
+
+	if (signal == SIGTERM)
+	{
+		gRetStatus = EXIT_FAILURE;
+	}
 }
 
 bool commandLineOptions(int argc, char *argv[])
@@ -204,8 +211,6 @@ DisplayItf::DisplayPtr getDisplay(DisplayMode mode)
 
 int main(int argc, char *argv[])
 {
-	int ret = EXIT_SUCCESS;
-
 	try
 	{
 		registerSignals();
@@ -268,7 +273,7 @@ int main(int argc, char *argv[])
 			cout << "\t      use * for mask selection:"
 				 << " *:Debug,Mod*:Info" << endl;
 
-			ret = EXIT_FAILURE;
+			gRetStatus = EXIT_FAILURE;
 		}
 	}
 	catch(const std::exception& e)
@@ -277,8 +282,8 @@ int main(int argc, char *argv[])
 
 		LOG("Main", ERROR) << e.what();
 
-		ret = EXIT_FAILURE;
+		gRetStatus = EXIT_FAILURE;
 	}
 
-	return ret;
+	return gRetStatus;
 }
