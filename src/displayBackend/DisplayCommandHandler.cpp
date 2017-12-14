@@ -22,6 +22,8 @@
 
 #include <iomanip>
 
+#include <xen/be/Exception.hpp>
+
 using std::hex;
 using std::setfill;
 using std::setw;
@@ -103,7 +105,7 @@ int DisplayCommandHandler::processCommand(const xendispl_req& req)
 
 		mDisplay->flush();
 	}
-	catch(const DisplayItf::Exception& e)
+	catch(const XenBackend::Exception& e)
 	{
 		LOG(mLog, ERROR) << e.what();
 

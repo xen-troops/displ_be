@@ -312,8 +312,8 @@ void InputFrontendHandler::parseInputId(const string& id, string& keyboardId,
 		}
 		else
 		{
-			throw InputItf::Exception("Invalid key: " + key + " in id",
-									  EINVAL);
+			throw XenBackend::Exception("Invalid key: " + key + " in id",
+										EINVAL);
 		}
 	}
 }

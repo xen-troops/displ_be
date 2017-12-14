@@ -9,6 +9,8 @@
 
 #include <fcntl.h>
 
+#include <xen/be/Exception.hpp>
+
 #include "DevInput.hpp"
 
 using std::lock_guard;
@@ -20,7 +22,6 @@ using std::thread;
 
 using XenBackend::PollFd;
 
-using InputItf::Exception;
 using InputItf::KeyboardCallbacks;
 using InputItf::PointerCallbacks;
 using InputItf::TouchCallbacks;
@@ -83,12 +84,12 @@ void DevInputBase::init()
 
 	if (mFd < 0)
 	{
-		throw Exception("Can't open device: " + mName, errno);
+		throw XenBackend::Exception("Can't open device: " + mName, errno);
 	}
 
 	if (ioctl(mFd, EVIOCGRAB, reinterpret_cast<void*>(1)))
 	{
-		throw Exception("Grabbed by another process", EBUSY);
+		throw XenBackend::Exception("Grabbed by another process", EBUSY);
 	}
 
 	ioctl(mFd, EVIOCGRAB, reinterpret_cast<void*>(0));
@@ -122,7 +123,7 @@ void DevInputBase::run()
 
 			if (readSize < static_cast<int>(sizeof(struct input_event)))
 			{
-				throw Exception("Read error", errno);
+				throw XenBackend::Exception("Read error", errno);
 			}
 
 			for(size_t i = 0; i < readSize/sizeof(input_event); i++)
