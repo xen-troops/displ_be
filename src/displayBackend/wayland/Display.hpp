@@ -169,6 +169,7 @@ private:
 	void init();
 	void release();
 
+	int checkWaylandError();
 	void dispatchThread();
 };
 

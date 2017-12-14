@@ -519,6 +519,32 @@ void Display::release()
 	}
 }
 
+int Display::checkWaylandError()
+{
+	auto err = wl_display_get_error(mWlDisplay);
+
+	if (err)
+	{
+		if (err == EPROTO)
+		{
+			const wl_interface *interface;
+			uint32_t id;
+
+			auto code = wl_display_get_protocol_error(mWlDisplay, &interface,
+													  &id);
+			LOG(mLog, ERROR) << "Wayland proto error, itf: "
+							 << interface->name
+							 << ", code: " << code;
+		}
+		else
+		{
+			LOG(mLog, ERROR) << "Wayland error, code: " << strerror(err);
+		}
+	}
+
+	return err;
+}
+
 void Display::dispatchThread()
 {
 	try
@@ -554,27 +580,7 @@ void Display::dispatchThread()
 	}
 	catch(const exception& e)
 	{
-		auto err = wl_display_get_error(mWlDisplay);
-
-		if (err)
-		{
-			if (err == EPROTO)
-			{
-				const wl_interface *interface;
-				uint32_t id;
-
-				auto code = wl_display_get_protocol_error(mWlDisplay, &interface,
-														  &id);
-				LOG(mLog, ERROR) << "Wayland proto error, itf: "
-								 << interface->name
-								 << ", code: " << code;
-			}
-			else
-			{
-				LOG(mLog, ERROR) << "Wayland error, code: " << strerror(err);
-			}
-		}
-		else
+		if (!checkWaylandError())
 		{
 			LOG(mLog, ERROR) << e.what();
 		}
