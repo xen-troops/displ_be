@@ -74,8 +74,8 @@ int main(int argc, char *argv[])
 
 		display->start();
 
-		auto con1 = display->createConnector("1");
-		auto con2 = display->createConnector("2");
+		auto con1 = display->createConnector("1000");
+		auto con2 = display->createConnector("1001");
 
 		auto db1 = display->createDisplayBuffer(300, 200, 32);
 		auto fb1 = display->createFrameBuffer(db1, 300, 200, 1);
@@ -83,17 +83,23 @@ int main(int argc, char *argv[])
 		auto db2 = display->createDisplayBuffer(300, 200, 32);
 		auto fb2 = display->createFrameBuffer(db2, 300, 200, 1);
 
-		memset(db1->getBuffer(), db1->getSize(), 0xFF);
+		for(size_t i = 0; i < db1->getSize() / 4; i++)
+		{
+			(reinterpret_cast<uint32_t*>(db1->getBuffer()))[i] = 0xFFAACC;
+		}
+
+		memset(db1->getBuffer(), db1->getSize(), 0x11);
 		memset(db2->getBuffer(), db2->getSize(), 0xAA);
 
 		con1->init(300, 200, fb1);
 		con2->init(300, 200, fb2);
 
-		WlPointer pointer(display, "1");
+		display->flush();
 
+		WlPointer pointer(display, "1");
 		pointer.setCallbacks({onMoveRelative, onMoveAbsolute, onButtons});
 
-//		waitSignals();
+		waitSignals();
 
 		display->stop();
 	}
