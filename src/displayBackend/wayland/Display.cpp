@@ -106,10 +106,6 @@ void Display::stop()
 
 void Display::flush()
 {
-	lock_guard<mutex> lock(mMutex);
-
-	DLOG(mLog, DEBUG) << "Flush";
-
 	int result = 0;
 
 	while((result = wl_display_flush(mWlDisplay) < 0) && (errno == EAGAIN));
@@ -516,7 +512,7 @@ void Display::release()
 
 	if (mWlDisplay)
 	{
-		wl_display_flush(mWlDisplay);
+		flush();
 		wl_display_disconnect(mWlDisplay);
 
 		LOG(mLog, DEBUG) << "Disconnected";
@@ -544,11 +540,7 @@ void Display::dispatchThread()
 				DLOG(mLog, DEBUG) << "Dispatch events: " << val;
 			}
 
-			if ((wl_display_flush(mWlDisplay) < 0) && (errno != EAGAIN))
-			{
-				throw Exception("Can't flush events",
-								-wl_display_get_error(mWlDisplay));
-			}
+			flush();
 
 			if (mPollFd->poll())
 			{
