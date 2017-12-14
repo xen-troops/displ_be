@@ -76,7 +76,7 @@ void Connector::onInit(SurfacePtr surface, FrameBufferPtr frameBuffer)
 
 	if (isInitialized())
 	{
-		throw Exception("Connector already initialized", -EINVAL);
+		throw Exception("Connector already initialized", EINVAL);
 	}
 
 	mSurface = surface;

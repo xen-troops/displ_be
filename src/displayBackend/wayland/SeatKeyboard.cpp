@@ -130,7 +130,7 @@ void SeatKeyboard::init(wl_seat* seat)
 
 	if (!mWlKeyboard)
 	{
-		throw Exception("Can't create keyboard", -EINVAL);
+		throw Exception("Can't create keyboard", EINVAL);
 	}
 
 	mListener = { sOnKeymap, sOnEnter, sOnLeave, sOnKey,
@@ -138,7 +138,7 @@ void SeatKeyboard::init(wl_seat* seat)
 
 	if (wl_keyboard_add_listener(mWlKeyboard, &mListener, this))
 	{
-		throw Exception("Can't add listener", -EINVAL);
+		throw Exception("Can't add listener", EINVAL);
 	}
 
 	LOG(mLog, DEBUG) << "Create";

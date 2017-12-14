@@ -77,7 +77,7 @@ WaylandZCopy::createDumb(uint32_t width, uint32_t height, uint32_t bpp,
 											 domId, refs, allocRefs);
 	}
 
-	throw Exception("Can't create dumb: no DRM device", -EINVAL);
+	throw Exception("Can't create dumb: no DRM device", EINVAL);
 }
 
 /*******************************************************************************
@@ -197,14 +197,14 @@ void WaylandDrm::init()
 
 	if (!mWlDrm)
 	{
-		throw Exception("Can't bind drm", -EINVAL);
+		throw Exception("Can't bind drm", EINVAL);
 	}
 
 	mWlListener = {sOnDevice, sOnFormat, sOnAuthenticated, sOnCapabilities};
 
 	if (wl_drm_add_listener(mWlDrm, &mWlListener, this) < 0)
 	{
-		throw Exception("Can't add listener", -EINVAL);
+		throw Exception("Can't add listener", EINVAL);
 	}
 
 	LOG(mLog, DEBUG) << "Create wl drm";
@@ -291,14 +291,14 @@ void WaylandKms::init()
 
 	if (!mWlKms)
 	{
-		throw Exception("Can't bind kms", -EINVAL);
+		throw Exception("Can't bind kms", EINVAL);
 	}
 
 	mWlListener = {sOnDevice, sOnFormat, sOnAuthenticated};
 
 	if (wl_kms_add_listener(mWlKms, &mWlListener, this) < 0)
 	{
-		throw Exception("Can't add listener", -EINVAL);
+		throw Exception("Can't add listener", EINVAL);
 	}
 
 	LOG(mLog, DEBUG) << "Create";

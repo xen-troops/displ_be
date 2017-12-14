@@ -70,7 +70,7 @@ uint32_t DumbBase::readName()
 
 		if (drmIoctl(mDrmFd, DRM_IOCTL_GEM_FLINK, &req) < 0)
 		{
-			throw Exception("Cannot get name", -errno);
+			throw Exception("Cannot get name", errno);
 		}
 
 		mName = req.name;
@@ -81,7 +81,7 @@ uint32_t DumbBase::readName()
 
 void DumbBase::copy()
 {
-	throw Exception("There is no buffer to copy from", -EINVAL);
+	throw Exception("There is no buffer to copy from", EINVAL);
 }
 
 /*******************************************************************************
@@ -98,7 +98,7 @@ void DumbBase::createDumb(uint32_t bpp)
 
 	if (drmIoctl(mDrmFd, DRM_IOCTL_MODE_CREATE_DUMB, &creq) < 0)
 	{
-		throw Exception("Cannot create dumb buffer", -errno);
+		throw Exception("Cannot create dumb buffer", errno);
 	}
 
 	mStride = creq.pitch;
@@ -140,7 +140,7 @@ void DumbDrm::copy()
 {
 	if(!mGnttabBuffer)
 	{
-		throw Exception("There is no buffer to copy from", -EINVAL);
+		throw Exception("There is no buffer to copy from", EINVAL);
 	}
 
 	DLOG(mLog, DEBUG) << "Copy dumb, handle: " << mBufDrmHandle;
@@ -160,7 +160,7 @@ void DumbDrm::mapDumb()
 
 	if (drmIoctl(mDrmFd, DRM_IOCTL_MODE_MAP_DUMB, &mreq) < 0)
 	{
-		throw Exception("Cannot map dumb buffer", -errno);
+		throw Exception("Cannot map dumb buffer", errno);
 	}
 
 	auto map = mmap(0, mSize, PROT_READ | PROT_WRITE, MAP_SHARED,
@@ -168,7 +168,7 @@ void DumbDrm::mapDumb()
 
 	if (map == MAP_FAILED)
 	{
-		throw Exception("Cannot mmap dumb buffer", -errno);
+		throw Exception("Cannot mmap dumb buffer", errno);
 	}
 
 	mBuffer = map;
@@ -276,7 +276,7 @@ void DumbZCopyFront::getBufFd()
 
 	if (drmIoctl(mZCopyFd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &prime) < 0)
 	{
-		throw Exception("Cannot export prime buffer", -errno);
+		throw Exception("Cannot export prime buffer", errno);
 	}
 
 	mBufZCopyFd = prime.fd;
@@ -353,7 +353,7 @@ DumbZCopyFrontDrm::DumbZCopyFrontDrm(int drmFd, int zCopyFd,
 
 	if (drmIoctl(mDrmFd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime) < 0)
 	{
-		throw Exception("Cannot import prime buffer", -errno);
+		throw Exception("Cannot import prime buffer", errno);
 	}
 
 	mBufDrmHandle = prime.handle;
@@ -417,7 +417,7 @@ void DumbZCopyBack::createHandle()
 
 	if (drmIoctl(mDrmFd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &prime) < 0)
 	{
-		throw Exception("Cannot export prime buffer", -errno);
+		throw Exception("Cannot export prime buffer", errno);
 	}
 
 	mBufDrmFd = prime.fd;
@@ -426,7 +426,7 @@ void DumbZCopyBack::createHandle()
 
 	if (drmIoctl(mZCopyFd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime) < 0)
 	{
-		throw Exception("Cannot import prime buffer", -errno);
+		throw Exception("Cannot import prime buffer", errno);
 	}
 
 	mBufZCopyHandle = prime.handle;
@@ -445,7 +445,7 @@ void DumbZCopyBack::getGrantRefs(domid_t domId, GrantRefs& refs)
 
 	if (drmIoctl(mZCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_TO_REFS, &mapreq) < 0)
 	{
-		throw Exception("Cannot convert dumb buffer to refs", -errno);
+		throw Exception("Cannot convert dumb buffer to refs", errno);
 	}
 }
 

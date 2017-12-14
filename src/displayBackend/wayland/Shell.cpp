@@ -57,7 +57,7 @@ void Shell::init()
 
 	if (!mWlShell)
 	{
-		throw Exception("Can't bind shell", -EINVAL);
+		throw Exception("Can't bind shell", EINVAL);
 	}
 
 	LOG(mLog, DEBUG) << "Create";
