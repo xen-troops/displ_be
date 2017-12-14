@@ -22,6 +22,7 @@
 #include "Display.hpp"
 
 #include <fcntl.h>
+#include <signal.h>
 
 #include <xf86drm.h>
 #ifdef WITH_ZCOPY
@@ -364,6 +365,8 @@ void Display::eventThread()
 	catch(const std::exception& e)
 	{
 		LOG(mLog, ERROR) << e.what();
+
+		kill(getpid(), SIGTERM);
 	}
 
 	mStarted = false;
