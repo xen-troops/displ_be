@@ -25,7 +25,7 @@
 
 #include <drm_fourcc.h>
 
-#include "DisplayItf.hpp"
+#include <xen/be/Exception.hpp>
 
 using std::hex;
 using std::lock_guard;
@@ -76,7 +76,7 @@ void BuffersStorage::createDisplayBuffer(uint64_t dbCookie, bool beAllocRefs,
 	{
 		if (beAllocRefs)
 		{
-			throw DisplayItf::Exception("Can't create pending display buffer",
+			throw XenBackend::Exception("Can't create pending display buffer",
 										EINVAL);
 		}
 
@@ -238,7 +238,7 @@ uint32_t BuffersStorage::getBpp(uint32_t format)
 		return 32;
 
 	default:
-		throw DisplayItf::Exception("Invalid pixel format", EINVAL);
+		throw XenBackend::Exception("Invalid pixel format", EINVAL);
 	}
 }
 
@@ -280,7 +280,7 @@ DisplayBufferPtr BuffersStorage::getDisplayBufferUnlocked(uint64_t dbCookie)
 
 	if (iter == mDisplayBuffers.end())
 	{
-		throw DisplayItf::Exception("Dumb cookie not found", ENOENT);
+		throw XenBackend::Exception("Dumb cookie not found", ENOENT);
 	}
 
 	return iter->second;
@@ -292,7 +292,7 @@ FrameBufferPtr BuffersStorage::getFrameBufferUnlocked(uint64_t fbCookie)
 
 	if (iter == mFrameBuffers.end())
 	{
-		throw DisplayItf::Exception("Frame buffer cookie not found", ENOENT);
+		throw XenBackend::Exception("Frame buffer cookie not found", ENOENT);
 	}
 
 	return iter->second;
