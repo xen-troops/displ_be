@@ -84,7 +84,7 @@ void FrameBuffer::init(uint32_t pixelFormat)
 
 	if (ret)
 	{
-		throw Exception ("Cannot create frame buffer", -errno);
+		throw Exception ("Cannot create frame buffer", errno);
 	}
 
 	DLOG("FrameBuffer", DEBUG) << "Create frame buffer, handle: " << handles[0]

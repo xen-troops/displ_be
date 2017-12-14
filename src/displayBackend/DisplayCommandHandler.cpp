@@ -107,7 +107,7 @@ int DisplayCommandHandler::processCommand(const xendispl_req& req)
 	{
 		LOG(mLog, ERROR) << e.what();
 
-		status = e.getErrno();
+		status = -e.getErrno();
 
 		if (status >= 0)
 		{

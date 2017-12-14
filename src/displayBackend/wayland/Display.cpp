@@ -111,7 +111,7 @@ void Display::flush()
 	if (result < 0)
 	{
 		throw Exception("Can't flush events",
-						-wl_display_get_error(mWlDisplay));
+						wl_display_get_error(mWlDisplay));
 	}
 }
 
@@ -138,7 +138,7 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 		}
 		catch(const std::exception& e)
 		{
-			throw Exception("Can't create surface id: " + name, -EINVAL);
+			throw Exception("Can't create surface id: " + name, EINVAL);
 		}
 
 		connector = new IviConnector(name, mIviApplication, mCompositor,
@@ -169,7 +169,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		return mSharedMemory->createSharedFile(width, height, bpp);
 	}
 
-	throw Exception("Can't create display buffer", -EINVAL);
+	throw Exception("Can't create display buffer", EINVAL);
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
@@ -199,7 +199,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		return mSharedMemory->createSharedFile(width, height, bpp, domId, refs);
 	}
 
-	throw Exception("Can't create display buffer", -EINVAL);
+	throw Exception("Can't create display buffer", EINVAL);
 }
 
 FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
@@ -230,7 +230,7 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 												 pixelFormat);
 	}
 
-	throw Exception("Can't create frame buffer", -EINVAL);
+	throw Exception("Can't create frame buffer", EINVAL);
 }
 
 
@@ -457,7 +457,7 @@ void Display::init()
 
 	if (!mWlDisplay)
 	{
-		throw Exception("Can't connect to display", -EINVAL);
+		throw Exception("Can't connect to display", EINVAL);
 	}
 
 	mPollFd.reset(new PollFd(wl_display_get_fd(mWlDisplay), POLLIN));
@@ -470,7 +470,7 @@ void Display::init()
 
 	if (!mWlRegistry)
 	{
-		throw Exception("Can't get registry", -EINVAL);
+		throw Exception("Can't get registry", EINVAL);
 	}
 
 	wl_registry_add_listener(mWlRegistry, &mWlRegistryListener, this);
@@ -480,7 +480,7 @@ void Display::init()
 
 	if (!mCompositor)
 	{
-		throw Exception("Can't get compositor", -ENOENT);
+		throw Exception("Can't get compositor", ENOENT);
 	}
 }
 
@@ -558,7 +558,7 @@ void Display::dispatchThread()
 				if (val < 0)
 				{
 					throw Exception("Can't dispatch pending events",
-									-wl_display_get_error(mWlDisplay));
+									wl_display_get_error(mWlDisplay));
 				}
 
 				DLOG(mLog, DEBUG) << "Dispatch events: " << val;
