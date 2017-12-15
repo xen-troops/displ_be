@@ -110,8 +110,7 @@ void Display::flush()
 
 	if (result < 0)
 	{
-		throw Exception("Can't flush events",
-						wl_display_get_error(mWlDisplay));
+		throw Exception("Can't flush events", errno);
 	}
 }
 
@@ -169,7 +168,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		return mSharedMemory->createSharedFile(width, height, bpp);
 	}
 
-	throw Exception("Can't create display buffer", EINVAL);
+	throw Exception("Can't create display buffer", ENOENT);
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
@@ -199,7 +198,7 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		return mSharedMemory->createSharedFile(width, height, bpp, domId, refs);
 	}
 
-	throw Exception("Can't create display buffer", EINVAL);
+	throw Exception("Can't create display buffer", ENOENT);
 }
 
 FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
@@ -230,7 +229,7 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 												 pixelFormat);
 	}
 
-	throw Exception("Can't create frame buffer", EINVAL);
+	throw Exception("Can't create frame buffer", ENOENT);
 }
 
 
@@ -457,7 +456,7 @@ void Display::init()
 
 	if (!mWlDisplay)
 	{
-		throw Exception("Can't connect to display", EINVAL);
+		throw Exception("Can't connect to display", errno);
 	}
 
 	mPollFd.reset(new PollFd(wl_display_get_fd(mWlDisplay), POLLIN));
@@ -470,7 +469,7 @@ void Display::init()
 
 	if (!mWlRegistry)
 	{
-		throw Exception("Can't get registry", EINVAL);
+		throw Exception("Can't get registry", errno);
 	}
 
 	wl_registry_add_listener(mWlRegistry, &mWlRegistryListener, this);
@@ -557,8 +556,7 @@ void Display::dispatchThread()
 
 				if (val < 0)
 				{
-					throw Exception("Can't dispatch pending events",
-									wl_display_get_error(mWlDisplay));
+					throw Exception("Can't dispatch pending events", errno);
 				}
 
 				DLOG(mLog, DEBUG) << "Dispatch events: " << val;

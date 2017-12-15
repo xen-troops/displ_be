@@ -57,7 +57,7 @@ void IviSurface::init(ivi_application* iviApplication)
 
 	if (!mWlIviSurface)
 	{
-		throw Exception("Can't create IVI surface", EINVAL);
+		throw Exception("Can't create IVI surface", errno);
 	}
 
 	LOG(mLog, DEBUG) << "Create, surface id: " << mIlmSurfaceId;

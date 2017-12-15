@@ -50,7 +50,7 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 
 	if (mWlFrameCallback)
 	{
-		throw Exception("Draw event is in progress", EINVAL);
+		throw Exception("Draw event is in progress", EPERM);
 	}
 
 	mStoredCallback = callback;
@@ -61,13 +61,13 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 
 		if (!mWlFrameCallback)
 		{
-			throw Exception("Can't get frame callback", EINVAL);
+			throw Exception("Can't get frame callback", errno);
 		}
 
 		if (wl_callback_add_listener(mWlFrameCallback,
 									 &mWlFrameListener, this) < 0)
 		{
-			throw Exception("Can't add listener", EINVAL);
+			throw Exception("Can't add listener", errno);
 		}
 	}
 
@@ -110,7 +110,7 @@ void Surface::init(wl_compositor* compositor)
 
 	if (!mWlSurface)
 	{
-		throw Exception("Can't create surface", EINVAL);
+		throw Exception("Can't create surface", errno);
 	}
 
 	mWlFrameListener = { sFrameHandler };

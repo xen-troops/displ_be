@@ -63,7 +63,7 @@ void SharedFile::copy()
 {
 	if(!mGnttabBuffer)
 	{
-		throw Exception("There is no buffer to copy from", EINVAL);
+		throw Exception("There is no buffer to copy from", ENOENT);
 	}
 
 	DLOG("Dumb", DEBUG) << "Copy dumb, handle: " << mFd;

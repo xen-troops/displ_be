@@ -69,12 +69,12 @@ void WlBuffer::setListener()
 
 	if (!mWlBuffer)
 	{
-		throw Exception("No wl buffer", EINVAL);
+		throw Exception("No wl buffer", ENOENT);
 	}
 
 	if (wl_buffer_add_listener(mWlBuffer, &mWlListener, this) < 0)
 	{
-		throw Exception("Can't add listener", EINVAL);
+		throw Exception("Can't add listener", errno);
 	}
 }
 
@@ -140,7 +140,7 @@ void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 
 	if (!mWlPool)
 	{
-		throw Exception("Can't create pool", EINVAL);
+		throw Exception("Can't create pool", errno);
 	}
 
 	mWlBuffer = wl_shm_pool_create_buffer(mWlPool, 0, mWidth, mHeight,
@@ -149,7 +149,7 @@ void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 
 	if (!mWlBuffer)
 	{
-		throw Exception("Can't create shared buffer", EINVAL);
+		throw Exception("Can't create shared buffer", errno);
 	}
 
 	setListener();
@@ -191,7 +191,7 @@ KmsBuffer::KmsBuffer(wl_kms* wlKms,
 
 	if (!mWlBuffer)
 	{
-		throw Exception("Can't create KMS buffer", EINVAL);
+		throw Exception("Can't create KMS buffer", errno);
 	}
 
 	setListener();
@@ -218,7 +218,7 @@ DrmBuffer::DrmBuffer(wl_drm* wlDrm,
 
 	if (!mWlBuffer)
 	{
-		throw Exception("Can't create DRM buffer", EINVAL);
+		throw Exception("Can't create DRM buffer", errno);
 	}
 
 	setListener();
