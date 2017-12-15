@@ -100,14 +100,14 @@ void ShellSurface::init(wl_shell* shell)
 
 	if (!mWlShellSurface)
 	{
-		throw Exception("Can't create shell surface", EINVAL);
+		throw Exception("Can't create shell surface", errno);
 	}
 
 	mWlListener = {sPingHandler, sConfigHandler, sPopupDone};
 
 	if (wl_shell_surface_add_listener(mWlShellSurface, &mWlListener, this) < 0)
 	{
-		throw Exception("Can't add listener", EINVAL);
+		throw Exception("Can't add listener", errno);
 	}
 
 	LOG(mLog, DEBUG) << "Create";

@@ -63,7 +63,7 @@ void IviApplication::init()
 
 	if (!mWlIviApplication)
 	{
-		throw Exception("Can't bind IVI application", EINVAL);
+		throw Exception("Can't bind IVI application", errno);
 	}
 
 	LOG(mLog, DEBUG) << "Create";
