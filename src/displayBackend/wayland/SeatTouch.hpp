@@ -31,8 +31,8 @@ private:
 
 	wl_touch* mWlTouch;
 	wl_touch_listener mListener;
+	int32_t mCurrentId;
 	XenBackend::Log mLog;
-	std::unordered_map<int32_t, CallbackIt> mCallbackIdMap;
 
 	static void sOnDown(void* data, wl_touch* touch, uint32_t serial,
 						uint32_t time, wl_surface* surface, int32_t id,

@@ -48,7 +48,7 @@ struct TouchCallbacks
 	std::function<void(int32_t id, int32_t x, int32_t y)> down;
 	std::function<void(int32_t id)> up;
 	std::function<void(int32_t id, int32_t x, int32_t y)> motion;
-	std::function<void()> frame;
+	std::function<void(int32_t id)> frame;
 };
 
 template<typename T>

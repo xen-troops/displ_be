@@ -99,7 +99,7 @@ InputRingBuffer::InputRingBuffer(KeyboardPtr keyboard, PointerPtr pointer,
 			bind(&InputRingBuffer::onDown, this, _1, _2, _3),
 			bind(&InputRingBuffer::onUp, this, _1),
 			bind(&InputRingBuffer::onMotion, this, _1, _2, _3),
-			bind(&InputRingBuffer::onFrame, this),
+			bind(&InputRingBuffer::onFrame, this, _1),
 		});
 	}
 
@@ -207,17 +207,19 @@ void InputRingBuffer::onMotion(int32_t id, int32_t x, int32_t y)
 	sendEvent(event);
 }
 
-void InputRingBuffer::onFrame()
+void InputRingBuffer::onFrame(int32_t id)
 {
-	DLOG(mLog, DEBUG) << "onFrame";
+	DLOG(mLog, DEBUG) << "onFrame id: " << id;
 
 	xenkbd_in_event event = {};
 
 	event.type = XENKBD_TYPE_MTOUCH;
 	event.mtouch.event_type = XENKBD_MT_EV_SYN;
+	event.mtouch.contact_id = id;
 
 	sendEvent(event);
 }
+
 
 /*******************************************************************************
  * InputFrontendHandler

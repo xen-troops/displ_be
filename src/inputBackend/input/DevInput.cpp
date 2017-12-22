@@ -438,7 +438,7 @@ void DevInput<TouchCallbacks>::onSynEvent(const input_event& event)
 		{
 			LOG(mLog, DEBUG) << mName << ", frame";
 
-			mCallbacks.frame();
+			mCallbacks.frame(mCurrentSlot);
 		}
 	}
 }

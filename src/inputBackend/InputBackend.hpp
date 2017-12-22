@@ -80,7 +80,7 @@ private:
 	void onDown(int32_t id, int32_t x, int32_t y);
 	void onUp(int32_t id);
 	void onMotion(int32_t id, int32_t x, int32_t y);
-	void onFrame();
+	void onFrame(int32_t id);
 };
 
 typedef std::shared_ptr<InputRingBuffer> InputRingBufferPtr;
