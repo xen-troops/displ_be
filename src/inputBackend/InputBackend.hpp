@@ -47,16 +47,21 @@ class InputRingBuffer : public XenBackend::RingBufferOutBase<xenkbd_page,
 {
 public:
 	/**
-	 * @param domId     frontend domain id
-	 * @param port      event channel port number
-	 * @param ref       grant table reference
-	 * @param offset    start of the ring buffer inside the page
-	 * @param size      size of the ring buffer
+	 * @param keyboard    input keyboard instance
+	 * @param pointer     input pointer instance
+	 * @param touch       input touch instance
+	 * @param isReqAbs    request pointer absolute coordinates
+	 * @param isReqMTouch request multi touch support
+	 * @param domId       frontend domain id
+	 * @param port        event channel port number
+	 * @param ref         grant table reference
+	 * @param offset      start of the ring buffer inside the page
+	 * @param size        size of the ring buffer
 	 */
 	InputRingBuffer(InputItf::KeyboardPtr keyboard,
 					InputItf::PointerPtr pointer,
 					InputItf::TouchPtr touch,
-					bool featureAbs, bool featureMTouch,
+					bool isReqAbs, bool isReqMTouch,
 					domid_t domId, evtchn_port_t port, int ref,
 					int offset, size_t size);
 

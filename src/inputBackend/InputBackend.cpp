@@ -56,8 +56,8 @@ using InputItf::TouchPtr;
  ******************************************************************************/
 
 InputRingBuffer::InputRingBuffer(KeyboardPtr keyboard, PointerPtr pointer,
-								 TouchPtr touch, bool reqAbs,
-								 bool reqMTouch, domid_t domId,
+								 TouchPtr touch, bool isReqAbs,
+								 bool isReqMTouch, domid_t domId,
 								 evtchn_port_t port, int ref,
 								 int offset, size_t size) :
 	RingBufferOutBase<xenkbd_page, xenkbd_in_event>(domId, port, ref,
@@ -74,7 +74,7 @@ InputRingBuffer::InputRingBuffer(KeyboardPtr keyboard, PointerPtr pointer,
 
 	if (mPointer)
 	{
-		if (reqAbs)
+		if (isReqAbs)
 		{
 			mPointer->setCallbacks({
 				bind(&InputRingBuffer::onMoveRel, this, _1, _2, _3),
@@ -92,8 +92,7 @@ InputRingBuffer::InputRingBuffer(KeyboardPtr keyboard, PointerPtr pointer,
 		}
 	}
 
-//	if (mTouch && reqMTouch) TODO: enable it when fe ready
-	if (mTouch)
+	if (mTouch && isReqMTouch)
 	{
 		mTouch->setCallbacks({
 			bind(&InputRingBuffer::onDown, this, _1, _2, _3),
@@ -103,8 +102,8 @@ InputRingBuffer::InputRingBuffer(KeyboardPtr keyboard, PointerPtr pointer,
 		});
 	}
 
-	LOG(mLog, DEBUG) << "Create, reqAbs: " << reqAbs
-					 << ", reqMTouch: " << reqMTouch;
+	LOG(mLog, DEBUG) << "Create, reqAbs: " << isReqAbs
+					 << ", reqMTouch: " << isReqMTouch;
 }
 
 InputRingBuffer::~InputRingBuffer()
@@ -231,13 +230,6 @@ InputFrontendHandler::InputFrontendHandler(const string& devName,
 	FrontendHandlerBase("VkbdFrontend", devName, beDomId, feDomId, devId),
 	mLog("VkbdFrontend")
 {
-/* TODO: Apply when fe ready"
- *
-	getXenStore().writeInt(
-				getXsBackendPath() + "/" XENKBD_FIELD_FEAT_ABS_POINTER, 1);
-	getXenStore().writeInt(
-				getXsBackendPath() + "/" XENKBD_FIELD_FEAT_MTOUCH, 1);
-*/
 	setBackendState(XenbusStateInitWait);
 }
 
@@ -253,20 +245,20 @@ void InputFrontendHandler::onBind()
 	auto id = getXenStore().readString(getXsFrontendPath() + "/id");
 
 
-	bool reqAbs = false;
-	bool reqMTouch = false;
+	bool isReqAbs = false;
+	bool isReqMTouch = false;
 
-	string reqAbsPath = getXsFrontendPath() + "/" XENKBD_FIELD_REQ_ABS_POINTER;
+	string reqAbsPath = getXsBackendPath() + "/" XENKBD_FIELD_REQ_ABS_POINTER;
 	string reqMTouchPath = getXsFrontendPath() + "/" XENKBD_FIELD_REQ_MTOUCH;
 
 	if (getXenStore().checkIfExist(reqAbsPath))
 	{
-		reqAbs = getXenStore().readInt(reqAbsPath);
+		isReqAbs = getXenStore().readInt(reqAbsPath);
 	}
 
 	if (getXenStore().checkIfExist(reqMTouchPath))
 	{
-		reqMTouchPath = getXenStore().readInt(reqMTouchPath);
+		isReqMTouch = getXenStore().readInt(reqMTouchPath);
 	}
 
 	string keyboardId, pointerId, touchId;
@@ -277,7 +269,7 @@ void InputFrontendHandler::onBind()
 			new InputRingBuffer(createInputDevice<KeyboardCallbacks>(keyboardId),
 								createInputDevice<PointerCallbacks>(pointerId),
 								createInputDevice<TouchCallbacks>(touchId),
-								reqAbs, reqMTouch,
+								isReqAbs, isReqMTouch,
 								getDomId(), port, ref,
 								XENKBD_IN_RING_OFFS, XENKBD_IN_RING_SIZE));
 
