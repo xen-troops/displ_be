@@ -13,19 +13,24 @@ using XenBackend::Log;
  *
  ******************************************************************************/
 
-void onMoveRelative(int32_t x, int32_t y, int32_t relZ)
+static void touchDown(int32_t id, int32_t x, int32_t y)
 {
-	LOG("Main", DEBUG) << "Move REL x = " << x << " y = " << y;
+	LOG("TOUCH", DEBUG) << "=== DOWN id: " << id << ", x " << x << ", y: " << y;
 }
 
-void onMoveAbsolute(int32_t x, int32_t y, int32_t relZ)
+static void touchUp(int32_t id)
 {
-	LOG("Main", DEBUG) << "Move ABS x = " << x << " y = " << y;
+	LOG("TOUCH", DEBUG) << "=== UP id: " << id;
 }
 
-void onButtons(uint32_t button, uint32_t state)
+static void touchMotion(int32_t id, int32_t x, int32_t y)
 {
-	LOG("Main", DEBUG) << "Buttons btn = " << button << " state = " << state;
+	LOG("TOUCH", DEBUG) << "=== MOTION id: " << id << ", x " << x << ", y: " << y;
+}
+
+static void touchFrame(int32_t id)
+{
+	LOG("TOUCH", DEBUG) << "=== FRAME id: " << id;
 }
 
 void segmentationHandler(int sig)
@@ -77,8 +82,8 @@ int main(int argc, char *argv[])
 		auto con1 = display->createConnector("1000");
 		auto con2 = display->createConnector("1001");
 
-		auto db1 = display->createDisplayBuffer(300, 200, 32);
-		auto fb1 = display->createFrameBuffer(db1, 300, 200, 1);
+		auto db1 = display->createDisplayBuffer(800, 600, 32);
+		auto fb1 = display->createFrameBuffer(db1, 800, 600, 1);
 
 		auto db2 = display->createDisplayBuffer(300, 200, 32);
 		auto fb2 = display->createFrameBuffer(db2, 300, 200, 1);
@@ -91,13 +96,13 @@ int main(int argc, char *argv[])
 		memset(db1->getBuffer(), db1->getSize(), 0x11);
 		memset(db2->getBuffer(), db2->getSize(), 0xAA);
 
-		con1->init(300, 200, fb1);
+		con1->init(800, 600, fb1);
 		con2->init(300, 200, fb2);
 
 		display->flush();
 
-		WlPointer pointer(display, "1");
-		pointer.setCallbacks({onMoveRelative, onMoveAbsolute, onButtons});
+		WlTouch touch(display, "1000");
+		touch.setCallbacks({touchDown, touchUp, touchMotion, touchFrame});
 
 		waitSignals();
 
