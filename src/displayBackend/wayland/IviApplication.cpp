@@ -7,8 +7,6 @@
 
 #include "IviApplication.hpp"
 
-#include <ilm/ilm_client.h>
-
 #include "Exception.hpp"
 
 namespace Wayland {
