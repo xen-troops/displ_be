@@ -8,6 +8,10 @@
 #ifndef SRC_WAYLAND_SURFACE_HPP_
 #define SRC_WAYLAND_SURFACE_HPP_
 
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+
 #include <wayland-client.h>
 
 #include <xen/be/Log.hpp>
@@ -48,11 +52,19 @@ private:
 	friend class Compositor;
 	friend class Connector;
 
+	const uint32_t cFrameTimeoutMs = 50;
+
 	Surface(wl_compositor* compositor);
 
 	wl_surface* mWlSurface;
 	wl_callback *mWlFrameCallback;
+	bool mTerminate;
+	bool mWaitForFrame;
 	XenBackend::Log mLog;
+
+	std::mutex mMutex;
+	std::condition_variable mCondVar;
+	std::thread mThread;
 
 	wl_callback_listener mWlFrameListener;
 
@@ -61,6 +73,11 @@ private:
 	static void sFrameHandler(void *data, wl_callback *wl_callback,
 							  uint32_t callback_data);
 	void frameHandler();
+
+	void sendCallback();
+
+	void run();
+	void stop();
 
 	void init(wl_compositor* compositor);
 	void release();
