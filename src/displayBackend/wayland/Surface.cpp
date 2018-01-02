@@ -9,6 +9,11 @@
 
 #include "Exception.hpp"
 
+using std::chrono::milliseconds;
+using std::mutex;
+using std::thread;
+using std::unique_lock;
+
 using DisplayItf::FrameBufferPtr;
 
 namespace Wayland {
@@ -20,6 +25,8 @@ namespace Wayland {
 Surface::Surface(wl_compositor* compositor) :
 	mWlSurface(nullptr),
 	mWlFrameCallback(nullptr),
+	mTerminate(false),
+	mWaitForFrame(false),
 	mLog("Surface")
 {
 	try
@@ -46,16 +53,18 @@ Surface::~Surface()
 void Surface::draw(FrameBufferPtr frameBuffer,
 				   FrameCallback callback)
 {
+	unique_lock<mutex> lock(mMutex);
+
 	DLOG(mLog, DEBUG) << "Draw";
 
-	if (mWlFrameCallback)
+	if (mStoredCallback)
 	{
 		throw Exception("Draw event is in progress", EPERM);
 	}
 
 	mStoredCallback = callback;
 
-	if (mStoredCallback)
+	if (mStoredCallback && !mWaitForFrame)
 	{
 		mWlFrameCallback = wl_surface_frame(mWlSurface);
 
@@ -65,7 +74,7 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 		}
 
 		if (wl_callback_add_listener(mWlFrameCallback,
-									 &mWlFrameListener, this) < 0)
+				&mWlFrameListener, this) < 0)
 		{
 			throw Exception("Can't add listener", errno);
 		}
@@ -79,6 +88,8 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 					  0, 0);
 
 	wl_surface_commit(mWlSurface);
+
+	mCondVar.notify_one();
 }
 
 /*******************************************************************************
@@ -92,16 +103,74 @@ void Surface::sFrameHandler(void *data, wl_callback *wl_callback,
 
 void Surface::frameHandler()
 {
+	unique_lock<mutex> lock(mMutex);
+
 	DLOG(mLog, DEBUG) << "Frame handler";
 
 	wl_callback_destroy(mWlFrameCallback);
 
 	mWlFrameCallback = nullptr;
 
+	sendCallback();
+
+	if (mWaitForFrame)
+	{
+		mWaitForFrame = false;
+
+		LOG(mLog, DEBUG) << "Surface is active";
+	}
+	else
+	{
+		mCondVar.notify_one();
+	}
+}
+
+void Surface::sendCallback()
+{
 	if (mStoredCallback)
 	{
 		mStoredCallback();
+
+		mStoredCallback = nullptr;
 	}
+}
+
+void Surface::run()
+{
+	unique_lock<mutex> lock(mMutex);
+
+	while(!mTerminate)
+	{
+		if (!mStoredCallback)
+		{
+			mCondVar.wait(lock);
+		}
+		else
+		{
+			if (mWaitForFrame ||
+				!mCondVar.wait_for(lock, milliseconds(cFrameTimeoutMs),
+								   [this] { return !mStoredCallback; }))
+			{
+				if (!mWaitForFrame)
+				{
+					mWaitForFrame = true;
+
+					LOG(mLog, DEBUG) << "Surface is inactive";
+				}
+
+				sendCallback();
+			}
+		}
+	}
+}
+
+void Surface::stop()
+{
+	unique_lock<mutex> lock(mMutex);
+
+	mTerminate = true;
+
+	mCondVar.notify_one();
 }
 
 void Surface::init(wl_compositor* compositor)
@@ -115,11 +184,18 @@ void Surface::init(wl_compositor* compositor)
 
 	mWlFrameListener = { sFrameHandler };
 
+	mThread = thread(&Surface::run, this);
+
 	LOG(mLog, DEBUG) << "Create: " << mWlSurface;
 }
 
 void Surface::release()
 {
+	if (mThread.joinable())
+	{
+		mThread.join();
+	}
+
 	if (mWlFrameCallback)
 	{
 		wl_callback_destroy(mWlFrameCallback);
