@@ -191,6 +191,8 @@ void Surface::init(wl_compositor* compositor)
 
 void Surface::release()
 {
+	stop();
+
 	if (mThread.joinable())
 	{
 		mThread.join();
