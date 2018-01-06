@@ -53,6 +53,16 @@ BuffersStorage::BuffersStorage(domid_t domId, DisplayPtr display) :
 
 }
 
+BuffersStorage::~BuffersStorage()
+{
+	mFrameBuffers.clear();
+
+	mDisplay->flush();
+
+	mDisplayBuffers.clear();
+	mPendingDisplayBuffers.clear();
+}
+
 /*******************************************************************************
  * Public
  ******************************************************************************/
@@ -177,17 +187,6 @@ void BuffersStorage::destroyFrameBuffer(uint64_t fbCookie)
 					  << hex << setfill('0') << setw(16) << fbCookie;
 
 	mFrameBuffers.erase(fbCookie);
-}
-
-void BuffersStorage::destroyFrameBuffers()
-{
-	mFrameBuffers.clear();
-}
-
-void BuffersStorage::destroyDisplayBuffers()
-{
-	mDisplayBuffers.clear();
-	mPendingDisplayBuffers.clear();
 }
 
 /*******************************************************************************

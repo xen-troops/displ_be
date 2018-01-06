@@ -49,6 +49,7 @@ public:
 	 * @param display display object
 	 */
 	BuffersStorage(domid_t domId, DisplayItf::DisplayPtr display);
+	~BuffersStorage();
 
 	/**
 	 * Creates display buffer
@@ -99,16 +100,6 @@ public:
 	 * @param fbCookie frame buffer cookie
 	 */
 	void destroyFrameBuffer(uint64_t fbCookie);
-
-	/**
-	 * Destroys frame buffers
-	 */
-	void destroyFrameBuffers();
-
-	/**
-	 * Destroys display buffers
-	 */
-	void destroyDisplayBuffers();
 
 private:
 
