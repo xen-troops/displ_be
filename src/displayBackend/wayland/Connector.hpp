@@ -188,6 +188,8 @@ public:
 	void release() override
 	{
 		mIviSurface.reset();
+
+		onRelease();
 	}
 
 private:

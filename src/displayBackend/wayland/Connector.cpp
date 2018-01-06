@@ -41,6 +41,11 @@ Connector::Connector(const std::string& name, CompositorPtr compositor) :
 
 Connector::~Connector()
 {
+	if (isInitialized())
+	{
+		release();
+	}
+
 	LOG(mLog, DEBUG) << "Delete, name: " << mName;
 }
 
