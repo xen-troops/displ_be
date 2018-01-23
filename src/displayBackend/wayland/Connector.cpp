@@ -95,9 +95,12 @@ void Connector::onRelease()
 {
 	LOG(mLog, DEBUG) << "Release, name: " << mName;
 
-	SurfaceManager::getInstance().deleteSurface(mName, mSurface->mWlSurface);
+	if (mSurface)
+	{
+		SurfaceManager::getInstance().deleteSurface(mName, mSurface->mWlSurface);
 
-	mSurface.reset();
+		mSurface.reset();
+	}
 }
 
 }
