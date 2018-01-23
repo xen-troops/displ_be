@@ -28,13 +28,6 @@ using std::setw;
 
 using DisplayItf::DisplayBufferPtr;
 
-#ifndef DRM_FORMAT_ARGB8888
-#define DRM_FORMAT_ARGB8888           0x34325241
-#endif
-#ifndef DRM_FORMAT_XRGB8888
-#define DRM_FORMAT_XRGB8888           0x34325258
-#endif
-
 namespace Wayland {
 
 /*******************************************************************************
@@ -118,21 +111,6 @@ SharedBuffer::~SharedBuffer()
 	release();
 }
 
-uint32_t SharedBuffer::convertPixelFormat(uint32_t format)
-{
-	if (format == DRM_FORMAT_ARGB8888)
-	{
-		return WL_SHM_FORMAT_ARGB8888;
-	}
-
-	if (format == DRM_FORMAT_XRGB8888)
-	{
-		return WL_SHM_FORMAT_XRGB8888;
-	}
-
-	return format;
-}
-
 void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 {
 	mWlPool = wl_shm_create_pool(wlSharedMemory, mDisplayBuffer->getFd(),
@@ -145,7 +123,7 @@ void SharedBuffer::init(wl_shm* wlSharedMemory, uint32_t pixelFormat)
 
 	mWlBuffer = wl_shm_pool_create_buffer(mWlPool, 0, mWidth, mHeight,
 										  mDisplayBuffer->getStride(),
-										  convertPixelFormat(pixelFormat));
+										  pixelFormat);
 
 	if (!mWlBuffer)
 	{

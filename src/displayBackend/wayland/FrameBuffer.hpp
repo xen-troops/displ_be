@@ -115,8 +115,6 @@ private:
 
 	void init(wl_shm* wlSharedMemory, uint32_t pixelFormat);
 	void release();
-
-	uint32_t convertPixelFormat(uint32_t format);
 };
 
 typedef std::shared_ptr<SharedBuffer> SharedBufferPtr;
