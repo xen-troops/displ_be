@@ -22,6 +22,7 @@
 #ifndef SRC_WAYLAND_WAYLANDDRM_HPP_
 #define SRC_WAYLAND_WAYLANDDRM_HPP_
 
+#include <list>
 #include <mutex>
 #include <string>
 
@@ -30,6 +31,7 @@
 #include "drm/Display.hpp"
 #include "Registry.hpp"
 #include "wayland-drm-client-protocol.h"
+#include "wayland-kms-client-protocol.h"
 
 namespace Wayland {
 
@@ -56,6 +58,8 @@ protected:
 
 	std::mutex mMutex;
 
+	std::list<uint32_t> mSupportedFormats;
+
 	WaylandZCopy(wl_registry* registry, uint32_t id, uint32_t version);
 
 	virtual void authenticate() = 0;
@@ -63,6 +67,8 @@ protected:
 	void onDevice(const std::string& name);
 	void onFormat(uint32_t format);
 	void onAuthenticated();
+
+	bool isPixelFormatSupported(uint32_t format);
 };
 
 /***************************************************************************//**

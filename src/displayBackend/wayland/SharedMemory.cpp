@@ -7,14 +7,24 @@
 
 #include "SharedMemory.hpp"
 
+#include <algorithm>
+
 #include "Exception.hpp"
 
+using std::find;
 using std::hex;
 using std::setfill;
 using std::setw;
 
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::GrantRefs;
+
+#ifndef DRM_FORMAT_ARGB8888
+#define DRM_FORMAT_ARGB8888           0x34325241
+#endif
+#ifndef DRM_FORMAT_XRGB8888
+#define DRM_FORMAT_XRGB8888           0x34325258
+#endif
 
 namespace Wayland {
 
@@ -63,10 +73,17 @@ SharedBufferPtr SharedMemory::createSharedBuffer(
 {
 	LOG(mLog, DEBUG) << "Create shared buffer";
 
+	auto format = convertPixelFormat(pixelFormat);
+
+	if (!isPixelFormatSupported(format))
+	{
+		throw Exception("Unsupported pixel format", EINVAL);
+	}
+
 	return SharedBufferPtr(new SharedBuffer(mWlSharedMemory,
 											displayBuffer,
 											width, height,
-											pixelFormat));
+											format));
 }
 
 /*******************************************************************************
@@ -82,6 +99,8 @@ void SharedMemory::formatHandler(uint32_t format)
 {
 	LOG(mLog, DEBUG) << "Format: 0x" << hex << setfill('0') << setw(8)
 					 << format;
+
+	mSupportedFormats.push_back(format);
 }
 
 void SharedMemory::init()
@@ -111,6 +130,30 @@ void SharedMemory::release()
 
 		LOG(mLog, DEBUG) << "Delete";
 	}
+}
+
+uint32_t SharedMemory::convertPixelFormat(uint32_t format)
+{
+	// WL format matches DRM format except two following values
+	// (see: wl_shm_format)
+
+	if (format == DRM_FORMAT_ARGB8888)
+	{
+		return WL_SHM_FORMAT_ARGB8888;
+	}
+
+	if (format == DRM_FORMAT_XRGB8888)
+	{
+		return WL_SHM_FORMAT_XRGB8888;
+	}
+
+	return format;
+}
+
+bool SharedMemory::isPixelFormatSupported(uint32_t format)
+{
+	return find(mSupportedFormats.begin(), mSupportedFormats.end(), format)
+		   != mSupportedFormats.end();
 }
 
 }

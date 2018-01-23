@@ -8,6 +8,7 @@
 #ifndef SRC_WAYLAND_SHAREDMEMORY_HPP_
 #define SRC_WAYLAND_SHAREDMEMORY_HPP_
 
+#include <list>
 #include <memory>
 
 #include <xen/be/Log.hpp>
@@ -62,12 +63,17 @@ private:
 
 	wl_shm_listener mWlListener;
 
+	std::list<uint32_t> mSupportedFormats;
+
 	static void sFormatHandler(void *data, wl_shm *wlShm, uint32_t format);
 
 	void formatHandler(uint32_t format);
 
 	void init();
 	void release();
+
+	uint32_t convertPixelFormat(uint32_t format);
+	bool isPixelFormatSupported(uint32_t format);
 };
 
 typedef std::shared_ptr<SharedMemory> SharedMemoryPtr;

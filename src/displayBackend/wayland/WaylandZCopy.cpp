@@ -19,10 +19,14 @@
  *
  */
 
-#include "Exception.hpp"
-#include "FrameBuffer.hpp"
 #include "WaylandZCopy.hpp"
 
+#include <algorithm>
+
+#include "Exception.hpp"
+#include "FrameBuffer.hpp"
+
+using std::find;
 using std::lock_guard;
 using std::mutex;
 using std::string;
@@ -103,6 +107,8 @@ void WaylandZCopy::onFormat(uint32_t format)
 	lock_guard<mutex> lock(mMutex);
 
 	LOG(mLog, DEBUG) << "onFormat format: 0x" << std::hex << format;
+
+	mSupportedFormats.push_back(format);
 }
 
 void WaylandZCopy::onAuthenticated()
@@ -112,6 +118,12 @@ void WaylandZCopy::onAuthenticated()
 	LOG(mLog, DEBUG) << "onAuthenticated";
 
 	mIsAuthenticated = true;
+}
+
+bool WaylandZCopy::isPixelFormatSupported(uint32_t format)
+{
+	return find(mSupportedFormats.begin(), mSupportedFormats.end(), format)
+		   != mSupportedFormats.end();
 }
 
 /*******************************************************************************
@@ -150,6 +162,11 @@ WaylandDrm::createDrmBuffer(DisplayBufferPtr displayBuffer,
 							uint32_t pixelFormat)
 {
 	lock_guard<mutex> lock(mMutex);
+
+	if (!isPixelFormatSupported(pixelFormat))
+	{
+		throw Exception("Unsupported pixel format", EINVAL);
+	}
 
 	return  FrameBufferPtr(new DrmBuffer(mWlDrm, displayBuffer, width,
 												height, pixelFormat));
@@ -256,6 +273,11 @@ WaylandKms::createKmsBuffer(DisplayBufferPtr displayBuffer,
 							uint32_t pixelFormat)
 {
 	lock_guard<mutex> lock(mMutex);
+
+	if (!isPixelFormatSupported(pixelFormat))
+	{
+		throw Exception("Unsupported pixel format", EINVAL);
+	}
 
 	return  FrameBufferPtr(new KmsBuffer(mWlKms, displayBuffer, width,
 										 height, pixelFormat));
