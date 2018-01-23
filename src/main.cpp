@@ -92,12 +92,17 @@ void segmentationHandler(int sig)
 
 	backtrace_symbols_fd(array, size, STDERR_FILENO);
 
-	exit(EXIT_FAILURE);
+	raise(sig);
 }
 
 void registerSignals()
 {
-	signal(SIGSEGV, segmentationHandler);
+	struct sigaction act {};
+
+	act.sa_handler = segmentationHandler;
+	act.sa_flags = SA_RESETHAND;
+
+	sigaction(SIGSEGV, &act, nullptr);
 }
 
 void waitSignals()
