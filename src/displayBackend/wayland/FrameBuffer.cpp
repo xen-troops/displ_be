@@ -23,6 +23,8 @@
 #include "FrameBuffer.hpp"
 
 using std::hex;
+using std::lock_guard;
+using std::mutex;
 using std::setfill;
 using std::setw;
 
@@ -39,12 +41,20 @@ WlBuffer::WlBuffer(DisplayBufferPtr displayBuffer,
 	mWidth(width),
 	mHeight(height),
 	mWlBuffer(nullptr),
-	mLog("WlBuffer")
+	mLog("WlBuffer"),
+	mSurface(nullptr)
 {
 }
 
 WlBuffer::~WlBuffer()
 {
+	lock_guard<mutex> lock(mMutex);
+
+	if (mSurface)
+	{
+		mSurface->clear();
+	}
+
 	if (mWlBuffer)
 	{
 		wl_buffer_destroy(mWlBuffer);
@@ -81,7 +91,19 @@ void WlBuffer::sOnRelease(void *data, wl_buffer *wlBuffer)
 
 void WlBuffer::onRelease()
 {
+	lock_guard<mutex> lock(mMutex);
+
 	LOG(mLog, DEBUG) << "Release";
+
+	mSurface = nullptr;
+}
+
+
+void WlBuffer::setSurface(Surface* surface)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	mSurface = surface;
 }
 
 /*******************************************************************************
