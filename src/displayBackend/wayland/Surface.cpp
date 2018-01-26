@@ -8,6 +8,7 @@
 #include "Surface.hpp"
 
 #include "Exception.hpp"
+#include "FrameBuffer.hpp"
 
 using std::chrono::milliseconds;
 using std::mutex;
@@ -25,6 +26,7 @@ namespace Wayland {
 Surface::Surface(wl_compositor* compositor) :
 	mWlSurface(nullptr),
 	mWlFrameCallback(nullptr),
+	mBuffer(nullptr),
 	mTerminate(false),
 	mWaitForFrame(false),
 	mLog("Surface")
@@ -80,6 +82,13 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 		}
 	}
 
+	mBuffer = dynamic_cast<WlBuffer*>(frameBuffer.get());
+
+	if (mBuffer)
+	{
+		mBuffer->setSurface(this);
+	}
+
 	wl_surface_damage(mWlSurface, 0, 0,
 					  frameBuffer->getWidth(), frameBuffer->getHeight());
 
@@ -90,6 +99,19 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 	wl_surface_commit(mWlSurface);
 
 	mCondVar.notify_one();
+}
+
+void Surface::clear()
+{
+	unique_lock<mutex> lock(mMutex);
+
+	DLOG(mLog, DEBUG) << "Clear";
+
+	mBuffer = nullptr;
+
+	wl_surface_attach(mWlSurface, nullptr, 0, 0);
+
+	wl_surface_commit(mWlSurface);
 }
 
 /*******************************************************************************
@@ -191,7 +213,14 @@ void Surface::init(wl_compositor* compositor)
 
 void Surface::release()
 {
+	clear();
+
 	stop();
+
+	if (mBuffer)
+	{
+		mBuffer->setSurface(nullptr);
+	}
 
 	if (mThread.joinable())
 	{

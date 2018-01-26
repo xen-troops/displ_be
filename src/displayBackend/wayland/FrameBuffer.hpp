@@ -22,9 +22,13 @@
 #ifndef SRC_WAYLAND_FRAMEBUFFER_HPP_
 #define SRC_WAYLAND_FRAMEBUFFER_HPP_
 
+#include <mutex>
+
 #include <wayland-client.h>
 
 #include <xen/be/Log.hpp>
+
+#include "Surface.hpp"
 
 #include "DisplayItf.hpp"
 
@@ -71,6 +75,8 @@ public:
 		return mDisplayBuffer;
 	}
 
+	void setSurface(Surface* surface);
+
 protected:
 
 	DisplayItf::DisplayBufferPtr mDisplayBuffer;
@@ -87,6 +93,10 @@ protected:
 private:
 
 	wl_buffer_listener mWlListener;
+
+	Surface* mSurface;
+
+	std::mutex mMutex;
 
 	static void sOnRelease(void *data, wl_buffer *wlBuffer);
 	void onRelease();

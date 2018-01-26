@@ -20,6 +20,8 @@
 
 namespace Wayland {
 
+class WlBuffer;
+
 /***************************************************************************//**
  * Wayland surface class.
  * @ingroup wayland
@@ -43,6 +45,11 @@ public:
 	void draw(DisplayItf::FrameBufferPtr frameBuffer,
 			  FrameCallback callback = nullptr);
 
+	/**
+	 * Clear surface
+	 */
+	void clear();
+
 private:
 
 	friend class Display;
@@ -58,6 +65,7 @@ private:
 
 	wl_surface* mWlSurface;
 	wl_callback *mWlFrameCallback;
+	WlBuffer* mBuffer;
 	bool mTerminate;
 	bool mWaitForFrame;
 	XenBackend::Log mLog;
