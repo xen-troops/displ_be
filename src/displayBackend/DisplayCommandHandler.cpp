@@ -216,6 +216,14 @@ void DisplayCommandHandler::setConfig(const xendispl_req& req)
 
 	if (configReq->fb_cookie != 0)
 	{
+		if (mConnector->isInitialized())
+		{
+			LOG(mLog, DEBUG) << "Connector " << mConnector->getName()
+							 << " is reinitialized";
+
+			mConnector->release();
+		}
+
 		mConnector->init(configReq->width, configReq->height,
 				mBuffersStorage->getFrameBufferAndCopy(configReq->fb_cookie));
 	}
