@@ -218,7 +218,7 @@ void Display::start()
 		return;
 	}
 
-	mStarted = false;
+	mStarted = true;
 
 	mThread = thread(&Display::eventThread, this);
 }
@@ -238,6 +238,8 @@ void Display::stop()
 	{
 		mThread.join();
 	}
+
+	mStarted = false;
 }
 
 void Display::flush()
@@ -373,8 +375,6 @@ void Display::eventThread()
 
 		kill(getpid(), SIGTERM);
 	}
-
-	mStarted = false;
 }
 
 void Display::handleFlipEvent(int fd, unsigned int sequence,
