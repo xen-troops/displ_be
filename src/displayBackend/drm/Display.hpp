@@ -190,7 +190,7 @@ private:
 
 	static std::unordered_map<int, std::string> sConnectorNames;
 
-	std::atomic_bool mStarted;
+	bool mStarted;
 
 	std::thread mThread;
 
