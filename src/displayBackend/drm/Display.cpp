@@ -141,6 +141,11 @@ DisplayZCopy::DisplayZCopy(const string& name) :
 DisplayZCopy::~DisplayZCopy()
 {
 	LOG(mLog, DEBUG) << "Delete Drm ZCopy: " << mZCopyFd;
+
+	if (mZCopyFd >= 0)
+	{
+		drmClose(mZCopyFd);
+	}
 }
 
 /*******************************************************************************
