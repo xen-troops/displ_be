@@ -219,6 +219,9 @@ DumbZCopyFront::DumbZCopyFront(int drmFd, int zCopyFd,
 							   uint32_t width, uint32_t height, uint32_t bpp,
 							   domid_t domId, const GrantRefs& refs) :
 	DumbBase(drmFd, width, height),
+	mBufZCopyHandle(0),
+	mBufZCopyFd(-1),
+	mBufZCopyWaitHandle(0),
 	mZCopyFd(zCopyFd)
 {
 	try
@@ -257,7 +260,7 @@ void DumbZCopyFront::createDumb(uint32_t bpp, domid_t domId,
 
 	if (drmIoctl(mZCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_FROM_REFS, &mapreq) < 0)
 	{
-		throw Exception("Cannot create dumb", -errno);
+		throw Exception("Cannot create dumb", errno);
 	}
 
 	mStride = mapreq.dumb.pitch;
@@ -384,6 +387,8 @@ DumbZCopyBack::DumbZCopyBack(int drmFd, int zCopyFd,
 							 uint32_t width, uint32_t height, uint32_t bpp,
 							 domid_t domId, GrantRefs& refs) :
 	DumbBase(drmFd, width, height),
+	mBufZCopyHandle(0),
+	mBufDrmFd(-1),
 	mZCopyFd(zCopyFd)
 {
 	try
