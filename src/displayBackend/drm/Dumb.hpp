@@ -184,6 +184,11 @@ public:
 	 */
 	int getFd() const override { return mBufZCopyFd; };
 
+protected:
+
+	uint32_t mBufZCopyHandle;
+	int mBufZCopyFd;
+
 private:
 
 	/**
@@ -192,10 +197,8 @@ private:
 	 */
 	const int cBufZCopyWaitHandleToMs = 2000;
 
-	int mZCopyFd;
-	uint32_t mBufZCopyHandle;
-	uint32_t mBufZCopyFd;
 	uint32_t mBufZCopyWaitHandle;
+	int mZCopyFd;
 
 	void createDumb(uint32_t bpp, domid_t domId,
 					const DisplayItf::GrantRefs& refs);
@@ -236,14 +239,7 @@ public:
 	 */
 	int getFd() const override { return mDrmFd; };
 
-protected:
-
-	uint32_t mBufZCopyHandle;
-	uint32_t mBufZCopyFd;
-
 private:
-
-	int mZCopyFd;
 
 	void createDumb(uint32_t bpp, domid_t domId,
 					const DisplayItf::GrantRefs& refs);
@@ -277,20 +273,17 @@ public:
 	/**
 	 * Get handle
 	 */
-	virtual uintptr_t getHandle() const override { return mBufDrmHandle; }
+	uintptr_t getHandle() const override { return mBufDrmHandle; }
 
 	/**
 	 * Gets fd
 	 */
 	int getFd() const override { return mBufDrmFd; };
 
-protected:
-
-	uint32_t mBufZCopyHandle;
-	uint32_t mBufDrmFd;
-
 private:
 
+	uint32_t mBufZCopyHandle;
+	int mBufDrmFd;
 	int mZCopyFd;
 
 	void createHandle();
