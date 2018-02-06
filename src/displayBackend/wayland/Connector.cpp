@@ -68,6 +68,11 @@ void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 {
 	DLOG(mLog, DEBUG) << "Page flip, name: " << mName;
 
+	if (!isInitialized())
+	{
+		throw Exception("Connector is not initialized", EPERM);
+	}
+
 	mSurface->draw(frameBuffer, cbk);
 }
 
