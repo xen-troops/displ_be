@@ -57,26 +57,24 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 
 	DLOG(mLog, DEBUG) << "Draw";
 
-	if (mStoredCallback)
-	{
-		throw Exception("Draw event is in progress", EPERM);
-	}
-
 	mStoredCallback = callback;
 
 	if (mStoredCallback && !mWaitForFrame)
 	{
-		mWlFrameCallback = wl_surface_frame(mWlSurface);
-
 		if (!mWlFrameCallback)
 		{
-			throw Exception("Can't get frame callback", errno);
-		}
+			mWlFrameCallback = wl_surface_frame(mWlSurface);
 
-		if (wl_callback_add_listener(mWlFrameCallback,
-				&mWlFrameListener, this) < 0)
-		{
-			throw Exception("Can't add listener", errno);
+			if (!mWlFrameCallback)
+			{
+				throw Exception("Can't get frame callback", errno);
+			}
+
+			if (wl_callback_add_listener(mWlFrameCallback,
+					&mWlFrameListener, this) < 0)
+			{
+				throw Exception("Can't add listener", errno);
+			}
 		}
 	}
 
