@@ -76,9 +76,11 @@ public:
 	 * @param width       width
 	 * @param height      height
 	 * @param frameBuffer frame buffer
+	 * @param cbk         callback which will be called when page flip is done
 	 */
 	void init(uint32_t width, uint32_t height,
-			  DisplayItf::FrameBufferPtr frameBuffer) override;
+			  DisplayItf::FrameBufferPtr frameBuffer,
+			  FlipCallback cbk) override;
 
 	/**
 	 * Releases the previously initialized CRTC mode

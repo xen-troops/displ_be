@@ -164,7 +164,7 @@ public:
 	 * @param frameBuffer frame buffer
 	 */
 	virtual void init(uint32_t width, uint32_t height,
-					  FrameBufferPtr frameBuffer) = 0;
+					  FrameBufferPtr frameBuffer, FlipCallback cbk) = 0;
 
 	/**
 	 * Releases initialized connector

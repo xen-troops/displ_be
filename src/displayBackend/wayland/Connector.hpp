@@ -69,9 +69,11 @@ public:
 	 * @param width       width
 	 * @param height      height
 	 * @param frameBuffer frame buffer
+	 * @param cbk         callback
 	 */
 	void init(uint32_t width, uint32_t height,
-			  DisplayItf::FrameBufferPtr frameBuffer) override;
+			  DisplayItf::FrameBufferPtr frameBuffer,
+			  FlipCallback cbk) override;
 
 	/**
 	 * Releases initialized connector
@@ -90,7 +92,8 @@ protected:
 
 	CompositorPtr mCompositor;
 
-	void onInit(SurfacePtr surface, DisplayItf::FrameBufferPtr frameBuffer);
+	void onInit(SurfacePtr surface, DisplayItf::FrameBufferPtr frameBuffer,
+				FlipCallback cbk);
 	void onRelease();
 
 private:
@@ -119,9 +122,11 @@ public:
 	 * @param width       width
 	 * @param height      height
 	 * @param frameBuffer frame buffer
+	 * @param cbk         callback
 	 */
 	void init(uint32_t width, uint32_t height,
-			  DisplayItf::FrameBufferPtr frameBuffer) override
+			  DisplayItf::FrameBufferPtr frameBuffer,
+			  FlipCallback cbk) override
 	{
 		if (!mShellSurface)
 		{
@@ -130,7 +135,7 @@ public:
 			mShellSurface->setTopLevel();
 		}
 
-		onInit(mShellSurface->getSurface(), frameBuffer);
+		onInit(mShellSurface->getSurface(), frameBuffer, cbk);
 	}
 
 	/**
@@ -169,9 +174,11 @@ public:
 	 * @param width       width
 	 * @param height      height
 	 * @param frameBuffer frame buffer
+	 * @param cbk         callback
 	 */
 	void init(uint32_t width, uint32_t height,
-			  DisplayItf::FrameBufferPtr frameBuffer) override
+			  DisplayItf::FrameBufferPtr frameBuffer,
+			  FlipCallback cbk) override
 	{
 		if (!mIviSurface)
 		{
@@ -179,7 +186,7 @@ public:
 					mCompositor->createSurface(), mSurfaceId);
 		}
 
-		onInit(mIviSurface->getSurface(), frameBuffer);
+		onInit(mIviSurface->getSurface(), frameBuffer, cbk);
 	}
 
 	/**
