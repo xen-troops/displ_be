@@ -54,9 +54,9 @@ Connector::~Connector()
  ******************************************************************************/
 
 void Connector::init(uint32_t width, uint32_t height,
-					 FrameBufferPtr frameBuffer)
+					 FrameBufferPtr frameBuffer, FlipCallback cbk)
 {
-	onInit(mCompositor->createSurface(), frameBuffer);
+	onInit(mCompositor->createSurface(), frameBuffer, cbk);
 }
 
 void Connector::release()
@@ -80,7 +80,8 @@ void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
  * Protected
  ******************************************************************************/
 
-void Connector::onInit(SurfacePtr surface, FrameBufferPtr frameBuffer)
+void Connector::onInit(SurfacePtr surface, FrameBufferPtr frameBuffer,
+					   FlipCallback cbk)
 {
 	LOG(mLog, DEBUG) << "Init, name: " << mName;
 
@@ -93,7 +94,7 @@ void Connector::onInit(SurfacePtr surface, FrameBufferPtr frameBuffer)
 
 	SurfaceManager::getInstance().createSurface(mName, mSurface->mWlSurface);
 
-	mSurface->draw(frameBuffer);
+	mSurface->draw(frameBuffer, cbk);
 }
 
 void Connector::onRelease()

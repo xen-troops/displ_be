@@ -79,7 +79,7 @@ Connector::~Connector()
  ******************************************************************************/
 
 void Connector::init(uint32_t width, uint32_t height,
-					 FrameBufferPtr frameBuffer)
+					 FrameBufferPtr frameBuffer, FlipCallback cbk)
 {
 	lock_guard<mutex> lock(sMutex);
 
@@ -115,6 +115,9 @@ void Connector::init(uint32_t width, uint32_t height,
 
 	mSavedCrtc = drmModeGetCrtc(mFd, mCrtcId);
 
+	mFlipPending = true;
+	mFlipCallback = cbk;
+
 	if (drmModeSetCrtc(mFd, mCrtcId, fbId, 0, 0,
 					   &mConnector->connector_id, 1, mode))
 	{
@@ -149,11 +152,6 @@ void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 	if (!isInitialized())
 	{
 		throw Exception("Connector is not initialized", EINVAL);
-	}
-
-	if (mFlipPending)
-	{
-		throw Exception("Page flip already scheduled", EINVAL);
 	}
 
 	mFlipPending = true;

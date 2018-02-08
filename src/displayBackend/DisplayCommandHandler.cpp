@@ -214,7 +214,9 @@ void DisplayCommandHandler::setConfig(const xendispl_req& req)
 					  << hex << setfill('0') << setw(16)
 					  << configReq->fb_cookie;
 
-	if (configReq->fb_cookie != 0)
+	auto cookie = configReq->fb_cookie;
+
+	if (cookie != 0)
 	{
 		if (mConnector->isInitialized())
 		{
@@ -225,7 +227,8 @@ void DisplayCommandHandler::setConfig(const xendispl_req& req)
 		}
 
 		mConnector->init(configReq->width, configReq->height,
-				mBuffersStorage->getFrameBufferAndCopy(configReq->fb_cookie));
+				mBuffersStorage->getFrameBufferAndCopy(cookie),
+				[cookie, this] () { sendFlipEvent(cookie); });
 	}
 	else
 	{
