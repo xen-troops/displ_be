@@ -211,14 +211,14 @@ void Surface::init(wl_compositor* compositor)
 
 void Surface::release()
 {
-	clear();
-
-	stop();
-
 	if (mBuffer)
 	{
 		mBuffer->setSurface(nullptr);
 	}
+
+	clear();
+
+	stop();
 
 	if (mThread.joinable())
 	{
