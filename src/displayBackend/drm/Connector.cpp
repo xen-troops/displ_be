@@ -79,7 +79,7 @@ Connector::~Connector()
  ******************************************************************************/
 
 void Connector::init(uint32_t width, uint32_t height,
-					 FrameBufferPtr frameBuffer, FlipCallback cbk)
+					 FrameBufferPtr frameBuffer)
 {
 	lock_guard<mutex> lock(sMutex);
 
@@ -114,9 +114,6 @@ void Connector::init(uint32_t width, uint32_t height,
 	}
 
 	mSavedCrtc = drmModeGetCrtc(mFd, mCrtcId);
-
-	mFlipPending = true;
-	mFlipCallback = cbk;
 
 	if (drmModeSetCrtc(mFd, mCrtcId, fbId, 0, 0,
 					   &mConnector->connector_id, 1, mode))
