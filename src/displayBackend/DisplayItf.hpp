@@ -22,6 +22,7 @@
 #define SRC_DISPLAYITF_HPP_
 
 #include <exception>
+#include <functional>
 #include <memory>
 #include <vector>
 
