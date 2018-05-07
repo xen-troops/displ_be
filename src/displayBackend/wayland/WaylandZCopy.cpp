@@ -53,31 +53,15 @@ WaylandZCopy::WaylandZCopy(wl_registry* registry,
  * Public
  ******************************************************************************/
 
-bool WaylandZCopy::isZeroCopySupported()
-{
-	lock_guard<mutex> lock(mMutex);
-
-	if (mDrmDevice && mDrmDevice->isZeroCopySupported() && mIsAuthenticated)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-/*******************************************************************************
- * Public
- ******************************************************************************/
-
 DisplayBufferPtr
 WaylandZCopy::createDumb(uint32_t width, uint32_t height, uint32_t bpp,
 						 domid_t domId, GrantRefs& refs, bool allocRefs)
 {
 	lock_guard<mutex> lock(mMutex);
 
-	if (mDrmDevice && mDrmDevice->isZeroCopySupported())
+	if (mDrmDevice)
 	{
-		return mDrmDevice->createZCopyBuffer(width, height, bpp,
+		return mDrmDevice->createDisplayBuffer(width, height, bpp,
 											 domId, refs, allocRefs);
 	}
 
@@ -94,12 +78,9 @@ void WaylandZCopy::onDevice(const string& name)
 
 	LOG(mLog, DEBUG) << "onDevice name: " << name;
 
-	mDrmDevice.reset(new Drm::DisplayZCopy(name));
+	mDrmDevice.reset(new Drm::DisplayWayland(name));
 
-	if (mDrmDevice->isZeroCopySupported())
-	{
-		authenticate();
-	}
+	authenticate();
 }
 
 void WaylandZCopy::onFormat(uint32_t format)

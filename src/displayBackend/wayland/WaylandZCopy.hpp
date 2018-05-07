@@ -43,8 +43,6 @@ class WaylandZCopy : public Registry
 {
 public:
 
-	bool isZeroCopySupported();
-
 	DisplayItf::DisplayBufferPtr createDumb(
 			uint32_t width, uint32_t height, uint32_t bpp,
 			domid_t domId, DisplayItf::GrantRefs& refs, bool allocRefs);
@@ -54,7 +52,7 @@ protected:
 	bool mIsAuthenticated;
 	XenBackend::Log mLog;
 
-	std::unique_ptr<Drm::DisplayZCopy> mDrmDevice;
+	std::unique_ptr<Drm::DisplayWayland> mDrmDevice;
 
 	std::mutex mMutex;
 

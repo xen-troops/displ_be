@@ -179,13 +179,13 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 #ifdef WITH_ZCOPY
 
-	if (mWaylandDrm && mWaylandDrm->isZeroCopySupported())
+	if (mWaylandDrm)
 	{
 		return mWaylandDrm->createDumb(width, height, bpp,
 									   domId, refs, allocRefs);
 	}
 
-	if (mWaylandKms && mWaylandKms->isZeroCopySupported())
+	if (mWaylandKms)
 	{
 		return mWaylandKms->createDumb(width, height, bpp,
 									   domId, refs, allocRefs);
@@ -209,13 +209,13 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 
 #ifdef WITH_ZCOPY
 
-	if (mWaylandDrm  && mWaylandDrm->isZeroCopySupported())
+	if (mWaylandDrm)
 	{
 		return mWaylandDrm->createDrmBuffer(displayBuffer, width, height,
 											pixelFormat);
 	}
 
-	if (mWaylandKms && mWaylandKms->isZeroCopySupported())
+	if (mWaylandKms)
 	{
 		return mWaylandKms->createKmsBuffer(displayBuffer, width, height,
 											pixelFormat);

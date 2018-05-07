@@ -40,85 +40,10 @@ namespace Drm {
  ******************************************************************************/
 
 /***************************************************************************//**
- * DRM DisplayBase class.
- * @ingroup drm
- ******************************************************************************/
-class DisplayBase
-{
-public:
-
-	/**
-	 * @param name device name
-	 */
-	explicit DisplayBase(const std::string& name);
-
-	virtual ~DisplayBase();
-
-	/**
-	 * Returns DRM magic
-	 */
-	drm_magic_t getMagic();
-
-protected:
-
-	std::string mName;
-	int mDrmFd;
-	XenBackend::Log mLog;
-
-	std::mutex mMutex;
-};
-
-#ifdef WITH_ZCOPY
-/***************************************************************************//**
- * DRM DisplayZCopy class.
- * @ingroup drm
- ******************************************************************************/
-class DisplayZCopy : public DisplayBase
-{
-public:
-
-	/**
-	 * @param name device name
-	 */
-	explicit DisplayZCopy(const std::string& name);
-
-	virtual ~DisplayZCopy();
-
-	/**
-	 * Returns if display supports zero copy buffers
-	 */
-	bool isZeroCopySupported() const { return (mZCopyFd >= 0); }
-
-	/**
-	 * Creates display zero copy buffer with associated grand table buffer
-	 * @param width  width
-	 * @param height height
-	 * @param bpp    bits per pixel
-	 * @param domId  domain id
-	 * @param refs   grant table references
-	 * @return shared pointer to the display buffer
-	 */
-	DisplayItf::DisplayBufferPtr createZCopyBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp,
-			domid_t domId, DisplayItf::GrantRefs& refs,
-			bool allocRefs);
-
-protected:
-
-	int mZCopyFd;
-};
-
-#endif
-
-/***************************************************************************//**
  * DRM Display class.
  * @ingroup drm
  ******************************************************************************/
-#ifdef WITH_ZCOPY
-class Display : public DisplayItf::Display, public DisplayZCopy
-#else
-class Display : public DisplayItf::Display, public DisplayBase
-#endif
+class Display : public DisplayItf::Display
 {
 public:
 
@@ -128,6 +53,11 @@ public:
 	explicit Display(const std::string& name);
 
 	~Display();
+
+	/**
+	 * Returns DRM magic
+	 */
+	drm_magic_t getMagic();
 
 	/**
 	 * Starts events handling
@@ -186,9 +116,15 @@ public:
 			DisplayItf::DisplayBufferPtr displayBuffer,
 			uint32_t width,uint32_t height, uint32_t pixelFormat) override;
 
-private:
+protected:
+	int mDrmFd;
+	std::mutex mMutex;
+	XenBackend::Log mLog;
 
+private:
 	static std::unordered_map<int, std::string> sConnectorNames;
+
+	std::string mName;
 
 	bool mStarted;
 
@@ -207,6 +143,33 @@ private:
 
 	friend class FrameBuffer;
 };
+
+#if defined(WITH_WAYLAND) && defined(WITH_ZCOPY)
+/***************************************************************************//**
+ * DRM Wayland Display class.
+ * @ingroup drm
+ ******************************************************************************/
+class DisplayWayland : public Display
+{
+public:
+
+	using Display::Display;
+
+	/**
+	 * Creates display buffer with associated grand table buffer
+	 * @param width  width
+	 * @param height height
+	 * @param bpp    bits per pixel
+	 * @param domId  domain id
+	 * @param refs   grant table references
+	 * @return shared pointer to the display buffer
+	 */
+	DisplayItf::DisplayBufferPtr createDisplayBuffer(
+			uint32_t width, uint32_t height, uint32_t bpp,
+			domid_t domId, DisplayItf::GrantRefs& refs,
+			bool allocRefs) override;
+};
+#endif /* WITH_WAYLAND */
 
 typedef std::shared_ptr<Display> DisplayPtr;
 

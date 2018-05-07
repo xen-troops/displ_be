@@ -163,12 +163,11 @@ public:
 
 	/**
 	 * @param drmFd    DRM file descriptor
-	 * @param zCopyFd  ZCopy file descriptor
 	 * @param width    dumb width
 	 * @param height   dumb height
 	 * @param bpp      bits per pixel
 	 */
-	DumbZCopyFront(int drmFd, int zCopyFd,
+	DumbZCopyFront(int drmFd,
 				   uint32_t width, uint32_t height, uint32_t bpp,
 				   domid_t domId, const DisplayItf::GrantRefs& refs);
 
@@ -177,7 +176,7 @@ public:
 	/**
 	 * Get handle
 	 */
-	virtual uintptr_t getHandle() const override { return mBufZCopyHandle; }
+	virtual uintptr_t getHandle() const override { return -1; }
 
 	/**
 	 * Gets fd
@@ -186,7 +185,8 @@ public:
 
 protected:
 
-	uint32_t mBufZCopyHandle;
+	XenBackend::XenGnttabDmaBufferExporter mGnttabBuffer;
+
 	int mBufZCopyFd;
 
 private:
@@ -197,12 +197,8 @@ private:
 	 */
 	const int cBufZCopyWaitHandleToMs = 2000;
 
-	uint32_t mBufZCopyWaitHandle;
-	int mZCopyFd;
-
 	void createDumb(uint32_t bpp, domid_t domId,
 					const DisplayItf::GrantRefs& refs);
-	void getBufFd();
 
 	void init(uint32_t bpp, domid_t domId, const DisplayItf::GrantRefs& refs);
 	void release();
@@ -218,12 +214,11 @@ public:
 
 	/**
 	 * @param drmFd    DRM file descriptor
-	 * @param zCopyFd  ZCopy file descriptor
 	 * @param width    dumb width
 	 * @param height   dumb height
 	 * @param bpp      bits per pixel
 	 */
-	DumbZCopyFrontDrm(int drmFd, int zCopyFd,
+	DumbZCopyFrontDrm(int drmFd,
 					  uint32_t width, uint32_t height, uint32_t bpp,
 					  domid_t domId, const DisplayItf::GrantRefs& refs);
 
@@ -259,12 +254,11 @@ public:
 
 	/**
 	 * @param drmFd    DRM file descriptor
-	 * @param zCopyFd  ZCopy file descriptor
 	 * @param width    dumb width
 	 * @param height   dumb height
 	 * @param bpp      bits per pixel
 	 */
-	DumbZCopyBack(int drmFd, int zCopyFd,
+	DumbZCopyBack(int drmFd,
 				  uint32_t width, uint32_t height, uint32_t bpp,
 				  domid_t domId, DisplayItf::GrantRefs& refs);
 
@@ -282,11 +276,11 @@ public:
 
 private:
 
-	uint32_t mBufZCopyHandle;
-	int mBufDrmFd;
-	int mZCopyFd;
+	std::unique_ptr<XenBackend::XenGnttabDmaBufferImporter> mGnttabBuffer;
 
-	void createHandle();
+	int mBufDrmFd;
+
+	void getBufDrmFd();
 
 	void getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs);
 
