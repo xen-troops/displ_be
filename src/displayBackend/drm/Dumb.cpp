@@ -29,7 +29,7 @@
 
 #ifdef WITH_ZCOPY
 #include <fcntl.h>
-#include <drm/xen_zcopy_drm.h>
+#include <xen/be/XenGnttab.hpp>
 #endif
 
 #include "Exception.hpp"
@@ -37,6 +37,7 @@
 using std::string;
 
 using XenBackend::XenGnttabBuffer;
+using XenBackend::XenGnttabDmaBufferImporter;
 
 using DisplayItf::GrantRefs;
 
@@ -111,7 +112,7 @@ void DumbBase::createDumb(uint32_t bpp)
  ******************************************************************************/
 
 DumbDrm::DumbDrm(int drmFd, uint32_t width, uint32_t height, uint32_t bpp,
-				 domid_t domId, const DisplayItf::GrantRefs& refs) :
+				 domid_t domId, const GrantRefs& refs) :
 	DumbBase(drmFd, width, height),
 	mBuffer(nullptr)
 {
@@ -215,142 +216,51 @@ void DumbDrm::release()
  * DumbZCopyFront
  ******************************************************************************/
 
-DumbZCopyFront::DumbZCopyFront(int drmFd, int zCopyFd,
+DumbZCopyFront::DumbZCopyFront(int drmFd,
 							   uint32_t width, uint32_t height, uint32_t bpp,
 							   domid_t domId, const GrantRefs& refs) :
 	DumbBase(drmFd, width, height),
-	mBufZCopyHandle(0),
-	mBufZCopyFd(-1),
-	mBufZCopyWaitHandle(0),
-	mZCopyFd(zCopyFd)
+	mGnttabBuffer(domId, refs)
 {
-	try
-	{
-		init(bpp, domId, refs);
-	}
-	catch(const std::exception& e)
-	{
-		release();
-
-		throw;
-	}
+	mBufZCopyFd = mGnttabBuffer.getFd();
+	mStride = 4 * ((width * bpp + 31) / 32);
+	DLOG(mLog, DEBUG) << "Fd: " << mBufZCopyFd;
 }
 
 DumbZCopyFront::~DumbZCopyFront()
 {
-	release();
-}
+	DLOG(mLog, DEBUG) << "Will delete ZCopy front dumb"
+					  << ", fd: " << mBufZCopyFd;
 
-/*******************************************************************************
- * Private
- ******************************************************************************/
-
-void DumbZCopyFront::createDumb(uint32_t bpp, domid_t domId,
-							  const GrantRefs& refs)
-{
-	drm_xen_zcopy_dumb_from_refs mapreq {0};
-
-	mapreq.otherend_id = domId;
-	mapreq.grefs = const_cast<grant_ref_t*>(refs.data());
-	mapreq.num_grefs = refs.size();
-
-	mapreq.dumb.width = mWidth;
-	mapreq.dumb.height = mHeight;
-	mapreq.dumb.bpp = bpp;
-
-	if (drmIoctl(mZCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_FROM_REFS, &mapreq) < 0)
+	int ret = mGnttabBuffer.waitForReleased(cBufZCopyWaitHandleToMs);
+	if (ret < 0)
 	{
-		throw Exception("Cannot create dumb", errno);
+		ret = errno;
 	}
 
-	mStride = mapreq.dumb.pitch;
-	mSize = mapreq.dumb.size;
-	mBufZCopyHandle = mapreq.dumb.handle;
-	mBufZCopyWaitHandle = mapreq.wait_handle;
-}
-
-void DumbZCopyFront::getBufFd()
-{
-	drm_prime_handle prime {0};
-
-	prime.handle = mBufZCopyHandle;
-
-	prime.flags = DRM_CLOEXEC;
-
-	if (drmIoctl(mZCopyFd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &prime) < 0)
+	if (ret && ret != ENOENT)
 	{
-		throw Exception("Cannot export prime buffer", errno);
+		DLOG(mLog, ERROR) << "Wait for buffer failed, force releasing"
+						  << ", error: " << strerror(ret)
+						  << ", fd: " << mBufZCopyFd;
 	}
 
-	mBufZCopyFd = prime.fd;
-}
-
-void DumbZCopyFront::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
-{
-
-	createDumb(bpp, domId, refs);
-	getBufFd();
-
-	DLOG(mLog, DEBUG) << "Create ZCopy front dumb, domId: " << domId
-					  << ", handle: " << mBufZCopyHandle
-					  << ", fd: " << mBufZCopyFd
-					  << ", size: " << mSize << ", stride: " << mStride;
-}
-
-void DumbZCopyFront::release()
-{
-	if (mBufZCopyHandle != 0)
-	{
-		drm_gem_close closeReq {};
-
-		closeReq.handle = mBufZCopyHandle;
-
-		drmIoctl(mZCopyFd, DRM_IOCTL_GEM_CLOSE, &closeReq);
-
-		close(mBufZCopyFd);
-
-		drm_xen_zcopy_dumb_wait_free waitReq {};
-
-		waitReq.wait_handle = mBufZCopyWaitHandle;
-		waitReq.wait_to_ms = cBufZCopyWaitHandleToMs;
-
-		auto ret = drmIoctl(mZCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_WAIT_FREE,
-							&waitReq);
-
-		if (ret < 0)
-		{
-			ret = errno;
-		}
-
-		if (ret && ret != ENOENT)
-		{
-			DLOG(mLog, ERROR) << "Wait for buffer failed, force releasing"
-							  << ", error: " << strerror(ret)
-							  << ", handle: " << mBufZCopyHandle
-							  << ", fd: " << mBufZCopyFd
-							  << ", wait handle: " << mBufZCopyWaitHandle;
-		}
-
-		DLOG(mLog, DEBUG) << "Delete ZCopy front dumb"
-						  << ", handle: " << mBufZCopyHandle
-						  << ", fd: " << mBufZCopyFd
-						  << ", wait handle: " << mBufZCopyWaitHandle;
-	}
+	DLOG(mLog, DEBUG) << "Delete ZCopy front dumb"
+					  << ", fd: " << mBufZCopyFd;
 }
 
 /*******************************************************************************
  * DumbZCopyFrontDrm
  ******************************************************************************/
 
-DumbZCopyFrontDrm::DumbZCopyFrontDrm(int drmFd, int zCopyFd,
+DumbZCopyFrontDrm::DumbZCopyFrontDrm(int drmFd,
 									 uint32_t width, uint32_t height,
 									 uint32_t bpp, domid_t domId,
 									 const GrantRefs& refs) :
-	DumbZCopyFront(drmFd, zCopyFd, width, height, bpp, domId, refs)
+	DumbZCopyFront(drmFd, width, height, bpp, domId, refs)
 {
 	drm_prime_handle prime {0};
 
-	prime.handle = mBufZCopyHandle;
 	prime.fd = mBufZCopyFd;
 	prime.flags = DRM_CLOEXEC;
 
@@ -383,13 +293,11 @@ DumbZCopyFrontDrm::~DumbZCopyFrontDrm()
  * DumbZCopyBack
  ******************************************************************************/
 
-DumbZCopyBack::DumbZCopyBack(int drmFd, int zCopyFd,
+DumbZCopyBack::DumbZCopyBack(int drmFd,
 							 uint32_t width, uint32_t height, uint32_t bpp,
 							 domid_t domId, GrantRefs& refs) :
 	DumbBase(drmFd, width, height),
-	mBufZCopyHandle(0),
-	mBufDrmFd(-1),
-	mZCopyFd(zCopyFd)
+	mBufDrmFd(-1)
 {
 	try
 	{
@@ -412,7 +320,7 @@ DumbZCopyBack::~DumbZCopyBack()
  * Private
  ******************************************************************************/
 
-void DumbZCopyBack::createHandle()
+void DumbZCopyBack::getBufDrmFd()
 {
 	drm_prime_handle prime {0};
 
@@ -426,38 +334,19 @@ void DumbZCopyBack::createHandle()
 	}
 
 	mBufDrmFd = prime.fd;
-
-	prime.flags = DRM_CLOEXEC;
-
-	if (drmIoctl(mZCopyFd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime) < 0)
-	{
-		throw Exception("Cannot import prime buffer", errno);
-	}
-
-	mBufZCopyHandle = prime.handle;
 }
 
 void DumbZCopyBack::getGrantRefs(domid_t domId, GrantRefs& refs)
 {
-	drm_xen_zcopy_dumb_to_refs mapreq {0};
+	refs.assign((mSize + XC_PAGE_SIZE - 1) / XC_PAGE_SIZE, 0);
 
-	refs.resize((mSize + XC_PAGE_SIZE - 1) / XC_PAGE_SIZE);
-
-	mapreq.otherend_id = domId;
-	mapreq.handle = mBufZCopyHandle;
-	mapreq.grefs = refs.data();
-	mapreq.num_grefs = refs.size();
-
-	if (drmIoctl(mZCopyFd, DRM_IOCTL_XEN_ZCOPY_DUMB_TO_REFS, &mapreq) < 0)
-	{
-		throw Exception("Cannot convert dumb buffer to refs", errno);
-	}
+	mGnttabBuffer.reset(new XenGnttabDmaBufferImporter(domId, mBufDrmFd, refs));
 }
 
 void DumbZCopyBack::init(uint32_t bpp, domid_t domId, GrantRefs& refs)
 {
 	createDumb(bpp);
-	createHandle();
+	getBufDrmFd();
 	getGrantRefs(domId, refs);
 
 	DLOG(mLog, DEBUG) << "Create ZCopy back dumb, domId: " << domId
@@ -468,14 +357,7 @@ void DumbZCopyBack::init(uint32_t bpp, domid_t domId, GrantRefs& refs)
 
 void DumbZCopyBack::release()
 {
-	if (mBufZCopyHandle)
-	{
-		drm_gem_close closeReq {};
-
-		closeReq.handle = mBufZCopyHandle;
-
-		drmIoctl(mZCopyFd, DRM_IOCTL_GEM_CLOSE, &closeReq);
-	}
+	mGnttabBuffer.reset();
 
 	if (mBufDrmHandle)
 	{
