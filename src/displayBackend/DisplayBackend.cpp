@@ -126,7 +126,7 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
 
 	ref = getXenStore().readInt(conPath + XENDISPL_FIELD_REQ_RING_REF);
 
-	auto id = getXenStore().readString(conPath + "id");
+	auto id = getXenStore().readString(conPath + XENDISPL_FIELD_UNIQUE_ID);
 
 	auto connector = mDisplay->createConnector(id);
 
