@@ -242,8 +242,7 @@ void InputFrontendHandler::onBind()
 	grant_ref_t ref = getXenStore().readUint(
 			getXsFrontendPath() + "/" XENKBD_FIELD_RING_GREF);
 
-	auto id = getXenStore().readString(getXsFrontendPath() + "/id");
-
+	auto id = getXenStore().readString(getXsBackendPath() + "/" XENKBD_FIELD_UNIQUE_ID);
 
 	bool isReqAbs = false;
 	bool isReqMTouch = false;
