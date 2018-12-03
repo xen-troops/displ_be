@@ -212,6 +212,7 @@ uint32_t BuffersStorage::getBpp(uint32_t format)
 	case DRM_FORMAT_BGRA5551:
 	case DRM_FORMAT_RGB565:
 	case DRM_FORMAT_BGR565:
+	case DRM_FORMAT_YUYV:
 		return 16;
 
 	case DRM_FORMAT_RGB888:
