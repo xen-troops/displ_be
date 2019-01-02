@@ -120,14 +120,8 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 
 	Connector* connector = nullptr;
 
-	if (mShell)
-	{
-		connector = new ShellConnector(name, mShell, mCompositor);
-
-		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
-	}
 #ifdef WITH_IVI_EXTENSION
-	else if (mIviApplication)
+	if (mIviApplication)
 	{
 		uint32_t surfaceId = 0;
 
@@ -145,7 +139,14 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 
 		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
 	}
+	else
 #endif
+	if (mShell)
+	{
+		connector = new ShellConnector(name, mShell, mCompositor);
+
+		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
+	}
 	else
 	{
 		connector = new Connector(name, mCompositor);
