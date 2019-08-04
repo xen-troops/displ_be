@@ -98,12 +98,12 @@ The backend can redirect input events either from real input devices or from Way
 
 Domain configuration for vkb:
 ```
-vkb = [ 'backend=DomD,backend-type=linux,multi-touch-width=1920,multi-touch-height=1080,multi-touch-num-contacts=10,id=T:1000' ]
+vkb = [ 'backend=DomD,backend-type=linux,multi-touch-width=1920,multi-touch-height=1080,multi-touch-num-contacts=10,unique-id=T:1000' ]
 ```
 The backend will redirect touch events from the surface with id 1000 to the configured domain.
 
 ```
-vkb = [ 'backend=DomD,backend-type=linux,multi-touch-width=1920,multi-touch-height=1080,multi-touch-num-contacts=10,id=K:/dev/input/event0;T:1000' ]
+vkb = [ 'backend=DomD,backend-type=linux,multi-touch-width=1920,multi-touch-height=1080,multi-touch-num-contacts=10,unique-id=K:/dev/input/event0;T:1000' ]
 ```
 The backend will redirect keyboard events from /dev/input/event0 device and touch events from the surface with id 1000 to the configured domain.
 
