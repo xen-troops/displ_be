@@ -202,6 +202,16 @@ uint32_t BuffersStorage::getBpp(uint32_t format)
 	case DRM_FORMAT_BGR233:
 		return 8;
 
+	/*
+	 * TODO: Don't claim support of NV12 when "zerocopy" is used since
+	 * the lack of ability to handle such "multiple plane" formats.
+	 * So treat that pixel format as supported only when "memcopy" is used.
+	 */
+#ifndef WITH_ZCOPY
+	case DRM_FORMAT_NV12:
+		return 12;
+#endif
+
 	case DRM_FORMAT_XRGB1555:
 	case DRM_FORMAT_XBGR1555:
 	case DRM_FORMAT_RGBX5551:
