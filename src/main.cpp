@@ -247,10 +247,10 @@ int main(int argc, char *argv[])
 
 #ifdef WITH_INPUT
 #ifdef WITH_WAYLAND
-			InputBackend inputBackend(XENKBD_DRIVER_NAME,
+			InputBackend inputBackend("vinput",
 					dynamic_pointer_cast<Wayland::Display>(display));
 #else
-			InputBackend inputBackend(XENKBD_DRIVER_NAME);
+			InputBackend inputBackend("vinput");
 #endif
 			inputBackend.start();
 #endif

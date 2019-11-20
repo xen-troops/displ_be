@@ -343,11 +343,11 @@ void InputBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
 #ifdef WITH_WAYLAND
 	addFrontendHandler(FrontendHandlerPtr(
-			new InputFrontendHandler(getDeviceName(), getDomId(),
+			new InputFrontendHandler(XENKBD_DRIVER_NAME, getDomId(),
 									 domId, devId, mDisplay)));
 #else
 	addFrontendHandler(FrontendHandlerPtr(
-			new InputFrontendHandler(getDeviceName(), getDomId(),
+			new InputFrontendHandler(XENKBD_DRIVER_NAME, getDomId(),
 									 domId, devId)));
 #endif
 }
