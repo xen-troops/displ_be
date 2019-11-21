@@ -225,9 +225,8 @@ void InputRingBuffer::onFrame(int32_t id)
  ******************************************************************************/
 
 InputFrontendHandler::InputFrontendHandler(const string& devName,
-										   domid_t beDomId, domid_t feDomId,
-										   uint16_t devId) :
-	FrontendHandlerBase("VkbdFrontend", devName, beDomId, feDomId, devId),
+										   domid_t domId, uint16_t devId) :
+	FrontendHandlerBase("VkbdFrontend", devName, domId, devId),
 	mLog("VkbdFrontend")
 {
 	setBackendState(XenbusStateInitWait);
@@ -343,11 +342,10 @@ void InputBackend::onNewFrontend(domid_t domId, uint16_t devId)
 {
 #ifdef WITH_WAYLAND
 	addFrontendHandler(FrontendHandlerPtr(
-			new InputFrontendHandler(XENKBD_DRIVER_NAME, getDomId(),
+			new InputFrontendHandler(XENKBD_DRIVER_NAME,
 									 domId, devId, mDisplay)));
 #else
 	addFrontendHandler(FrontendHandlerPtr(
-			new InputFrontendHandler(XENKBD_DRIVER_NAME, getDomId(),
-									 domId, devId)));
+			new InputFrontendHandler(XENKBD_DRIVER_NAME, domId, devId)));
 #endif
 }
