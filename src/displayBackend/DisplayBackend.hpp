@@ -76,15 +76,14 @@ public:
 
 	/**
 	 * @param display   display
-	 * @param backend   backend instance
+	 * @param devName   device name
 	 * @param domId     frontend domain id
 	 * @param devId     frontend device id
 	 */
 	DisplayFrontendHandler(DisplayItf::DisplayPtr display,
 						   const std::string& devName,
-						   domid_t beDomId, domid_t feDomId, uint16_t devId) :
-		FrontendHandlerBase("DisplFrontend", devName,
-							beDomId, feDomId, devId),
+						   domid_t domId, uint16_t devId) :
+		FrontendHandlerBase("DisplFrontend", devName, domId, devId),
 		mDisplay(display),
 		mLog("DisplFrontend") {}
 

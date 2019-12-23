@@ -100,18 +100,17 @@ public:
 
 	/**
 	 * @param devName      device name
-	 * @param beDomId      backend domain id
-	 * @param feDomId      frontend domain id
+	 * @param domId        frontend domain id
 	 * @param devId        frontend device id
 	 */
 	InputFrontendHandler(const std::string& devName,
-						 domid_t beDomId, domid_t feDomId, uint16_t devId);
+						 domid_t domId, uint16_t devId);
 
 #ifdef WITH_WAYLAND
 	InputFrontendHandler(const std::string& devName,
-			 	 	 	 domid_t beDomId, domid_t feDomId, uint16_t devId,
+			 	 	 	 domid_t domId, uint16_t devId,
 						 Wayland::DisplayPtr display) :
-		InputFrontendHandler(devName, beDomId, feDomId, devId)
+		InputFrontendHandler(devName, domId, devId)
 		{ mDisplay = display; }
 #endif
 
