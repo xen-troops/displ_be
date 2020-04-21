@@ -220,16 +220,19 @@ public:
 	 * @param width  width
 	 * @param height height
 	 * @param bpp    bits per pixel
+	 * @param offset offset of the data in the buffer
 	 * @return shared pointer to the display buffer
 	 */
 	virtual DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp) = 0;
+			uint32_t width, uint32_t height, uint32_t bpp,
+			size_t offset) = 0;
 
 	/**
 	 * Creates display buffer with associated grant table buffer
 	 * @param width     width
 	 * @param height    height
 	 * @param bpp       bits per pixel
+	 * @param offset    offset of the data in the buffer
 	 * @param domId     domain ID
 	 * @param refs      vector of grant table reference
 	 * @param allocRefs indicates that grant refs should be allocated on
@@ -237,7 +240,7 @@ public:
 	 * @return shared pointer to the display buffer
 	 */
 	virtual DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp,
+			uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
 			uint16_t domId, GrantRefs& refs, bool allocRefs) = 0;
 
 	/**

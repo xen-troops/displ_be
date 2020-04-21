@@ -85,22 +85,25 @@ public:
 	 * @param width  width
 	 * @param height height
 	 * @param bpp    bits per pixel
+	 * @param offset offset of the data in the buffer
 	 * @return shared pointer to the display buffer
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp) override;
+			uint32_t width, uint32_t height, uint32_t bpp,
+			size_t offset) override;
 
 	/**
 	 * Creates display buffer with associated grand table buffer
 	 * @param width  width
 	 * @param height height
 	 * @param bpp    bits per pixel
+	 * @param offset offset of the data in the buffer
 	 * @param domId  domain id
 	 * @param refs   grant table references
 	 * @return shared pointer to the display buffer
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp,
+			uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
 			domid_t domId, DisplayItf::GrantRefs& refs,
 			bool allocRefs) override;
 
@@ -160,12 +163,13 @@ public:
 	 * @param width  width
 	 * @param height height
 	 * @param bpp    bits per pixel
+	 * @param offset offset of the data in the buffer
 	 * @param domId  domain id
 	 * @param refs   grant table references
 	 * @return shared pointer to the display buffer
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp,
+			uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
 			domid_t domId, DisplayItf::GrantRefs& refs,
 			bool allocRefs) override;
 };

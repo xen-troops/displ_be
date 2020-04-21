@@ -55,13 +55,14 @@ WaylandZCopy::WaylandZCopy(wl_registry* registry,
 
 DisplayBufferPtr
 WaylandZCopy::createDumb(uint32_t width, uint32_t height, uint32_t bpp,
-						 domid_t domId, GrantRefs& refs, bool allocRefs)
+						 size_t offset, domid_t domId, GrantRefs& refs,
+						 bool allocRefs)
 {
 	lock_guard<mutex> lock(mMutex);
 
 	if (mDrmDevice)
 	{
-		return mDrmDevice->createDisplayBuffer(width, height, bpp,
+		return mDrmDevice->createDisplayBuffer(width, height, bpp, offset,
 											 domId, refs, allocRefs);
 	}
 

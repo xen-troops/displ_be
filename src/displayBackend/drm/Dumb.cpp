@@ -112,13 +112,13 @@ void DumbBase::createDumb(uint32_t bpp)
  ******************************************************************************/
 
 DumbDrm::DumbDrm(int drmFd, uint32_t width, uint32_t height, uint32_t bpp,
-				 domid_t domId, const GrantRefs& refs) :
+				 size_t offset, domid_t domId, const GrantRefs& refs) :
 	DumbBase(drmFd, width, height),
 	mBuffer(nullptr)
 {
 	try
 	{
-		init(bpp, domId, refs);
+		init(bpp, offset, domId, refs);
 	}
 	catch(const std::exception& e)
 	{
@@ -175,12 +175,14 @@ void DumbDrm::mapDumb()
 	mBuffer = map;
 }
 
-void DumbDrm::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
+void DumbDrm::init(uint32_t bpp, size_t offset,
+				   domid_t domId, const GrantRefs& refs)
 {
 	if (refs.size())
 	{
 		mGnttabBuffer.reset(
-				new XenGnttabBuffer(domId, refs.data(), refs.size()));
+				new XenGnttabBuffer(domId, refs.data(), refs.size(),
+									PROT_READ | PROT_WRITE, offset));
 	}
 
 	createDumb(bpp);
@@ -218,9 +220,10 @@ void DumbDrm::release()
 
 DumbZCopyFront::DumbZCopyFront(int drmFd,
 							   uint32_t width, uint32_t height, uint32_t bpp,
-							   domid_t domId, const GrantRefs& refs) :
+							   size_t offset, domid_t domId,
+							   const GrantRefs& refs) :
 	DumbBase(drmFd, width, height),
-	mGnttabBuffer(domId, refs)
+	mGnttabBuffer(domId, refs, offset)
 {
 	mBufZCopyFd = mGnttabBuffer.getFd();
 	mStride = 4 * ((width * bpp + 31) / 32);
@@ -255,9 +258,9 @@ DumbZCopyFront::~DumbZCopyFront()
 
 DumbZCopyFrontDrm::DumbZCopyFrontDrm(int drmFd,
 									 uint32_t width, uint32_t height,
-									 uint32_t bpp, domid_t domId,
+									 uint32_t bpp, size_t offset, domid_t domId,
 									 const GrantRefs& refs) :
-	DumbZCopyFront(drmFd, width, height, bpp, domId, refs)
+	DumbZCopyFront(drmFd, width, height, bpp, offset, domId, refs)
 {
 	drm_prime_handle prime {0};
 

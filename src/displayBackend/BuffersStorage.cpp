@@ -69,7 +69,7 @@ BuffersStorage::~BuffersStorage()
 
 void BuffersStorage::createDisplayBuffer(uint64_t dbCookie, bool beAllocRefs,
 										 grant_ref_t startDirectory,
-										 uint32_t size,
+										 size_t offset, uint32_t size,
 										 uint32_t width, uint32_t height,
 										 uint32_t bpp)
 {
@@ -92,23 +92,25 @@ void BuffersStorage::createDisplayBuffer(uint64_t dbCookie, bool beAllocRefs,
 
 		DLOG(mLog, DEBUG) << "Create pending display buffer, start dir: "
 						  << startDirectory
-						  << ", size: " << size << ", DB cookie: 0x"
+						  << ", size: " << size << ", offset: " << offset
+						  << ", DB cookie: 0x"
 						  << hex << setfill('0') << setw(16)
 						  << dbCookie;
 
-		mPendingDisplayBuffers.emplace(dbCookie, refs);
+		mPendingDisplayBuffers.emplace(dbCookie, PendingBuffer{offset, refs});
 	}
 	else
 	{
 		DLOG(mLog, DEBUG) << "Create display buffer, w: "
 						  << width << ", h: " << height << ", bpp: " << bpp
+						  << ", offset: " << offset
 						  << ", start dir: " << startDirectory
 						  << ", size: " << size << ", DB cookie: 0x"
 						  << hex << setfill('0') << setw(16)
 						  << dbCookie;
 
 		auto displayBuffer = mDisplay->createDisplayBuffer(width, height, bpp,
-														   mDomId, refs,
+														   offset, mDomId, refs,
 														   beAllocRefs);
 
 		mDisplayBuffers.emplace(dbCookie, displayBuffer);
@@ -260,12 +262,15 @@ void BuffersStorage::handlePendingDisplayBuffers(uint64_t dbCookie,
 
 		DLOG(mLog, DEBUG) << "Create display buffer from pending, w: "
 						  << width << ", h: " << height << ", bpp: " << bpp
+						  << ", offset: " << iter->second.offset
 						  << ", DB cookie: 0x"
 						  << hex << setfill('0') << setw(16)
 						  << dbCookie;
 
 		auto displayBuffer = mDisplay->createDisplayBuffer(width, height, bpp,
-														   mDomId, iter->second,
+														   iter->second.offset,
+														   mDomId,
+														   iter->second.refs,
 														   false);
 
 		mDisplayBuffers.emplace(dbCookie, displayBuffer);

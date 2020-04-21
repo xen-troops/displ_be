@@ -160,20 +160,20 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
-		uint32_t width, uint32_t height, uint32_t bpp)
+		uint32_t width, uint32_t height, uint32_t bpp, size_t offset)
 {
 	lock_guard<mutex> lock(mMutex);
 
 	if (mSharedMemory)
 	{
-		return mSharedMemory->createSharedFile(width, height, bpp);
+		return mSharedMemory->createSharedFile(width, height, bpp, offset);
 	}
 
 	throw Exception("Can't create display buffer", ENOENT);
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
-		uint32_t width, uint32_t height, uint32_t bpp,
+		uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
 		domid_t domId, GrantRefs& refs, bool allocRefs)
 {
 	lock_guard<mutex> lock(mMutex);
@@ -182,19 +182,19 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 	if (mWaylandDrm)
 	{
-		return mWaylandDrm->createDumb(width, height, bpp,
+		return mWaylandDrm->createDumb(width, height, bpp, offset,
 									   domId, refs, allocRefs);
 	}
 
 	if (mWaylandKms)
 	{
-		return mWaylandKms->createDumb(width, height, bpp,
+		return mWaylandKms->createDumb(width, height, bpp, offset,
 									   domId, refs, allocRefs);
 	}
 
 	if (mWaylandLinuxDmabuf)
 	{
-		return mWaylandLinuxDmabuf->createDumb(width, height, bpp,
+		return mWaylandLinuxDmabuf->createDumb(width, height, bpp, offset,
 											   domId, refs, allocRefs);
 	}
 
@@ -202,7 +202,8 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 	if (mSharedMemory)
 	{
-		return mSharedMemory->createSharedFile(width, height, bpp, domId, refs);
+		return mSharedMemory->createSharedFile(width, height, bpp, offset,
+											   domId, refs);
 	}
 
 	throw Exception("Can't create display buffer", ENOENT);
