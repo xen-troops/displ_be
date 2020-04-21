@@ -56,6 +56,22 @@ if(NOT WITH_DRM AND WITH_ZCOPY)
 endif()
 
 ################################################################################
+# Try compile tests
+################################################################################
+
+# Older displif protocol header had its version defined as a string,
+# so we need a check if we can safely test protocol version with a cpp
+# preprocessor
+try_compile(WITH_DISPLIF_INT_VERSION
+	"${CMAKE_BINARY_DIR}/cmake"
+	"${CMAKE_SOURCE_DIR}/cmake/compile_test_displif_v1.cpp"
+)
+
+if(WITH_DISPLIF_INT_VERSION)
+	add_definitions(-DWITH_DISPLIF_INT_VERSION)
+endif()
+
+################################################################################
 # Compiler flags
 ################################################################################
 
