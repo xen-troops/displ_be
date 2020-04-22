@@ -32,6 +32,7 @@
 #include "Registry.hpp"
 #include "wayland-drm-client-protocol.h"
 #include "wayland-kms-client-protocol.h"
+#include "linux-dmabuf-unstable-v1-client-protocol.h"
 
 namespace Wayland {
 
@@ -141,6 +142,45 @@ private:
 };
 
 typedef std::shared_ptr<WaylandKms> WaylandKmsPtr;
+
+/***************************************************************************//**
+ * Wayland Linux dmabuf class.
+ * @ingroup wayland
+ ******************************************************************************/
+class WaylandLinuxDmabuf : public WaylandZCopy
+{
+public:
+
+	~WaylandLinuxDmabuf();
+
+	DisplayItf::FrameBufferPtr createLinuxDmabufBuffer(
+			DisplayItf::DisplayBufferPtr displayBuffer,
+			uint32_t width,uint32_t height, uint32_t pixelFormat);
+
+private:
+
+	zwp_linux_dmabuf_v1* mWlLinuxDmabuf;
+	zwp_linux_dmabuf_v1_listener mWlListener;
+
+	friend class Display;
+
+	WaylandLinuxDmabuf(wl_registry* registry, uint32_t id, uint32_t version);
+
+	static void sOnModifiers(void *data,
+							 zwp_linux_dmabuf_v1 *zwpLinuxDmabuf,
+							 uint32_t format, uint32_t modifierHi,
+							 uint32_t modifierLo);
+	static void sOnFormat(void *data,
+						  zwp_linux_dmabuf_v1 *zwpLinuxDmabuf,
+						  uint32_t format);
+
+	virtual void authenticate() override {};
+
+	void init(uint32_t version);
+	void release();
+};
+
+typedef std::shared_ptr<WaylandLinuxDmabuf> WaylandLinuxDmabufPtr;
 
 }
 

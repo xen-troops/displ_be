@@ -441,6 +441,10 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	{
 		mWaylandKms.reset(new WaylandKms(registry, id, version));
 	}
+	if (interface == "zwp_linux_dmabuf_v1")
+	{
+		mWaylandLinuxDmabuf.reset(new WaylandLinuxDmabuf(registry, id, version));
+	}
 #endif
 }
 
@@ -501,6 +505,7 @@ void Display::release()
 #ifdef WITH_ZCOPY
 	mWaylandDrm.reset();
 	mWaylandKms.reset();
+	mWaylandLinuxDmabuf.reset();
 #endif
 
 	if (mWlRegistry)
