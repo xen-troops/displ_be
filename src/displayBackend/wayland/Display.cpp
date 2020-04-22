@@ -192,6 +192,12 @@ DisplayBufferPtr Display::createDisplayBuffer(
 									   domId, refs, allocRefs);
 	}
 
+	if (mWaylandLinuxDmabuf)
+	{
+		return mWaylandLinuxDmabuf->createDumb(width, height, bpp,
+											   domId, refs, allocRefs);
+	}
+
 #endif
 
 	if (mSharedMemory)
@@ -220,6 +226,13 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 	{
 		return mWaylandKms->createKmsBuffer(displayBuffer, width, height,
 											pixelFormat);
+	}
+
+	if (mWaylandLinuxDmabuf)
+	{
+		return mWaylandLinuxDmabuf->createLinuxDmabufBuffer(displayBuffer,
+															width, height,
+															pixelFormat);
 	}
 
 #endif

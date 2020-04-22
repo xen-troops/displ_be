@@ -359,7 +359,8 @@ WaylandLinuxDmabuf::createLinuxDmabufBuffer(DisplayBufferPtr displayBuffer,
 		throw Exception("Unsupported pixel format", EINVAL);
 	}
 
-	return nullptr;
+	return  FrameBufferPtr(new LinuxDmabufBuffer(mWlLinuxDmabuf, displayBuffer,
+												 width, height, pixelFormat));
 }
 
 /*******************************************************************************
