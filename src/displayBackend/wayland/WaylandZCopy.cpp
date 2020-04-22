@@ -317,4 +317,113 @@ void WaylandKms::release()
 	}
 }
 
+/*******************************************************************************
+ * Linux dmabuf
+ ******************************************************************************/
+
+WaylandLinuxDmabuf::WaylandLinuxDmabuf(wl_registry* registry,
+									   uint32_t id, uint32_t version) :
+	WaylandZCopy(registry, id, version),
+	mWlLinuxDmabuf(nullptr)
+{
+	try
+	{
+		init(version);
+	}
+	catch(const std::exception& e)
+	{
+		release();
+
+		throw;
+	}
+}
+
+WaylandLinuxDmabuf::~WaylandLinuxDmabuf()
+{
+	release();
+}
+
+/*******************************************************************************
+ * Public
+ ******************************************************************************/
+
+FrameBufferPtr
+WaylandLinuxDmabuf::createLinuxDmabufBuffer(DisplayBufferPtr displayBuffer,
+											uint32_t width,uint32_t height,
+											uint32_t pixelFormat)
+{
+	lock_guard<mutex> lock(mMutex);
+
+	if (!isPixelFormatSupported(pixelFormat))
+	{
+		throw Exception("Unsupported pixel format", EINVAL);
+	}
+
+	return nullptr;
+}
+
+/*******************************************************************************
+ * Private
+ ******************************************************************************/
+
+void WaylandLinuxDmabuf::sOnModifiers(void *data,
+									  zwp_linux_dmabuf_v1 *zwpLinuxDmabuf,
+									  uint32_t format, uint32_t modifierHi,
+									  uint32_t modifierLo)
+{
+	/*
+	 * Modifiers are described at
+	 * https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_image_dma_buf_import_modifiers.txt
+	 *
+	 * We do not support passing modifiers from the frontend to the backend,
+	 * so ignore all formats with modifiers set.
+	 */
+	if (modifierHi == 0 && modifierLo == 0)
+	{
+		static_cast<WaylandLinuxDmabuf*>(data)->onFormat(format);
+	}
+}
+
+void WaylandLinuxDmabuf::sOnFormat(void *data,
+								   zwp_linux_dmabuf_v1 *zwpLinuxDmabuf,
+								   uint32_t format)
+{
+	/* This one is deprecated. */
+}
+
+void WaylandLinuxDmabuf::init(uint32_t version)
+{
+	if (version < ZWP_LINUX_DMABUF_V1_MODIFIER_SINCE_VERSION)
+	{
+		throw Exception("Unsupported protocol version", errno);
+	}
+
+	mWlLinuxDmabuf = static_cast<zwp_linux_dmabuf_v1*>(
+		bind(&zwp_linux_dmabuf_v1_interface));
+
+	if (!mWlLinuxDmabuf)
+	{
+		throw Exception("Can't bind Linux dmabuf", errno);
+	}
+
+	mWlListener = {sOnFormat, sOnModifiers};
+
+	if (zwp_linux_dmabuf_v1_add_listener(mWlLinuxDmabuf, &mWlListener, this) < 0)
+	{
+		throw Exception("Can't add listener", errno);
+	}
+
+	LOG(mLog, DEBUG) << "Create";
+}
+
+void WaylandLinuxDmabuf::release()
+{
+	if (mWlLinuxDmabuf)
+	{
+		zwp_linux_dmabuf_v1_destroy(mWlLinuxDmabuf);
+
+		LOG(mLog, DEBUG) << "Delete";
+	}
+}
+
 }

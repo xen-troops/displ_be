@@ -147,6 +147,7 @@ private:
 #ifdef WITH_ZCOPY
 	WaylandDrmPtr mWaylandDrm;
 	WaylandKmsPtr mWaylandKms;
+	WaylandLinuxDmabufPtr mWaylandLinuxDmabuf;
 #endif
 
 	mutable std::mutex mMutex;
