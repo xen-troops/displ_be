@@ -20,6 +20,7 @@
  */
 
 #include "Display.hpp"
+#include "DrmDeviceDetector.hpp"
 
 #include <fcntl.h>
 #include <signal.h>
@@ -75,6 +76,11 @@ Display::Display(const string& name) :
 	mName(name),
 	mStarted(false)
 {
+	if (name.empty())
+	{
+		mName = detectDrmDevice();
+	}
+
 	mDrmFd = open(mName.c_str(), O_RDWR | O_CLOEXEC);
 
 	if (mDrmFd < 0)
