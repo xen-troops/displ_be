@@ -414,6 +414,12 @@ void WaylandLinuxDmabuf::init(uint32_t version)
 		throw Exception("Can't add listener", errno);
 	}
 
+	/*
+	 * FIXME: Linux dmabuf interface doesn't provide any means to get the
+	 * required DRM KMS device file name, so we ask for auto-detection here.
+	 */
+	onDevice("");
+
 	LOG(mLog, DEBUG) << "Create";
 }
 
