@@ -1,4 +1,12 @@
 ################################################################################
+# Check packages
+################################################################################
+
+include(FindPkgConfig)
+
+pkg_check_modules (UDev REQUIRED libudev)
+
+################################################################################
 # Includes
 ################################################################################
 
@@ -9,6 +17,7 @@
 set(SOURCES
 	Connector.cpp
 	Display.cpp
+	DrmDeviceDetector.cpp
 	Dumb.cpp
 	FrameBuffer.cpp
 	Modes.cpp
@@ -24,4 +33,4 @@ add_library(display_drm STATIC ${SOURCES})
 # Libraries
 ################################################################################
 
-target_link_libraries(display_drm ${DRM_LIBRARIES})
+target_link_libraries(display_drm ${DRM_LIBRARIES} udev)
