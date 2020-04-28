@@ -48,9 +48,10 @@ namespace Wayland {
  * Display
  ******************************************************************************/
 
-Display::Display() :
+Display::Display(bool disable_zcopy) :
 	mWlDisplay(nullptr),
 	mWlRegistry(nullptr),
+	mDisableZCopy(disable_zcopy),
 	mLog("Display")
 {
 	try
@@ -447,17 +448,20 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	}
 #endif
 #ifdef WITH_ZCOPY
-	if (interface == "wl_drm")
+	if (!mDisableZCopy)
 	{
-		mWaylandDrm.reset(new WaylandDrm(registry, id, version));
-	}
-	if (interface == "wl_kms")
-	{
-		mWaylandKms.reset(new WaylandKms(registry, id, version));
-	}
-	if (interface == "zwp_linux_dmabuf_v1")
-	{
-		mWaylandLinuxDmabuf.reset(new WaylandLinuxDmabuf(registry, id, version));
+		if (interface == "wl_drm")
+		{
+			mWaylandDrm.reset(new WaylandDrm(registry, id, version));
+		}
+		if (interface == "wl_kms")
+		{
+			mWaylandKms.reset(new WaylandKms(registry, id, version));
+		}
+		if (interface == "zwp_linux_dmabuf_v1")
+		{
+			mWaylandLinuxDmabuf.reset(new WaylandLinuxDmabuf(registry, id, version));
+		}
 	}
 #endif
 }
