@@ -70,11 +70,12 @@ unordered_map<int, string> Display::sConnectorNames =
 /*******************************************************************************
  * Display
  ******************************************************************************/
-Display::Display(const string& name) :
+Display::Display(const string& name, bool disable_zcopy) :
 	mDrmFd(-1),
 	mLog("Drm"),
 	mName(name),
-	mStarted(false)
+	mStarted(false),
+	mDisableZCopy(disable_zcopy)
 {
 	if (name.empty())
 	{
@@ -209,19 +210,22 @@ DisplayBufferPtr Display::createDisplayBuffer(
 	lock_guard<mutex> lock(mMutex);
 
 #ifdef WITH_ZCOPY
-	LOG(mLog, DEBUG) << "Create display buffer with zero copy";
-
-	if (allocRefs)
+	if (!mDisableZCopy)
 	{
-		return DisplayBufferPtr(new DumbZCopyBack(mDrmFd,
-												  width, height, bpp,
-												  domId, refs));
-	}
+		LOG(mLog, DEBUG) << "Create display buffer with zero copy";
 
-	return DisplayBufferPtr(new DumbZCopyFrontDrm(mDrmFd,
-												  width, height, bpp, offset,
-												  domId, refs));
-#else
+		if (allocRefs)
+		{
+			return DisplayBufferPtr(new DumbZCopyBack(mDrmFd,
+													  width, height, bpp,
+													  domId, refs));
+		}
+
+		return DisplayBufferPtr(new DumbZCopyFrontDrm(mDrmFd,
+													  width, height, bpp, offset,
+													  domId, refs));
+	}
+#endif
 	LOG(mLog, DEBUG) << "Create display buffer";
 
 	if (allocRefs)
@@ -231,7 +235,6 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 	return DisplayBufferPtr(new DumbDrm(mDrmFd, width, height, bpp, offset,
 										domId, refs));
-#endif
 }
 
 FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,

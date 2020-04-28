@@ -58,7 +58,7 @@ class Display : public DisplayItf::Display
 {
 public:
 
-	Display();
+	explicit Display(bool disable_zcopy = false);
 	~Display();
 
 	/**
@@ -133,6 +133,7 @@ private:
 	wl_display* mWlDisplay;
 	wl_registry* mWlRegistry;
 	wl_registry_listener mWlRegistryListener;
+	bool mDisableZCopy;
 	XenBackend::Log mLog;
 
 	CompositorPtr mCompositor;
