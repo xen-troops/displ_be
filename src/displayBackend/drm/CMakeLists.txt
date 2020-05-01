@@ -33,4 +33,4 @@ add_library(display_drm STATIC ${SOURCES})
 # Libraries
 ################################################################################
 
-target_link_libraries(display_drm ${DRM_LIBRARIES} udev)
+target_link_libraries(display_drm ${DRM_LIBRARIES} udev display_common)

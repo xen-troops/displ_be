@@ -24,10 +24,8 @@
 
 #include <atomic>
 
-#include <xen/be/Log.hpp>
-
 #include "Compositor.hpp"
-#include "DisplayItf.hpp"
+#include "ConnectorBase.hpp"
 #ifdef WITH_IVI_EXTENSION
 #include "IviApplication.hpp"
 #include "IviSurface.hpp"
@@ -41,7 +39,7 @@ namespace Wayland {
  * Virtual connector class.
  * @ingroup wayland
  ******************************************************************************/
-class Connector : public DisplayItf::Connector
+class Connector : public ConnectorBase
 {
 public:
 
@@ -102,7 +100,6 @@ private:
 	Connector(const std::string& name, CompositorPtr compositor);
 
 	std::string mName;
-	XenBackend::Log mLog;
 
 	SurfacePtr mSurface;
 };
