@@ -78,7 +78,7 @@ void CtrlRingBuffer::processRequest(const xendispl_req& req)
 	rsp.id = req.id;
 	rsp.id = req.id;
 	rsp.operation = req.operation;
-	rsp.status = mCommandHandler.processCommand(req);
+	rsp.status = mCommandHandler.processCommand(req, rsp);
 
 	sendResponse(rsp);
 }

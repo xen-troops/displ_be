@@ -101,13 +101,14 @@ DisplayCommandHandler::~DisplayCommandHandler()
  * Public
  ******************************************************************************/
 
-int DisplayCommandHandler::processCommand(const xendispl_req& req)
+int DisplayCommandHandler::processCommand(const xendispl_req& req,
+										  xendispl_resp& rsp)
 {
 	int status = 0;
 
 	try
 	{
-		(this->*sCmdTable.at(req.operation))(req);
+		(this->*sCmdTable.at(req.operation))(req, rsp);
 
 		mDisplay->flush();
 	}
@@ -148,7 +149,8 @@ int DisplayCommandHandler::processCommand(const xendispl_req& req)
  * Private
  ******************************************************************************/
 
-void DisplayCommandHandler::pageFlip(const xendispl_req& req)
+void DisplayCommandHandler::pageFlip(const xendispl_req& req,
+									 xendispl_resp& rsp)
 {
 	xendispl_page_flip_req flipReq = req.op.pg_flip;
 
@@ -162,7 +164,8 @@ void DisplayCommandHandler::pageFlip(const xendispl_req& req)
 						 [cookie, this] () { sendFlipEvent(cookie); });
 }
 
-void DisplayCommandHandler::createDisplayBuffer(const xendispl_req& req)
+void DisplayCommandHandler::createDisplayBuffer(const xendispl_req& req,
+												xendispl_resp& rsp)
 {
 	const xendispl_dbuf_create_req* dbufReq = &req.op.dbuf_create;
 
@@ -201,7 +204,8 @@ void DisplayCommandHandler::createDisplayBuffer(const xendispl_req& req)
 										 dbufReq->bpp);
 }
 
-void DisplayCommandHandler::destroyDisplayBuffer(const xendispl_req& req)
+void DisplayCommandHandler::destroyDisplayBuffer(const xendispl_req& req,
+												 xendispl_resp& rsp)
 {
 	const xendispl_dbuf_destroy_req* dbufReq = &req.op.dbuf_destroy;
 
@@ -212,7 +216,8 @@ void DisplayCommandHandler::destroyDisplayBuffer(const xendispl_req& req)
 	mBuffersStorage->destroyDisplayBuffer(dbufReq->dbuf_cookie);
 }
 
-void DisplayCommandHandler::attachFrameBuffer(const xendispl_req& req)
+void DisplayCommandHandler::attachFrameBuffer(const xendispl_req& req,
+											  xendispl_resp& rsp)
 {
 	const xendispl_fb_attach_req* fbReq = &req.op.fb_attach;
 
@@ -227,7 +232,8 @@ void DisplayCommandHandler::attachFrameBuffer(const xendispl_req& req)
 
 }
 
-void DisplayCommandHandler::detachFrameBuffer(const xendispl_req& req)
+void DisplayCommandHandler::detachFrameBuffer(const xendispl_req& req,
+											  xendispl_resp& rsp)
 {
 	const xendispl_fb_detach_req* fbReq = &req.op.fb_detach;
 
@@ -238,7 +244,8 @@ void DisplayCommandHandler::detachFrameBuffer(const xendispl_req& req)
 	mBuffersStorage->destroyFrameBuffer(fbReq->fb_cookie);
 }
 
-void DisplayCommandHandler::setConfig(const xendispl_req& req)
+void DisplayCommandHandler::setConfig(const xendispl_req& req,
+									  xendispl_resp& rsp)
 {
 	const xendispl_set_config_req* configReq = &req.op.set_config;
 
