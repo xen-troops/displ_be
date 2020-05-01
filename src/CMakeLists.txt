@@ -32,7 +32,10 @@ if (WITH_WAYLAND)
 endif()
 
 if(WITH_DRM OR WITH_WAYLAND)
-	include_directories(displayBackend)
+	include_directories(
+		displayBackend
+		displayBackend/common
+	)
 endif()
 
 if(WITH_INPUT)

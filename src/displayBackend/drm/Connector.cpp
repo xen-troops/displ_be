@@ -49,8 +49,7 @@ Connector::Connector(const string& name, int fd, int conId) :
 	mConnector(mFd, conId),
 	mSavedCrtc(nullptr),
 	mFlipPending(false),
-	mFlipCallback(nullptr),
-	mLog("Connector")
+	mFlipCallback(nullptr)
 {
 	LOG(mLog, DEBUG) << "Create, name: " << mName
 					 << ", id: " << mConnector->connector_id

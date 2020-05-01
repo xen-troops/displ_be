@@ -33,8 +33,7 @@ namespace Wayland {
 
 Connector::Connector(const std::string& name, CompositorPtr compositor) :
 	mCompositor(compositor),
-	mName(name),
-	mLog("Connector")
+	mName(name)
 {
 	LOG(mLog, DEBUG) << "Create, name: "  << mName;
 }
