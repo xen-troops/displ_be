@@ -53,4 +53,4 @@ if(WITH_IVI_EXTENSION)
 	)
 endif()
 
-target_link_libraries(display_wayland xenbe)
+target_link_libraries(display_wayland xenbe display_common)
