@@ -42,6 +42,8 @@ using DisplayItf::DisplayPtr;
  *   support data offset field, e.g. it uses protocol version 1, then
  *   according to the protocol it sees this field as "reserved" which must
  *   be set to 0, thus effectively meaning for the backend zero offset is used.
+ * - XENDISPL_OP_GET_EDID is an optional request, so if frontend uses protocol
+ *   version 1 it is not known to it, thus it is not going to be issued.
  ******************************************************************************/
 
 unordered_map<int, DisplayCommandHandler::CommandFn>
@@ -52,7 +54,8 @@ unordered_map<int, DisplayCommandHandler::CommandFn>
 	{XENDISPL_OP_FB_DETACH,		&DisplayCommandHandler::detachFrameBuffer},
 	{XENDISPL_OP_DBUF_CREATE,	&DisplayCommandHandler::createDisplayBuffer},
 	{XENDISPL_OP_DBUF_DESTROY,	&DisplayCommandHandler::destroyDisplayBuffer},
-	{XENDISPL_OP_SET_CONFIG,	&DisplayCommandHandler::setConfig}
+	{XENDISPL_OP_SET_CONFIG,	&DisplayCommandHandler::setConfig},
+	{XENDISPL_OP_GET_EDID,		&DisplayCommandHandler::getEDID}
 };
 
 /*******************************************************************************
@@ -265,6 +268,20 @@ void DisplayCommandHandler::setConfig(const xendispl_req& req,
 	{
 		mConnector->release();
 	}
+}
+
+void DisplayCommandHandler::getEDID(const xendispl_req& req,
+									xendispl_resp& rsp)
+{
+	xendispl_get_edid_req edidReq = req.op.get_edid;
+	xendispl_get_edid_resp& edidResp = rsp.op.get_edid;
+
+	DLOG(mLog, DEBUG) << "Handle command [GET EDID], buffer size: "
+					  << edidReq.buffer_sz;
+
+	edidResp.edid_sz = static_cast<uint32_t>(mConnector->getEDID(
+			edidReq.gref_directory,
+			edidReq.buffer_sz));
 }
 
 void DisplayCommandHandler::sendFlipEvent(uint64_t fbCookie)

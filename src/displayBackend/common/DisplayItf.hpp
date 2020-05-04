@@ -180,6 +180,14 @@ public:
 	 * @param cbk         callback
 	 */
 	virtual void pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk) = 0;
+
+	/**
+	 * Queries connector's EDID
+	 * @param  startDirectory grant table reference to the buffer start directory
+	 * @param  size           buffer size
+	 * @return size of the EDID placed in the buffer
+	 */
+	virtual size_t getEDID(grant_ref_t startDirectory, uint32_t size) = 0;
 };
 
 typedef std::shared_ptr<Connector> ConnectorPtr;
