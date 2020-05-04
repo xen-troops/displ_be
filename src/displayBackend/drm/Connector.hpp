@@ -43,11 +43,12 @@ class Connector : public ConnectorBase
 public:
 
 	/**
+	 * @param domId  domain id
 	 * @param name   connector name
 	 * @param fd     DRM file descriptor
 	 * @param conId  connector id
 	 */
-	Connector(const std::string& name, int fd, int conId);
+	Connector(domid_t domId, const std::string& name, int fd, int conId);
 
 	~Connector();
 

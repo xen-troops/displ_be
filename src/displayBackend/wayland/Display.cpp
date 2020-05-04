@@ -114,7 +114,8 @@ void Display::flush()
 	}
 }
 
-DisplayItf::ConnectorPtr Display::createConnector(const string& name)
+DisplayItf::ConnectorPtr Display::createConnector(domid_t domId,
+												  const string& name)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -134,7 +135,7 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 			throw Exception("Can't create surface id: " + name, EINVAL);
 		}
 
-		connector = new IviConnector(name, mIviApplication, mCompositor,
+		connector = new IviConnector(domId, name, mIviApplication, mCompositor,
 									 surfaceId);
 
 		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
@@ -143,13 +144,13 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 #endif
 	if (mShell)
 	{
-		connector = new ShellConnector(name, mShell, mCompositor);
+		connector = new ShellConnector(domId, name, mShell, mCompositor);
 
 		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
 	}
 	else
 	{
-		connector = new Connector(name, mCompositor);
+		connector = new Connector(domId, name, mCompositor);
 
 		LOG(mLog, DEBUG) << "Create connector, name: " << name;
 	}
