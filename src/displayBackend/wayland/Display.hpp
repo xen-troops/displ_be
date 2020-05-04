@@ -80,7 +80,8 @@ public:
 	 * Creates connector
 	 * @param name connector name
 	 */
-	DisplayItf::ConnectorPtr createConnector(const std::string& name) override;
+	DisplayItf::ConnectorPtr createConnector(domid_t domId,
+											 const std::string& name) override;
 
 	/**
 	 * Creates display buffer

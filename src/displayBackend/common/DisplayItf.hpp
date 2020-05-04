@@ -221,9 +221,11 @@ public:
 
 	/**
 	 * Creates connector
-	 * @param name connector name
+	 * @param domId domain id
+	 * @param name  connector name
 	 */
-	virtual ConnectorPtr createConnector(const std::string& name) = 0;
+	virtual ConnectorPtr createConnector(domid_t domId,
+										 const std::string& name) = 0;
 
 	/**
 	 * Creates display buffer

@@ -42,7 +42,8 @@ list<uint32_t> Connector::sCrtcIds;
  * Connector
  ******************************************************************************/
 
-Connector::Connector(const string& name, int fd, int conId) :
+Connector::Connector(domid_t domId, const string& name, int fd, int conId) :
+	ConnectorBase(domId),
 	mName(name),
 	mFd(fd),
 	mCrtcId(cInvalidId),
