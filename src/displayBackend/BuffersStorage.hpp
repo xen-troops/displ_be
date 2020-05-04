@@ -31,7 +31,6 @@
 #include "DisplayItf.hpp"
 
 using std::memcpy;
-using std::min;
 using std::move;
 
 /***************************************************************************//**
@@ -112,7 +111,7 @@ private:
 
 	struct PendingBuffer {
 		size_t offset;
-		DisplayItf::GrantRefs refs;
+		GrantRefs refs;
 	};
 
 	std::unordered_map<uint64_t, DisplayItf::FrameBufferPtr> mFrameBuffers;
@@ -124,12 +123,6 @@ private:
 									 uint32_t height, uint32_t pixelFormat);
 	DisplayItf::DisplayBufferPtr getDisplayBufferUnlocked(uint64_t dbCookie);
 	DisplayItf::FrameBufferPtr getFrameBufferUnlocked(uint64_t fbCookie);
-
-	void getBufferRefs(grant_ref_t startDirectory, uint32_t size,
-					   DisplayItf::GrantRefs& refs);
-
-	void setBufferRefs(grant_ref_t startDirectory, uint32_t size,
-					   DisplayItf::GrantRefs& refs);
 };
 
 typedef std::shared_ptr<BuffersStorage> BuffersStoragePtr;

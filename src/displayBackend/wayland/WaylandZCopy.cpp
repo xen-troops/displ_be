@@ -33,7 +33,6 @@ using std::string;
 
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
-using DisplayItf::GrantRefs;
 
 namespace Wayland {
 

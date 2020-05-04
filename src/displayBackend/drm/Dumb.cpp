@@ -39,8 +39,6 @@ using std::string;
 using XenBackend::XenGnttabBuffer;
 using XenBackend::XenGnttabDmaBufferImporter;
 
-using DisplayItf::GrantRefs;
-
 namespace Drm {
 
 /*******************************************************************************

@@ -8,6 +8,7 @@
 
 set(SOURCES
 	ConnectorBase.cpp
+	PgDirSharedBuffer.cpp
 )
 
 ################################################################################

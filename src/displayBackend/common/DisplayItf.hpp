@@ -28,9 +28,10 @@
 
 extern "C" {
 #include <xenctrl.h>
-#include <xengnttab.h>
 #include "displif.h"
 }
+
+#include "PgDirSharedBuffer.hpp"
 
 namespace DisplayItf {
 
@@ -182,8 +183,6 @@ public:
 };
 
 typedef std::shared_ptr<Connector> ConnectorPtr;
-
-typedef std::vector<uint32_t> GrantRefs;
 
 /***************************************************************************//**
  * Display interface class.
