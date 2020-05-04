@@ -86,7 +86,7 @@ private:
 
 	SharedFile(
 			uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
-			domid_t domId, const DisplayItf::GrantRefs& refs);
+			domid_t domId, const GrantRefs& refs);
 
 	constexpr static const char *cFileNameTemplate = "/weston-shared-XXXXXX";
 	constexpr static const char *cXdgRuntimeVar = "XDG_RUNTIME_DIR";
@@ -102,7 +102,7 @@ private:
 
 	std::unique_ptr<XenBackend::XenGnttabBuffer> mGnttabBuffer;
 
-	void init(domid_t domId, size_t offset, const DisplayItf::GrantRefs& refs);
+	void init(domid_t domId, size_t offset, const GrantRefs& refs);
 	void release();
 	void createTmpFile();
 };

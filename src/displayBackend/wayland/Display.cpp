@@ -32,7 +32,6 @@ using std::thread;
 
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
-using DisplayItf::GrantRefs;
 
 #ifdef WITH_INPUT
 using InputItf::KeyboardCallbacks;
