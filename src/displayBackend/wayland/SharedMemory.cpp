@@ -17,7 +17,6 @@ using std::setfill;
 using std::setw;
 
 using DisplayItf::DisplayBufferPtr;
-using DisplayItf::GrantRefs;
 
 #ifndef DRM_FORMAT_ARGB8888
 #define DRM_FORMAT_ARGB8888           0x34325241

@@ -104,7 +104,7 @@ public:
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
 			uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
-			domid_t domId, DisplayItf::GrantRefs& refs,
+			domid_t domId, GrantRefs& refs,
 			bool allocRefs) override;
 
 	/**
@@ -172,7 +172,7 @@ public:
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
 			uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
-			domid_t domId, DisplayItf::GrantRefs& refs,
+			domid_t domId, GrantRefs& refs,
 			bool allocRefs) override;
 };
 #endif /* WITH_WAYLAND */

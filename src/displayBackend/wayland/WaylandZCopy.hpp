@@ -46,7 +46,7 @@ public:
 
 	DisplayItf::DisplayBufferPtr createDumb(
 			uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
-			domid_t domId, DisplayItf::GrantRefs& refs, bool allocRefs);
+			domid_t domId, GrantRefs& refs, bool allocRefs);
 
 protected:
 

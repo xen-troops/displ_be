@@ -39,7 +39,6 @@ using XenBackend::XenGnttabBuffer;
 using DisplayItf::DisplayPtr;
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
-using DisplayItf::GrantRefs;
 
 /*******************************************************************************
  * BuffersStorage
@@ -79,7 +78,7 @@ void BuffersStorage::createDisplayBuffer(uint64_t dbCookie, bool beAllocRefs,
 
 	if (!beAllocRefs)
 	{
-		getBufferRefs(startDirectory, size, refs);
+		pgDirGetBufferRefs(mDomId, startDirectory, size, refs);
 	}
 
 	if (width == 0)
@@ -117,7 +116,7 @@ void BuffersStorage::createDisplayBuffer(uint64_t dbCookie, bool beAllocRefs,
 
 		if (beAllocRefs)
 		{
-			setBufferRefs(startDirectory, size, refs);
+			pgDirSetBufferRefs(mDomId, startDirectory, size, refs);
 		}
 	}
 }
@@ -301,82 +300,4 @@ FrameBufferPtr BuffersStorage::getFrameBufferUnlocked(uint64_t fbCookie)
 	}
 
 	return iter->second;
-}
-
-void BuffersStorage::getBufferRefs(grant_ref_t startDirectory, uint32_t size,
-								   GrantRefs& refs)
-{
-	refs.clear();
-
-	size_t requestedNumGrefs = (size + XC_PAGE_SIZE - 1) / XC_PAGE_SIZE;
-
-	DLOG(mLog, DEBUG) << "Get buffer refs, directory: " << startDirectory
-					  << ", size: " << size
-					  << ", in grefs: " << requestedNumGrefs;
-
-	while(startDirectory != 0 && requestedNumGrefs)
-	{
-		DLOG(mLog, DEBUG) << "startDirectory: " << startDirectory;
-
-		XenGnttabBuffer pageBuffer(mDomId, startDirectory);
-
-		xendispl_page_directory* pageDirectory =
-				static_cast<xendispl_page_directory*>(pageBuffer.get());
-
-		size_t numGrefs = min(requestedNumGrefs, (XC_PAGE_SIZE -
-							  offsetof(xendispl_page_directory, gref)) /
-							  sizeof(uint32_t));
-
-		DLOG(mLog, DEBUG) << "Gref address: " << pageDirectory->gref
-						  << ", numGrefs " << numGrefs;
-
-		refs.insert(refs.end(), pageDirectory->gref,
-					pageDirectory->gref + numGrefs);
-
-		requestedNumGrefs -= numGrefs;
-
-		startDirectory = pageDirectory->gref_dir_next_page;
-	}
-
-	DLOG(mLog, DEBUG) << "Get buffer refs, num refs: " << refs.size();
-}
-
-void BuffersStorage::setBufferRefs(grant_ref_t startDirectory, uint32_t size,
-								   GrantRefs& refs)
-{
-	size_t requestedNumGrefs = (size + XC_PAGE_SIZE - 1) / XC_PAGE_SIZE;
-
-	DLOG(mLog, DEBUG) << "Set buffer refs, directory: " << startDirectory
-					  << ", size: " << size
-					  << ", in grefs: " << requestedNumGrefs;
-
-	grant_ref_t *grefs = refs.data();
-
-	while(startDirectory != 0 && requestedNumGrefs)
-	{
-		DLOG(mLog, DEBUG) << "startDirectory: " << startDirectory;
-
-		XenGnttabBuffer pageBuffer(mDomId, startDirectory);
-
-		xendispl_page_directory* pageDirectory =
-				static_cast<xendispl_page_directory*>(pageBuffer.get());
-
-		size_t numGrefs = min(requestedNumGrefs, (XC_PAGE_SIZE -
-							  offsetof(xendispl_page_directory, gref)) /
-							  sizeof(uint32_t));
-
-		DLOG(mLog, DEBUG) << "Gref address: " << pageDirectory->gref
-						  << ", numGrefs " << numGrefs;
-
-		memcpy(pageDirectory->gref, grefs, numGrefs * sizeof(grant_ref_t));
-
-		requestedNumGrefs -= numGrefs;
-		grefs += numGrefs;
-
-		DLOG(mLog, DEBUG) << "requestedNumGrefs left: " << requestedNumGrefs;
-
-		startDirectory = pageDirectory->gref_dir_next_page;
-	}
-
-	DLOG(mLog, DEBUG) << "Set buffer refs, num refs: " << refs.size();
 }

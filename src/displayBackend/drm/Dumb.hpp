@@ -109,7 +109,7 @@ public:
 	 */
 	DumbDrm(int fd, uint32_t width, uint32_t height,
 			uint32_t bpp, size_t offset, domid_t domId = 0,
-			const DisplayItf::GrantRefs& refs = DisplayItf::GrantRefs());
+			const GrantRefs& refs = GrantRefs());
 
 	~DumbDrm();
 
@@ -149,7 +149,7 @@ private:
 	void mapDumb();
 
 	void init(uint32_t bpp, size_t offset, domid_t domId,
-			  const DisplayItf::GrantRefs& refs);
+			  const GrantRefs& refs);
 	void release();
 };
 
@@ -173,7 +173,7 @@ public:
 	DumbZCopyFront(int drmFd,
 				   uint32_t width, uint32_t height, uint32_t bpp,
 				   size_t offset, domid_t domId,
-				   const DisplayItf::GrantRefs& refs);
+				   const GrantRefs& refs);
 
 	~DumbZCopyFront();
 
@@ -202,10 +202,10 @@ private:
 	const int cBufZCopyWaitHandleToMs = 2000;
 
 	void createDumb(uint32_t bpp, domid_t domId,
-					const DisplayItf::GrantRefs& refs);
+					const GrantRefs& refs);
 
 	void init(uint32_t bpp, size_t offset, domid_t domId,
-			  const DisplayItf::GrantRefs& refs);
+			  const GrantRefs& refs);
 	void release();
 };
 
@@ -227,7 +227,7 @@ public:
 	DumbZCopyFrontDrm(int drmFd,
 					  uint32_t width, uint32_t height, uint32_t bpp,
 					  size_t offset, domid_t domId,
-					  const DisplayItf::GrantRefs& refs);
+					  const GrantRefs& refs);
 
 	~DumbZCopyFrontDrm();
 
@@ -244,11 +244,11 @@ public:
 private:
 
 	void createDumb(uint32_t bpp, domid_t domId,
-					const DisplayItf::GrantRefs& refs);
+					const GrantRefs& refs);
 	void createHandle();
 
 	void init(uint32_t bpp, size_t offset,
-			  domid_t domId, const DisplayItf::GrantRefs& refs);
+			  domid_t domId, const GrantRefs& refs);
 	void release();
 };
 
@@ -268,7 +268,7 @@ public:
 	 */
 	DumbZCopyBack(int drmFd,
 				  uint32_t width, uint32_t height, uint32_t bpp,
-				  domid_t domId, DisplayItf::GrantRefs& refs);
+				  domid_t domId, GrantRefs& refs);
 
 	~DumbZCopyBack();
 
@@ -290,9 +290,9 @@ private:
 
 	void getBufDrmFd();
 
-	void getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs);
+	void getGrantRefs(domid_t domId, GrantRefs& refs);
 
-	void init(uint32_t bpp, domid_t domId, DisplayItf::GrantRefs& refs);
+	void init(uint32_t bpp, domid_t domId, GrantRefs& refs);
 	void release();
 };
 

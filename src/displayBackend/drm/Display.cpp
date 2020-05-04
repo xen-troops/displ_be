@@ -42,7 +42,6 @@ using XenBackend::PollFd;
 
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
-using DisplayItf::GrantRefs;
 
 namespace Drm {
 
@@ -205,7 +204,7 @@ DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
 
 DisplayBufferPtr Display::createDisplayBuffer(
 		uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
-		domid_t domId, DisplayItf::GrantRefs& refs, bool allocRefs)
+		domid_t domId, GrantRefs& refs, bool allocRefs)
 {
 	lock_guard<mutex> lock(mMutex);
 

@@ -20,8 +20,6 @@ using std::string;
 
 using XenBackend::XenGnttabBuffer;
 
-using DisplayItf::GrantRefs;
-
 namespace Wayland {
 
 /*******************************************************************************
