@@ -34,9 +34,10 @@ class ConnectorBase : public DisplayItf::Connector
 {
 protected:
 
+	domid_t mDomId;
 	XenBackend::Log mLog;
 
-	ConnectorBase();
+	ConnectorBase(domid_t domId);
 };
 
 #endif /* SRC_CONNECTOR_BASE_HPP_ */

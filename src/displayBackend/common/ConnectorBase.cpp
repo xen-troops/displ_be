@@ -21,7 +21,8 @@
 
 #include "ConnectorBase.hpp"
 
-ConnectorBase::ConnectorBase() :
+ConnectorBase::ConnectorBase(domid_t domId) :
+	mDomId(domId),
 	mLog("Connector")
 {
 }

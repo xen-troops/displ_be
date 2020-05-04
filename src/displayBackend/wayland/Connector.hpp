@@ -97,7 +97,7 @@ private:
 	friend class ShellConnector;
 	friend class IviConnector;
 
-	Connector(const std::string& name, CompositorPtr compositor);
+	Connector(domid_t domId, const std::string& name, CompositorPtr compositor);
 
 	std::string mName;
 
@@ -144,9 +144,9 @@ private:
 
 	friend class Display;
 
-	ShellConnector(const std::string& name, ShellPtr shell,
+	ShellConnector(domid_t domId, const std::string& name, ShellPtr shell,
 				   CompositorPtr compositor) :
-		Connector(name, compositor),
+		Connector(domId, name, compositor),
 		mShell(shell) {}
 
 	ShellPtr mShell;
@@ -193,9 +193,10 @@ private:
 
 	friend class Display;
 
-	IviConnector(const std::string& name, IviApplicationPtr iviApplication,
-				 CompositorPtr compositor, uint32_t surfaceId) :
-		Connector(name, compositor),
+	IviConnector(domid_t domId, const std::string& name,
+				 IviApplicationPtr iviApplication, CompositorPtr compositor,
+				 uint32_t surfaceId) :
+		Connector(domId, name, compositor),
 		mIviApplication(iviApplication),
 		mSurfaceId(surfaceId) {}
 

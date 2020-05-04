@@ -178,7 +178,8 @@ void Display::flush()
 	DLOG(mLog, DEBUG) << "flush";
 }
 
-DisplayItf::ConnectorPtr Display::createConnector(const string& name)
+DisplayItf::ConnectorPtr Display::createConnector(domid_t domId,
+												  const string& name)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -189,7 +190,8 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 		throw Exception("Can't create connector: " + name, EINVAL);
 	}
 
-	return DisplayItf::ConnectorPtr(new Connector(name, mDrmFd, it->second));
+	return DisplayItf::ConnectorPtr(new Connector(domId, name, mDrmFd,
+												  it->second));
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
