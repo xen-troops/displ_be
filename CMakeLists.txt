@@ -71,6 +71,15 @@ if(WITH_DISPLIF_INT_VERSION)
 	add_definitions(-DWITH_DISPLIF_INT_VERSION)
 endif()
 
+# Test endianess of the target
+include (TestBigEndian)
+TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+if (IS_BIG_ENDIAN)
+	message(STATUS "Target is BIG_ENDIAN")
+else()
+	message(STATUS "Target is LITTLE_ENDIAN")
+endif()
+
 ################################################################################
 # Compiler flags
 ################################################################################

@@ -104,6 +104,7 @@ private:
 	void attachFrameBuffer(const xendispl_req& req, xendispl_resp& rsp);
 	void detachFrameBuffer(const xendispl_req& req, xendispl_resp& rsp);
 	void setConfig(const xendispl_req& req, xendispl_resp& rsp);
+	void getEDID(const xendispl_req& req, xendispl_resp& rsp);
 
 	void sendFlipEvent(uint64_t fbCookie);
 };

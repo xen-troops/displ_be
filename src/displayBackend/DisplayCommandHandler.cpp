@@ -41,7 +41,10 @@ unordered_map<int, DisplayCommandHandler::CommandFn>
 	{XENDISPL_OP_FB_DETACH,		&DisplayCommandHandler::detachFrameBuffer},
 	{XENDISPL_OP_DBUF_CREATE,	&DisplayCommandHandler::createDisplayBuffer},
 	{XENDISPL_OP_DBUF_DESTROY,	&DisplayCommandHandler::destroyDisplayBuffer},
-	{XENDISPL_OP_SET_CONFIG,	&DisplayCommandHandler::setConfig}
+	{XENDISPL_OP_SET_CONFIG,	&DisplayCommandHandler::setConfig},
+#if (XENDISPL_PROTOCOL_VERSION >= 2)
+	{XENDISPL_OP_GET_EDID,		&DisplayCommandHandler::getEDID}
+#endif
 };
 
 /*******************************************************************************
@@ -261,6 +264,24 @@ void DisplayCommandHandler::setConfig(const xendispl_req& req,
 		mConnector->release();
 	}
 }
+
+#if (XENDISPL_PROTOCOL_VERSION >= 2)
+void DisplayCommandHandler::getEDID(const xendispl_req& req,
+									xendispl_resp& rsp)
+{
+	xendispl_get_edid_req edidReq = req.op.get_edid;
+	xendispl_get_edid_resp& edidResp = rsp.op.get_edid;
+
+	auto bufferSize = edidReq.buffer_sz;
+
+	DLOG(mLog, DEBUG) << "Handle command [GET EDID], buffer size: "
+					  << bufferSize;
+
+	edidResp.edid_sz = static_cast<uint32_t>(mConnector->getEDID(
+			edidReq.gref_directory,
+			edidReq.buffer_sz));
+}
+#endif
 
 void DisplayCommandHandler::sendFlipEvent(uint64_t fbCookie)
 {

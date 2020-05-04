@@ -25,6 +25,9 @@
 #include <xen/be/Log.hpp>
 
 #include "DisplayItf.hpp"
+#include "PgDirSharedBuffer.hpp"
+
+struct edid;
 
 /***************************************************************************//**
  * Base virtual connector class.
@@ -48,6 +51,74 @@ protected:
 	 * @param height connector height as configured in XenStore
 	 */
 	ConnectorBase(domid_t domId, uint32_t width, uint32_t height);
+
+	/**
+	 * Queries connector's EDID
+	 * @param startDirectory grant table reference to the buffer start directory
+	 * @param size           buffer size
+	 */
+	size_t getEDID(grant_ref_t startDirectory, uint32_t size);
+
+private:
+
+	/* Refresh rate advertized via EDID detailed timings. */
+	const int EDID_REFRESH_RATE_HZ = 60;
+
+	/* Dots per inch advertized via EDID detailed timings. */
+	const int EDID_DPI = 100;
+
+	/**
+	 * Convert 32-bit value to little endian
+	 * @param val value to cenvert
+	 */
+	uint32_t toLittleEndian32(uint32_t val);
+
+	/**
+	 * Calculate and append checksum of the EDID block
+	 * @param edidBlock buffer with EDID block
+	 */
+	void edidPutBlockCheckSum(uint8_t* edidBlock);
+
+	/**
+	 * Put essential data into the EDID
+	 * @param edidBlock buffer with EDID block
+	 */
+	void edidPutEssentials(edid* edidBlock);
+
+	/**
+	 * Put color space data into the EDID
+	 * @param edidBlock buffer with EDID block
+	 */
+	void edidPutColorSpace(edid* edidBlock);
+
+	/**
+	 * Put supported timings into the EDID
+	 * @param edidBlock buffer with EDID block
+	 */
+	void edidPutTimings(edid* edidBlock);
+
+	/**
+	 * Put standard timings into the EDID
+	 * @param edidBlock buffer with EDID block
+	 * @param index     index of the standard timings structure
+	 * @param xres      desired X resolution
+	 * @param yres      desired Y resolution
+	 */
+	void edidPutStandardTiming(edid* edidBlock, int index,
+							   uint32_t xres, uint32_t yres);
+
+	/**
+	 * Put detailed timings into the EDID
+	 * @param edidBlock buffer with EDID block
+	 * @param index     index of the detailed timings structure
+	 * @param xres      desired X resolution
+	 * @param yres      desired Y resolution
+	 * @param dpi       desired DPI
+	 */
+	void edidPutDetailedTiming(edid* edidBlock, int index,
+							   uint32_t xres, uint32_t yres,
+							   uint32_t dpi);
+
 };
 
 #endif /* SRC_CONNECTOR_BASE_HPP_ */
