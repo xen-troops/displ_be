@@ -142,20 +142,20 @@ DumbDrm::~DumbDrm()
 
 void DumbDrm::copy()
 {
-	if(!mGnttabBuffer)
+	if (!mGnttabBuffer)
 	{
 		throw Exception("There is no buffer to copy from", EINVAL);
 	}
 
 	DLOG(mLog, DEBUG) << "Copy dumb, handle: " << mBufDrmHandle;
-	if(mStride == mFrontStride)
+	if (mStride == mFrontStride)
 	{
 		memcpy(mBuffer, mGnttabBuffer->get(), mSize);
 		return;
 	}
 	auto src = reinterpret_cast<unsigned char*>(mGnttabBuffer->get());
 	auto dst = reinterpret_cast<unsigned char*>(mBuffer);
-	for(unsigned int i = 0; i < mHeight; i++)
+	for (unsigned int i = 0; i < mHeight; i++)
 	{
 		memcpy(dst + i * mStride, src + i * mFrontStride, mFrontStride);
 	}
