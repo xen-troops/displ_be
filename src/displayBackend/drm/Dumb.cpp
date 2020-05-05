@@ -51,6 +51,7 @@ DumbBase::DumbBase(int drmFd, uint32_t width, uint32_t height) :
 	mDrmFd(drmFd),
 	mBufDrmHandle(0),
 	mStride(0),
+	mFrontStride(0),
 	mWidth(width),
 	mHeight(height),
 	mName(0),
@@ -92,6 +93,8 @@ void DumbBase::copy()
 void DumbBase::createDumb(uint32_t bpp)
 {
 	drm_mode_create_dumb creq {0};
+
+	mFrontStride = 4 * ((mWidth * bpp + 31) / 32);
 
 	creq.width = mWidth;
 	creq.height = mHeight;
@@ -145,8 +148,17 @@ void DumbDrm::copy()
 	}
 
 	DLOG(mLog, DEBUG) << "Copy dumb, handle: " << mBufDrmHandle;
-
-	memcpy(mBuffer, mGnttabBuffer->get(), mSize);
+	if(mStride == mFrontStride)
+	{
+		memcpy(mBuffer, mGnttabBuffer->get(), mSize);
+		return;
+	}
+	auto src = reinterpret_cast<unsigned char*>(mGnttabBuffer->get());
+	auto dst = reinterpret_cast<unsigned char*>(mBuffer);
+	for(unsigned int i = 0; i < mHeight; i++)
+	{
+		memcpy(dst + i * mStride, src + i * mFrontStride, mFrontStride);
+	}
 }
 
 /*******************************************************************************
