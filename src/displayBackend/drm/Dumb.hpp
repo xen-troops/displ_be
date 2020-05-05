@@ -81,6 +81,7 @@ protected:
 	int mDrmFd;
 	uint32_t mBufDrmHandle;
 	uint32_t mStride;
+	uint32_t mFrontStride;
 	uint32_t mWidth;
 	uint32_t mHeight;
 	uint32_t mName;
