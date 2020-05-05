@@ -132,9 +132,9 @@ private:
 	void parseInputId(const std::string& id, std::string& keyboardId,
 					  std::string& pointerId, std::string& touchId);
 
-	template<typename T>
+	template<typename T, typename... VT>
 	std::shared_ptr<InputItf::InputDevice<T>>
-			createInputDevice(const std::string& id);
+		createInputDevice(const std::string& id, VT ... args);
 };
 
 /***************************************************************************//**

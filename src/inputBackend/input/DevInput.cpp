@@ -168,7 +168,10 @@ void DevInput<KeyboardCallbacks>::onEvent(const input_event& event)
  * InputPointer
  ******************************************************************************/
 
-DevInput<PointerCallbacks>::DevInput(const string& name) : DevInputCbk(name)
+DevInput<PointerCallbacks>::DevInput(const string& name, uint32_t width, uint32_t height)
+	 : DevInputCbk(name)
+	 , mWidth(width)
+	 , mHeight(height)
 {
 	mRelX = mRelY = mRelZ = mAbsX = mAbsY = 0;
 	mSendRel = mSendAbs = mSendWheel = false;
@@ -203,6 +206,34 @@ void DevInput<PointerCallbacks>::onEvent(const input_event& event)
 
 		default:
 			break;
+	}
+}
+
+int setBound(int fd, int axis, uint32_t value)
+{
+	struct input_absinfo abs_info;
+	if (ioctl(fd, EVIOCGABS(axis), &abs_info))
+	{
+		return -1;
+	}
+	abs_info.minimum = 0;
+	abs_info.maximum = value;
+	return ioctl(fd, EVIOCSABS(axis), &abs_info);
+}
+
+void DevInput<PointerCallbacks>::setCallbacks(const PointerCallbacks& callbacks)
+{
+	DevInputCbk<PointerCallbacks>::setCallbacks(callbacks);
+	if (mCallbacks.moveAbsolute)
+	{
+		if (mWidth && setBound(mFd, ABS_X, mWidth))
+		{
+			throw XenBackend::Exception("Can't set max width", errno);
+		}
+		if (mHeight && setBound(mFd, ABS_Y, mHeight))
+		{
+			throw XenBackend::Exception("Can't set max height", errno);
+		}
 	}
 }
 
