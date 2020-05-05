@@ -243,11 +243,29 @@ void InputFrontendHandler::onBind()
 
 	auto id = getXenStore().readString(getXsBackendPath() + "/" XENKBD_FIELD_UNIQUE_ID);
 
+	bool isFeatAbs = false;
+	bool isFeatMTouch = false;
 	bool isReqAbs = false;
 	bool isReqMTouch = false;
+	uint32_t width = 0;
+	uint32_t height = 0;
 
-	string reqAbsPath = getXsBackendPath() + "/" XENKBD_FIELD_REQ_ABS_POINTER;
+	string featAbsPath = getXsBackendPath() + "/" XENKBD_FIELD_FEAT_ABS_POINTER;
+	string featMTouchPath = getXsBackendPath() + "/" XENKBD_FIELD_FEAT_MTOUCH;
+	string reqAbsPath = getXsFrontendPath() + "/" XENKBD_FIELD_REQ_ABS_POINTER;
 	string reqMTouchPath = getXsFrontendPath() + "/" XENKBD_FIELD_REQ_MTOUCH;
+	string widthPath = getXsBackendPath() + "/" XENKBD_FIELD_WIDTH;
+	string heightPath = getXsBackendPath() + "/" XENKBD_FIELD_HEIGHT;
+
+	if (getXenStore().checkIfExist(featAbsPath))
+	{
+		isFeatAbs = getXenStore().readInt(featAbsPath);
+	}
+
+	if (getXenStore().checkIfExist(featMTouchPath))
+	{
+		isFeatMTouch = getXenStore().readInt(featMTouchPath);
+	}
 
 	if (getXenStore().checkIfExist(reqAbsPath))
 	{
@@ -259,15 +277,26 @@ void InputFrontendHandler::onBind()
 		isReqMTouch = getXenStore().readInt(reqMTouchPath);
 	}
 
+	if (getXenStore().checkIfExist(widthPath))
+	{
+		width = getXenStore().readInt(widthPath);
+	}
+
+	if (getXenStore().checkIfExist(heightPath))
+	{
+		height = getXenStore().readInt(heightPath);
+	}
+
 	string keyboardId, pointerId, touchId;
 
 	parseInputId(id, keyboardId, pointerId, touchId);
 
 	InputRingBufferPtr eventRingBuffer(
 			new InputRingBuffer(createInputDevice<KeyboardCallbacks>(keyboardId),
-								createInputDevice<PointerCallbacks>(pointerId),
+								createInputDevice<PointerCallbacks>(pointerId, width, height),
 								createInputDevice<TouchCallbacks>(touchId),
-								isReqAbs, isReqMTouch,
+								isFeatAbs && isReqAbs,
+								isFeatMTouch && isReqMTouch,
 								getDomId(), port, ref,
 								XENKBD_IN_RING_OFFS, XENKBD_IN_RING_SIZE));
 
@@ -310,9 +339,9 @@ void InputFrontendHandler::parseInputId(const string& id, string& keyboardId,
 	}
 }
 
-template<typename T>
-shared_ptr<InputItf::InputDevice<T>>
-InputFrontendHandler::createInputDevice(const string& id)
+template<typename T, typename... VT>
+std::shared_ptr<InputItf::InputDevice<T>>
+InputFrontendHandler::createInputDevice(const std::string& id, VT ... args)
 {
 	if (!id.empty())
 	{
@@ -320,7 +349,7 @@ InputFrontendHandler::createInputDevice(const string& id)
 
 		if (id[0] == '/')
 		{
-			return shared_ptr<InputItf::InputDevice<T>>(new DevInput<T>(id));
+			return shared_ptr<InputItf::InputDevice<T>>(new DevInput<T>(id, args ...));
 		}
 #ifdef WITH_WAYLAND
 		else if (mDisplay)

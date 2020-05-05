@@ -34,14 +34,13 @@ protected:
 
 	XenBackend::Log mLog;
 	std::string mName;
+	int mFd;
 
 	virtual void onEvent(const input_event& event) = 0;
 
 private:
 
 	const int cPoolEventTimeoutMs = 100;
-
-	int mFd;
 
 	std::thread mThread;
 
@@ -102,21 +101,25 @@ class DevInput<InputItf::PointerCallbacks> :
 {
 public:
 
-	DevInput(const std::string& name);
+	DevInput(const std::string& name, uint32_t widht, uint32_t height);
 	~DevInput();
 
 	void onEvent(const input_event& event) override;
+	void setCallbacks(const InputItf::PointerCallbacks& callbacks) override;
 
 private:
 
 	int32_t mRelX, mRelY, mRelZ, mAbsX, mAbsY;
 	bool mSendRel, mSendAbs, mSendWheel;
+	uint32_t mWidth, mHeight;
 
 	void onRelEvent(const input_event& event);
 	void onAbsEvent(const input_event& event);
 	void onKeyEvent(const input_event& event);
 	void onSynEvent(const input_event& event);
 };
+
+
 
 template<>
 class DevInput<InputItf::TouchCallbacks>:
