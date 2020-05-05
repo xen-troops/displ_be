@@ -199,7 +199,7 @@ DisplayItf::DisplayPtr getDisplay(DisplayMode mode)
 		// DRM
 		return Drm::DisplayPtr(new Drm::Display(gDrmDevice));
 #else
-		throw DisplayItf::Exception("DRM mode is not supported", EINVAL);
+		throw XenBackend::Exception("DRM mode is not supported", EINVAL);
 #endif
 	}
 	else
@@ -208,7 +208,7 @@ DisplayItf::DisplayPtr getDisplay(DisplayMode mode)
 		// Wayland
 		return Wayland::DisplayPtr(new Wayland::Display());
 #else
-		throw DisplayItf::Exception("WAYLAND mode is not supported", EINVAL);
+		throw XenBackend::Exception("WAYLAND mode is not supported", EINVAL);
 #endif
 	}
 }
