@@ -78,10 +78,15 @@ public:
 
 	/**
 	 * Creates connector
-	 * @param name connector name
+	 * @param domId domaind ID
+	 * @param name   connector name
+	 * @param width  connector width as configured in XenStore
+	 * @param height connector height as configured in XenStore
 	 */
 	DisplayItf::ConnectorPtr createConnector(domid_t domId,
-											 const std::string& name) override;
+											 const std::string& name,
+											 uint32_t width,
+											 uint32_t height) override;
 
 	/**
 	 * Creates display buffer

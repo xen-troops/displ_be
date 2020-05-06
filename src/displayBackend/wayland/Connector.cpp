@@ -32,8 +32,9 @@ namespace Wayland {
  ******************************************************************************/
 
 Connector::Connector(domid_t domId, const std::string& name,
-					 CompositorPtr compositor) :
-	ConnectorBase(domId),
+					 CompositorPtr compositor,
+					 uint32_t width, uint32_t height) :
+	ConnectorBase(domId, width, height),
 	mCompositor(compositor),
 	mName(name)
 {

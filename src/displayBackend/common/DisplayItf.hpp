@@ -211,11 +211,14 @@ public:
 
 	/**
 	 * Creates connector
-	 * @param domId domain id
-	 * @param name  connector name
+	 * @param domId  domain id
+	 * @param name   connector name
+	 * @param width  connector width as configured in XenStore
+	 * @param height connector height as configured in XenStore
 	 */
 	virtual ConnectorPtr createConnector(domid_t domId,
-										 const std::string& name) = 0;
+										 const std::string& name,
+										 uint32_t width, uint32_t height) = 0;
 
 	/**
 	 * Creates display buffer
