@@ -47,8 +47,11 @@ public:
 	 * @param name   connector name
 	 * @param fd     DRM file descriptor
 	 * @param conId  connector id
+	 * @param width  connector width as configured in XenStore
+	 * @param height connector height as configured in XenStore
 	 */
-	Connector(domid_t domId, const std::string& name, int fd, int conId);
+	Connector(domid_t domId, const std::string& name, int fd, int conId,
+			  uint32_t width, uint32_t height);
 
 	~Connector();
 

@@ -179,7 +179,9 @@ void Display::flush()
 }
 
 DisplayItf::ConnectorPtr Display::createConnector(domid_t domId,
-												  const string& name)
+												  const string& name,
+												  uint32_t width,
+												  uint32_t height)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -191,7 +193,8 @@ DisplayItf::ConnectorPtr Display::createConnector(domid_t domId,
 	}
 
 	return DisplayItf::ConnectorPtr(new Connector(domId, name, mDrmFd,
-												  it->second));
+												  it->second,
+												  width, height));
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
