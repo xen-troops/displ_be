@@ -21,8 +21,10 @@
 
 #include "ConnectorBase.hpp"
 
-ConnectorBase::ConnectorBase(domid_t domId) :
+ConnectorBase::ConnectorBase(domid_t domId, uint32_t width, uint32_t height) :
 	mDomId(domId),
+	mCfgWidth(width),
+	mCfgHeight(height),
 	mLog("Connector")
 {
 }

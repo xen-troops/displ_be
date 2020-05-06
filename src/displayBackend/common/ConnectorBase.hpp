@@ -35,9 +35,19 @@ class ConnectorBase : public DisplayItf::Connector
 protected:
 
 	domid_t mDomId;
+
+	/* Width and height read from XenStore's connector resolution field. */
+	uint32_t mCfgWidth;
+	uint32_t mCfgHeight;
+
 	XenBackend::Log mLog;
 
-	ConnectorBase(domid_t domId);
+	/*
+	 * @param domId  domain ID
+	 * @param width  connector width as configured in XenStore
+	 * @param height connector height as configured in XenStore
+	 */
+	ConnectorBase(domid_t domId, uint32_t width, uint32_t height);
 };
 
 #endif /* SRC_CONNECTOR_BASE_HPP_ */

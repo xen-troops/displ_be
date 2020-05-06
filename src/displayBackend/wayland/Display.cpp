@@ -115,7 +115,9 @@ void Display::flush()
 }
 
 DisplayItf::ConnectorPtr Display::createConnector(domid_t domId,
-												  const string& name)
+												  const string& name,
+												  uint32_t width,
+												  uint32_t height)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -136,7 +138,7 @@ DisplayItf::ConnectorPtr Display::createConnector(domid_t domId,
 		}
 
 		connector = new IviConnector(domId, name, mIviApplication, mCompositor,
-									 surfaceId);
+									 surfaceId, width, height);
 
 		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
 	}
@@ -144,13 +146,14 @@ DisplayItf::ConnectorPtr Display::createConnector(domid_t domId,
 #endif
 	if (mShell)
 	{
-		connector = new ShellConnector(domId, name, mShell, mCompositor);
+		connector = new ShellConnector(domId, name, mShell, mCompositor,
+									   width, height);
 
 		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
 	}
 	else
 	{
-		connector = new Connector(domId, name, mCompositor);
+		connector = new Connector(domId, name, mCompositor, width, height);
 
 		LOG(mLog, DEBUG) << "Create connector, name: " << name;
 	}
