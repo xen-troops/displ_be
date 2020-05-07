@@ -29,6 +29,7 @@
 extern "C" {
 #include <xenctrl.h>
 #include <xengnttab.h>
+#include "displif.h"
 }
 
 namespace DisplayItf {
