@@ -166,11 +166,6 @@ void DisplayCommandHandler::createDisplayBuffer(const xendispl_req& req)
 {
 	const xendispl_dbuf_create_req* dbufReq = &req.op.dbuf_create;
 
-	DLOG(mLog, DEBUG) << "Handle command [CREATE DBUF], cookie: "
-					  << hex << setfill('0') << setw(16)
-					  << dbufReq->dbuf_cookie
-					  << ", offset: " << dec << dbufReq->data_ofs;
-
 	bool beAllocRefs = dbufReq->flags & XENDISPL_DBUF_FLG_REQ_ALLOC;
 
 	/**
@@ -185,6 +180,11 @@ void DisplayCommandHandler::createDisplayBuffer(const xendispl_req& req)
 #else
 	size_t data_ofs = 0;
 #endif
+
+	DLOG(mLog, DEBUG) << "Handle command [CREATE DBUF], cookie: "
+					  << hex << setfill('0') << setw(16)
+					  << dbufReq->dbuf_cookie
+					  << ", offset: " << dec << data_ofs;
 
 	if (beAllocRefs && data_ofs)
 	{
