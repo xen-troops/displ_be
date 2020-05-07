@@ -33,16 +33,6 @@ using std::unordered_map;
 using DisplayItf::ConnectorPtr;
 using DisplayItf::DisplayPtr;
 
-/**
- * displif protocol version 1 header had defined the version as a string,
- * so it cannot be used with the preprocessor. Work this around by
- * re-defining the version as an integer.
- */
-#ifndef WITH_DISPLIF_INT_VERSION
-#undef XENDISPL_PROTOCOL_VERSION
-#define XENDISPL_PROTOCOL_VERSION	1
-#endif
-
 unordered_map<int, DisplayCommandHandler::CommandFn>
 	DisplayCommandHandler::sCmdTable =
 {

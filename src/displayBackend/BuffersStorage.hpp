@@ -28,8 +28,6 @@
 
 #include <xen/be/XenGnttab.hpp>
 
-#include <xen/io/displif.h>
-
 #include "DisplayItf.hpp"
 
 using std::memcpy;
