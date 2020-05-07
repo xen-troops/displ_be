@@ -50,7 +50,7 @@ namespace Drm {
 DumbBase::DumbBase(int drmFd, uint32_t width, uint32_t height) :
 	mDrmFd(drmFd),
 	mBufDrmHandle(0),
-	mStride(0),
+	mBackStride(0),
 	mFrontStride(0),
 	mWidth(width),
 	mHeight(height),
@@ -105,9 +105,13 @@ void DumbBase::createDumb(uint32_t bpp)
 		throw Exception("Cannot create dumb buffer", errno);
 	}
 
-	mStride = creq.pitch;
+	mBackStride = creq.pitch;
 	mSize = creq.size;
 	mBufDrmHandle = creq.handle;
+	if (mBackStride != mFrontStride)
+	{
+		DLOG(mLog, WARNING) << "Strides are different, frontend stride: " << mFrontStride << ", backend stride: " << mBackStride;
+	}
 }
 
 /*******************************************************************************
@@ -142,22 +146,22 @@ DumbDrm::~DumbDrm()
 
 void DumbDrm::copy()
 {
-	if (!mGnttabBuffer)
+	if(!mGnttabBuffer)
 	{
 		throw Exception("There is no buffer to copy from", EINVAL);
 	}
 
 	DLOG(mLog, DEBUG) << "Copy dumb, handle: " << mBufDrmHandle;
-	if (mStride == mFrontStride)
+	if (mBackStride == mFrontStride)
 	{
 		memcpy(mBuffer, mGnttabBuffer->get(), mSize);
 		return;
 	}
-	auto src = reinterpret_cast<unsigned char*>(mGnttabBuffer->get());
-	auto dst = reinterpret_cast<unsigned char*>(mBuffer);
+	auto src = reinterpret_cast<uint8_t*>(mGnttabBuffer->get());
+	auto dst = reinterpret_cast<uint8_t*>(mBuffer);
 	for (unsigned int i = 0; i < mHeight; i++)
 	{
-		memcpy(dst + i * mStride, src + i * mFrontStride, mFrontStride);
+		memcpy(dst + i * mBackStride, src + i * mFrontStride, mFrontStride);
 	}
 }
 
@@ -199,7 +203,7 @@ void DumbDrm::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
 	mapDumb();
 
 	DLOG(mLog, DEBUG) << "Create dumb, handle: " << mBufDrmHandle << ", size: "
-					   << mSize << ", stride: " << mStride;
+					   << mSize << ", stride: " << mBackStride;
 }
 
 void DumbDrm::release()
@@ -235,7 +239,7 @@ DumbZCopyFront::DumbZCopyFront(int drmFd,
 	mGnttabBuffer(domId, refs)
 {
 	mBufZCopyFd = mGnttabBuffer.getFd();
-	mStride = 4 * ((width * bpp + 31) / 32);
+	mBackStride = 4 * ((width * bpp + 31) / 32);
 	DLOG(mLog, DEBUG) << "Fd: " << mBufZCopyFd;
 }
 
@@ -364,7 +368,7 @@ void DumbZCopyBack::init(uint32_t bpp, domid_t domId, GrantRefs& refs)
 	DLOG(mLog, DEBUG) << "Create ZCopy back dumb, domId: " << domId
 					  << ", handle: " << mBufDrmHandle
 					  << ", fd: " << mBufDrmFd
-					  << ", size: " << mSize << ", stride: " << mStride;
+					  << ", size: " << mSize << ", stride: " << mBackStride;
 }
 
 void DumbZCopyBack::release()
