@@ -48,7 +48,7 @@ namespace Drm {
 DumbBase::DumbBase(int drmFd, uint32_t width, uint32_t height) :
 	mDrmFd(drmFd),
 	mBufDrmHandle(0),
-	mStride(0),
+	mBackStride(0),
 	mWidth(width),
 	mHeight(height),
 	mName(0),
@@ -100,7 +100,7 @@ void DumbBase::createDumb(uint32_t bpp)
 		throw Exception("Cannot create dumb buffer", errno);
 	}
 
-	mStride = creq.pitch;
+	mBackStride = creq.pitch;
 	mSize = creq.size;
 	mBufDrmHandle = creq.handle;
 }
@@ -187,7 +187,7 @@ void DumbDrm::init(uint32_t bpp, size_t offset,
 	mapDumb();
 
 	DLOG(mLog, DEBUG) << "Create dumb, handle: " << mBufDrmHandle << ", size: "
-					   << mSize << ", stride: " << mStride;
+					   << mSize << ", stride: " << mBackStride;
 }
 
 void DumbDrm::release()
@@ -224,7 +224,7 @@ DumbZCopyFront::DumbZCopyFront(int drmFd,
 	mGnttabBuffer(domId, refs, offset)
 {
 	mBufZCopyFd = mGnttabBuffer.getFd();
-	mStride = 4 * ((width * bpp + 31) / 32);
+	mBackStride = 4 * ((width * bpp + 31) / 32);
 	DLOG(mLog, DEBUG) << "Fd: " << mBufZCopyFd;
 }
 
@@ -353,7 +353,7 @@ void DumbZCopyBack::init(uint32_t bpp, domid_t domId, GrantRefs& refs)
 	DLOG(mLog, DEBUG) << "Create ZCopy back dumb, domId: " << domId
 					  << ", handle: " << mBufDrmHandle
 					  << ", fd: " << mBufDrmFd
-					  << ", size: " << mSize << ", stride: " << mStride;
+					  << ", size: " << mSize << ", stride: " << mBackStride;
 }
 
 void DumbZCopyBack::release()

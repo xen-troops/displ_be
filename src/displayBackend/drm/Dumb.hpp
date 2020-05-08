@@ -59,7 +59,7 @@ public:
 	/**
 	 * Gets stride
 	 */
-	uint32_t getStride() const override { return mStride; }
+	uint32_t getStride() const override { return mBackStride; }
 
 	/**
 	 * Gets name
@@ -80,7 +80,7 @@ protected:
 
 	int mDrmFd;
 	uint32_t mBufDrmHandle;
-	uint32_t mStride;
+	uint32_t mBackStride;
 	uint32_t mWidth;
 	uint32_t mHeight;
 	uint32_t mName;
