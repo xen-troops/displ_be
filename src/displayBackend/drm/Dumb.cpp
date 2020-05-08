@@ -49,6 +49,7 @@ DumbBase::DumbBase(int drmFd, uint32_t width, uint32_t height) :
 	mDrmFd(drmFd),
 	mBufDrmHandle(0),
 	mBackStride(0),
+	mFrontStride(0),
 	mWidth(width),
 	mHeight(height),
 	mName(0),
@@ -91,6 +92,8 @@ void DumbBase::createDumb(uint32_t bpp)
 {
 	drm_mode_create_dumb creq {0};
 
+	mFrontStride = 4 * ((mWidth * bpp + 31) / 32);
+
 	creq.width = mWidth;
 	creq.height = mHeight;
 	creq.bpp = bpp;
@@ -103,6 +106,10 @@ void DumbBase::createDumb(uint32_t bpp)
 	mBackStride = creq.pitch;
 	mSize = creq.size;
 	mBufDrmHandle = creq.handle;
+	if (mBackStride != mFrontStride)
+	{
+		DLOG(mLog, WARNING) << "Strides are different, frontend stride: " << mFrontStride << ", backend stride: " << mBackStride;
+	}
 }
 
 /*******************************************************************************
@@ -143,8 +150,17 @@ void DumbDrm::copy()
 	}
 
 	DLOG(mLog, DEBUG) << "Copy dumb, handle: " << mBufDrmHandle;
-
-	memcpy(mBuffer, mGnttabBuffer->get(), mSize);
+	if (mGnttabBuffer->size() == mSize)
+	{
+		memcpy(mBuffer, mGnttabBuffer->get(), mSize);
+		return;
+	}
+	auto src = reinterpret_cast<uint8_t*>(mGnttabBuffer->get());
+	auto dst = reinterpret_cast<uint8_t*>(mBuffer);
+	for (unsigned int i = 0; i < mHeight; i++)
+	{
+		memcpy(dst + i * mBackStride, src + i * mFrontStride, mFrontStride);
+	}
 }
 
 /*******************************************************************************
