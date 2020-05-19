@@ -30,8 +30,8 @@
 #ifndef __XEN_PUBLIC_IO_DISPLIF_H__
 #define __XEN_PUBLIC_IO_DISPLIF_H__
 
-#include "ring.h"
-#include "../grant_table.h"
+#include <xen/io/ring.h>
+#include <xen/grant_table.h>
 
 /*
  ******************************************************************************
