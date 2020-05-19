@@ -28,7 +28,7 @@
 
 #include <xen/be/XenGnttab.hpp>
 
-#include <xen/io/displif.h>
+#include "displif.h"
 
 #include "DisplayItf.hpp"
 
