@@ -24,6 +24,7 @@ endif()
 include_directories(
 	.
 	include_directories(${DRM_INCLUDE_DIRS})
+	include_directories(protocols)
 )
 
 if (WITH_WAYLAND)

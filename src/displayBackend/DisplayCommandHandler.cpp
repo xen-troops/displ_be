@@ -33,15 +33,16 @@ using std::unordered_map;
 using DisplayItf::ConnectorPtr;
 using DisplayItf::DisplayPtr;
 
-/**
- * displif protocol version 1 header had defined the version as a string,
- * so it cannot be used with the preprocessor. Work this around by
- * re-defining the version as an integer.
- */
-#ifndef WITH_DISPLIF_INT_VERSION
-#undef XENDISPL_PROTOCOL_VERSION
-#define XENDISPL_PROTOCOL_VERSION	1
-#endif
+/*******************************************************************************
+ * Protocol differences between its versions and their implications
+ *******************************************************************************
+ * Version 2
+ *******************************************************************************
+ * - XENDISPL_OP_DBUF_CREATE introduces data offset field: if frontend doesn't
+ *   support data offset field, e.g. it uses protocol version 1, then
+ *   according to the protocol it sees this field as "reserved" which must
+ *   be set to 0, thus effectively meaning for the backend zero offset is used.
+ ******************************************************************************/
 
 unordered_map<int, DisplayCommandHandler::CommandFn>
 	DisplayCommandHandler::sCmdTable =
@@ -169,17 +170,11 @@ void DisplayCommandHandler::createDisplayBuffer(const xendispl_req& req)
 	bool beAllocRefs = dbufReq->flags & XENDISPL_DBUF_FLG_REQ_ALLOC;
 
 	/**
-	 * Check if offset is supported by the displif protocol
-	 * and if libxenbe does the same.
 	 * Special handling is required for be_alloc == 1 mode which
 	 * is not supported with a non-zero offsets: do not let us down to
 	 * creating any resources and terminate the command here.
 	 */
-#if (XENDISPL_PROTOCOL_VERSION >= 2)
 	size_t data_ofs = dbufReq->data_ofs;
-#else
-	size_t data_ofs = 0;
-#endif
 
 	DLOG(mLog, DEBUG) << "Handle command [CREATE DBUF], cookie: "
 					  << hex << setfill('0') << setw(16)
