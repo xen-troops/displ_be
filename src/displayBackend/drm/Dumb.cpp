@@ -39,8 +39,6 @@ using std::string;
 using XenBackend::XenGnttabBuffer;
 using XenBackend::XenGnttabDmaBufferImporter;
 
-using DisplayItf::GrantRefs;
-
 namespace Drm {
 
 /*******************************************************************************
@@ -50,7 +48,7 @@ namespace Drm {
 DumbBase::DumbBase(int drmFd, uint32_t width, uint32_t height) :
 	mDrmFd(drmFd),
 	mBufDrmHandle(0),
-	mStride(0),
+	mBackStride(0),
 	mFrontStride(0),
 	mWidth(width),
 	mHeight(height),
@@ -105,9 +103,13 @@ void DumbBase::createDumb(uint32_t bpp)
 		throw Exception("Cannot create dumb buffer", errno);
 	}
 
-	mStride = creq.pitch;
+	mBackStride = creq.pitch;
 	mSize = creq.size;
 	mBufDrmHandle = creq.handle;
+	if (mBackStride != mFrontStride)
+	{
+		DLOG(mLog, WARNING) << "Strides are different, frontend stride: " << mFrontStride << ", backend stride: " << mBackStride;
+	}
 }
 
 /*******************************************************************************
@@ -115,13 +117,13 @@ void DumbBase::createDumb(uint32_t bpp)
  ******************************************************************************/
 
 DumbDrm::DumbDrm(int drmFd, uint32_t width, uint32_t height, uint32_t bpp,
-				 domid_t domId, const GrantRefs& refs) :
+				 size_t offset, domid_t domId, const GrantRefs& refs) :
 	DumbBase(drmFd, width, height),
 	mBuffer(nullptr)
 {
 	try
 	{
-		init(bpp, domId, refs);
+		init(bpp, offset, domId, refs);
 	}
 	catch(const std::exception& e)
 	{
@@ -148,16 +150,16 @@ void DumbDrm::copy()
 	}
 
 	DLOG(mLog, DEBUG) << "Copy dumb, handle: " << mBufDrmHandle;
-	if(mStride == mFrontStride)
+	if (mGnttabBuffer->size() == mSize)
 	{
 		memcpy(mBuffer, mGnttabBuffer->get(), mSize);
 		return;
 	}
-	auto src = reinterpret_cast<unsigned char*>(mGnttabBuffer->get());
-	auto dst = reinterpret_cast<unsigned char*>(mBuffer);
-	for(unsigned int i = 0; i < mHeight; i++)
+	auto src = reinterpret_cast<uint8_t*>(mGnttabBuffer->get());
+	auto dst = reinterpret_cast<uint8_t*>(mBuffer);
+	for (unsigned int i = 0; i < mHeight; i++)
 	{
-		memcpy(dst + i * mStride, src + i * mFrontStride, mFrontStride);
+		memcpy(dst + i * mBackStride, src + i * mFrontStride, mFrontStride);
 	}
 }
 
@@ -187,19 +189,21 @@ void DumbDrm::mapDumb()
 	mBuffer = map;
 }
 
-void DumbDrm::init(uint32_t bpp, domid_t domId, const GrantRefs& refs)
+void DumbDrm::init(uint32_t bpp, size_t offset,
+				   domid_t domId, const GrantRefs& refs)
 {
 	if (refs.size())
 	{
 		mGnttabBuffer.reset(
-				new XenGnttabBuffer(domId, refs.data(), refs.size()));
+				new XenGnttabBuffer(domId, refs.data(), refs.size(),
+									PROT_READ | PROT_WRITE, offset));
 	}
 
 	createDumb(bpp);
 	mapDumb();
 
 	DLOG(mLog, DEBUG) << "Create dumb, handle: " << mBufDrmHandle << ", size: "
-					   << mSize << ", stride: " << mStride;
+					   << mSize << ", stride: " << mBackStride;
 }
 
 void DumbDrm::release()
@@ -230,12 +234,13 @@ void DumbDrm::release()
 
 DumbZCopyFront::DumbZCopyFront(int drmFd,
 							   uint32_t width, uint32_t height, uint32_t bpp,
-							   domid_t domId, const GrantRefs& refs) :
+							   size_t offset, domid_t domId,
+							   const GrantRefs& refs) :
 	DumbBase(drmFd, width, height),
-	mGnttabBuffer(domId, refs)
+	mGnttabBuffer(domId, refs, offset)
 {
 	mBufZCopyFd = mGnttabBuffer.getFd();
-	mStride = 4 * ((width * bpp + 31) / 32);
+	mBackStride = 4 * ((width * bpp + 31) / 32);
 	DLOG(mLog, DEBUG) << "Fd: " << mBufZCopyFd;
 }
 
@@ -267,9 +272,9 @@ DumbZCopyFront::~DumbZCopyFront()
 
 DumbZCopyFrontDrm::DumbZCopyFrontDrm(int drmFd,
 									 uint32_t width, uint32_t height,
-									 uint32_t bpp, domid_t domId,
+									 uint32_t bpp, size_t offset, domid_t domId,
 									 const GrantRefs& refs) :
-	DumbZCopyFront(drmFd, width, height, bpp, domId, refs)
+	DumbZCopyFront(drmFd, width, height, bpp, offset, domId, refs)
 {
 	drm_prime_handle prime {0};
 
@@ -364,7 +369,7 @@ void DumbZCopyBack::init(uint32_t bpp, domid_t domId, GrantRefs& refs)
 	DLOG(mLog, DEBUG) << "Create ZCopy back dumb, domId: " << domId
 					  << ", handle: " << mBufDrmHandle
 					  << ", fd: " << mBufDrmFd
-					  << ", size: " << mSize << ", stride: " << mStride;
+					  << ", size: " << mSize << ", stride: " << mBackStride;
 }
 
 void DumbZCopyBack::release()

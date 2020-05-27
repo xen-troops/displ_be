@@ -78,7 +78,7 @@ void CtrlRingBuffer::processRequest(const xendispl_req& req)
 	rsp.id = req.id;
 	rsp.id = req.id;
 	rsp.operation = req.operation;
-	rsp.status = mCommandHandler.processCommand(req);
+	rsp.status = mCommandHandler.processCommand(req, rsp);
 
 	sendResponse(rsp);
 }
@@ -128,7 +128,13 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
 
 	auto id = getXenStore().readString(conPath + XENDISPL_FIELD_UNIQUE_ID);
 
-	auto connector = mDisplay->createConnector(id);
+	auto resolution = getXenStore().readString(conPath +
+											   XENDISPL_FIELD_RESOLUTION);
+	auto pos = resolution.find(XENDISPL_RESOLUTION_SEPARATOR);
+	auto width = stoi(resolution.substr(0, pos));
+	auto height = stoi(resolution.substr(++pos));
+
+	auto connector = mDisplay->createConnector(getDomId(), id, width, height);
 
 	CtrlRingBufferPtr ctrlRingBuffer(
 			new CtrlRingBuffer(mDisplay,

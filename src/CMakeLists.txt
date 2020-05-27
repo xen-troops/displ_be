@@ -24,6 +24,7 @@ endif()
 include_directories(
 	.
 	include_directories(${DRM_INCLUDE_DIRS})
+	include_directories(protocols)
 )
 
 if (WITH_WAYLAND)
@@ -31,7 +32,10 @@ if (WITH_WAYLAND)
 endif()
 
 if(WITH_DRM OR WITH_WAYLAND)
-	include_directories(displayBackend)
+	include_directories(
+		displayBackend
+		displayBackend/common
+	)
 endif()
 
 if(WITH_INPUT)

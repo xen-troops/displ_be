@@ -79,12 +79,14 @@ public:
 	/**
 	 * Processes commands received from the frontend.
 	 * @param req frontend request
+	 * @param rsp backend response
 	 * @return status
 	 */
-	int processCommand(const xendispl_req& req);
+	int processCommand(const xendispl_req& req, xendispl_resp& rsp);
 
 private:
-	typedef void(DisplayCommandHandler::*CommandFn)(const xendispl_req& req);
+	typedef void(DisplayCommandHandler::*CommandFn)(const xendispl_req& req,
+													xendispl_resp& rsp);
 
 	static std::unordered_map<int, CommandFn> sCmdTable;
 
@@ -96,12 +98,13 @@ private:
 
 	XenBackend::Log mLog;
 
-	void pageFlip(const xendispl_req& req);
-	void createDisplayBuffer(const xendispl_req& req);
-	void destroyDisplayBuffer(const xendispl_req& req);
-	void attachFrameBuffer(const xendispl_req& req);
-	void detachFrameBuffer(const xendispl_req& req);
-	void setConfig(const xendispl_req& req);
+	void pageFlip(const xendispl_req& req, xendispl_resp& rsp);
+	void createDisplayBuffer(const xendispl_req& req, xendispl_resp& rsp);
+	void destroyDisplayBuffer(const xendispl_req& req, xendispl_resp& rsp);
+	void attachFrameBuffer(const xendispl_req& req, xendispl_resp& rsp);
+	void detachFrameBuffer(const xendispl_req& req, xendispl_resp& rsp);
+	void setConfig(const xendispl_req& req, xendispl_resp& rsp);
+	void getEDID(const xendispl_req& req, xendispl_resp& rsp);
 
 	void sendFlipEvent(uint64_t fbCookie);
 };

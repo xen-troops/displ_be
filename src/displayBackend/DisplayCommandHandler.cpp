@@ -24,6 +24,7 @@
 
 #include <xen/be/Exception.hpp>
 
+using std::dec;
 using std::hex;
 using std::setfill;
 using std::setw;
@@ -31,6 +32,19 @@ using std::unordered_map;
 
 using DisplayItf::ConnectorPtr;
 using DisplayItf::DisplayPtr;
+
+/*******************************************************************************
+ * Protocol differences between its versions and their implications
+ *******************************************************************************
+ * Version 2
+ *******************************************************************************
+ * - XENDISPL_OP_DBUF_CREATE introduces data offset field: if frontend doesn't
+ *   support data offset field, e.g. it uses protocol version 1, then
+ *   according to the protocol it sees this field as "reserved" which must
+ *   be set to 0, thus effectively meaning for the backend zero offset is used.
+ * - XENDISPL_OP_GET_EDID is an optional request, so if frontend uses protocol
+ *   version 1 it is not known to it, thus it is not going to be issued.
+ ******************************************************************************/
 
 unordered_map<int, DisplayCommandHandler::CommandFn>
 	DisplayCommandHandler::sCmdTable =
@@ -40,7 +54,8 @@ unordered_map<int, DisplayCommandHandler::CommandFn>
 	{XENDISPL_OP_FB_DETACH,		&DisplayCommandHandler::detachFrameBuffer},
 	{XENDISPL_OP_DBUF_CREATE,	&DisplayCommandHandler::createDisplayBuffer},
 	{XENDISPL_OP_DBUF_DESTROY,	&DisplayCommandHandler::destroyDisplayBuffer},
-	{XENDISPL_OP_SET_CONFIG,	&DisplayCommandHandler::setConfig}
+	{XENDISPL_OP_SET_CONFIG,	&DisplayCommandHandler::setConfig},
+	{XENDISPL_OP_GET_EDID,		&DisplayCommandHandler::getEDID}
 };
 
 /*******************************************************************************
@@ -90,13 +105,14 @@ DisplayCommandHandler::~DisplayCommandHandler()
  * Public
  ******************************************************************************/
 
-int DisplayCommandHandler::processCommand(const xendispl_req& req)
+int DisplayCommandHandler::processCommand(const xendispl_req& req,
+										  xendispl_resp& rsp)
 {
 	int status = 0;
 
 	try
 	{
-		(this->*sCmdTable.at(req.operation))(req);
+		(this->*sCmdTable.at(req.operation))(req, rsp);
 
 		mDisplay->flush();
 	}
@@ -137,7 +153,8 @@ int DisplayCommandHandler::processCommand(const xendispl_req& req)
  * Private
  ******************************************************************************/
 
-void DisplayCommandHandler::pageFlip(const xendispl_req& req)
+void DisplayCommandHandler::pageFlip(const xendispl_req& req,
+									 xendispl_resp& rsp)
 {
 	xendispl_page_flip_req flipReq = req.op.pg_flip;
 
@@ -151,25 +168,42 @@ void DisplayCommandHandler::pageFlip(const xendispl_req& req)
 						 [cookie, this] () { sendFlipEvent(cookie); });
 }
 
-void DisplayCommandHandler::createDisplayBuffer(const xendispl_req& req)
+void DisplayCommandHandler::createDisplayBuffer(const xendispl_req& req,
+												xendispl_resp& rsp)
 {
 	const xendispl_dbuf_create_req* dbufReq = &req.op.dbuf_create;
 
+	bool beAllocRefs = dbufReq->flags & XENDISPL_DBUF_FLG_REQ_ALLOC;
+
+	/**
+	 * Special handling is required for be_alloc == 1 mode which
+	 * is not supported with a non-zero offsets: do not let us down to
+	 * creating any resources and terminate the command here.
+	 */
+	size_t data_ofs = dbufReq->data_ofs;
+
 	DLOG(mLog, DEBUG) << "Handle command [CREATE DBUF], cookie: "
 					  << hex << setfill('0') << setw(16)
-					  << dbufReq->dbuf_cookie;
+					  << dbufReq->dbuf_cookie
+					  << ", offset: " << dec << data_ofs;
 
-	bool beAllocRefs = dbufReq->flags & XENDISPL_DBUF_FLG_REQ_ALLOC;
+	if (beAllocRefs && data_ofs)
+	{
+		throw XenBackend::Exception("Can't create buffer with non-zero offset in this mode",
+									EINVAL);
+	}
 
 	mBuffersStorage->createDisplayBuffer(dbufReq->dbuf_cookie,
 										 beAllocRefs,
 										 dbufReq->gref_directory,
+										 data_ofs,
 										 dbufReq->buffer_sz,
 										 dbufReq->width, dbufReq->height,
 										 dbufReq->bpp);
 }
 
-void DisplayCommandHandler::destroyDisplayBuffer(const xendispl_req& req)
+void DisplayCommandHandler::destroyDisplayBuffer(const xendispl_req& req,
+												 xendispl_resp& rsp)
 {
 	const xendispl_dbuf_destroy_req* dbufReq = &req.op.dbuf_destroy;
 
@@ -180,7 +214,8 @@ void DisplayCommandHandler::destroyDisplayBuffer(const xendispl_req& req)
 	mBuffersStorage->destroyDisplayBuffer(dbufReq->dbuf_cookie);
 }
 
-void DisplayCommandHandler::attachFrameBuffer(const xendispl_req& req)
+void DisplayCommandHandler::attachFrameBuffer(const xendispl_req& req,
+											  xendispl_resp& rsp)
 {
 	const xendispl_fb_attach_req* fbReq = &req.op.fb_attach;
 
@@ -195,7 +230,8 @@ void DisplayCommandHandler::attachFrameBuffer(const xendispl_req& req)
 
 }
 
-void DisplayCommandHandler::detachFrameBuffer(const xendispl_req& req)
+void DisplayCommandHandler::detachFrameBuffer(const xendispl_req& req,
+											  xendispl_resp& rsp)
 {
 	const xendispl_fb_detach_req* fbReq = &req.op.fb_detach;
 
@@ -206,7 +242,8 @@ void DisplayCommandHandler::detachFrameBuffer(const xendispl_req& req)
 	mBuffersStorage->destroyFrameBuffer(fbReq->fb_cookie);
 }
 
-void DisplayCommandHandler::setConfig(const xendispl_req& req)
+void DisplayCommandHandler::setConfig(const xendispl_req& req,
+									  xendispl_resp& rsp)
 {
 	const xendispl_set_config_req* configReq = &req.op.set_config;
 
@@ -231,6 +268,20 @@ void DisplayCommandHandler::setConfig(const xendispl_req& req)
 	{
 		mConnector->release();
 	}
+}
+
+void DisplayCommandHandler::getEDID(const xendispl_req& req,
+									xendispl_resp& rsp)
+{
+	xendispl_get_edid_req edidReq = req.op.get_edid;
+	xendispl_get_edid_resp& edidResp = rsp.op.get_edid;
+
+	DLOG(mLog, DEBUG) << "Handle command [GET EDID], buffer size: "
+					  << edidReq.buffer_sz;
+
+	edidResp.edid_sz = static_cast<uint32_t>(mConnector->getEDID(
+			edidReq.gref_directory,
+			edidReq.buffer_sz));
 }
 
 void DisplayCommandHandler::sendFlipEvent(uint64_t fbCookie)

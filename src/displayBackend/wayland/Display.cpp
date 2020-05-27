@@ -32,7 +32,6 @@ using std::thread;
 
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
-using DisplayItf::GrantRefs;
 
 #ifdef WITH_INPUT
 using InputItf::KeyboardCallbacks;
@@ -48,9 +47,10 @@ namespace Wayland {
  * Display
  ******************************************************************************/
 
-Display::Display() :
+Display::Display(bool disable_zcopy) :
 	mWlDisplay(nullptr),
 	mWlRegistry(nullptr),
+	mDisableZCopy(disable_zcopy),
 	mLog("Display")
 {
 	try
@@ -114,7 +114,10 @@ void Display::flush()
 	}
 }
 
-DisplayItf::ConnectorPtr Display::createConnector(const string& name)
+DisplayItf::ConnectorPtr Display::createConnector(domid_t domId,
+												  const string& name,
+												  uint32_t width,
+												  uint32_t height)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -134,8 +137,8 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 			throw Exception("Can't create surface id: " + name, EINVAL);
 		}
 
-		connector = new IviConnector(name, mIviApplication, mCompositor,
-									 surfaceId);
+		connector = new IviConnector(domId, name, mIviApplication, mCompositor,
+									 surfaceId, width, height);
 
 		LOG(mLog, DEBUG) << "Create ivi connector, name: " << name;
 	}
@@ -143,13 +146,14 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 #endif
 	if (mShell)
 	{
-		connector = new ShellConnector(name, mShell, mCompositor);
+		connector = new ShellConnector(domId, name, mShell, mCompositor,
+									   width, height);
 
 		LOG(mLog, DEBUG) << "Create shell connector, name: " << name;
 	}
 	else
 	{
-		connector = new Connector(name, mCompositor);
+		connector = new Connector(domId, name, mCompositor, width, height);
 
 		LOG(mLog, DEBUG) << "Create connector, name: " << name;
 	}
@@ -160,20 +164,20 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
-		uint32_t width, uint32_t height, uint32_t bpp)
+		uint32_t width, uint32_t height, uint32_t bpp, size_t offset)
 {
 	lock_guard<mutex> lock(mMutex);
 
 	if (mSharedMemory)
 	{
-		return mSharedMemory->createSharedFile(width, height, bpp);
+		return mSharedMemory->createSharedFile(width, height, bpp, offset);
 	}
 
 	throw Exception("Can't create display buffer", ENOENT);
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
-		uint32_t width, uint32_t height, uint32_t bpp,
+		uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
 		domid_t domId, GrantRefs& refs, bool allocRefs)
 {
 	lock_guard<mutex> lock(mMutex);
@@ -182,21 +186,28 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 	if (mWaylandDrm)
 	{
-		return mWaylandDrm->createDumb(width, height, bpp,
+		return mWaylandDrm->createDumb(width, height, bpp, offset,
 									   domId, refs, allocRefs);
 	}
 
 	if (mWaylandKms)
 	{
-		return mWaylandKms->createDumb(width, height, bpp,
+		return mWaylandKms->createDumb(width, height, bpp, offset,
 									   domId, refs, allocRefs);
+	}
+
+	if (mWaylandLinuxDmabuf)
+	{
+		return mWaylandLinuxDmabuf->createDumb(width, height, bpp, offset,
+											   domId, refs, allocRefs);
 	}
 
 #endif
 
 	if (mSharedMemory)
 	{
-		return mSharedMemory->createSharedFile(width, height, bpp, domId, refs);
+		return mSharedMemory->createSharedFile(width, height, bpp, offset,
+											   domId, refs);
 	}
 
 	throw Exception("Can't create display buffer", ENOENT);
@@ -220,6 +231,13 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 	{
 		return mWaylandKms->createKmsBuffer(displayBuffer, width, height,
 											pixelFormat);
+	}
+
+	if (mWaylandLinuxDmabuf)
+	{
+		return mWaylandLinuxDmabuf->createLinuxDmabufBuffer(displayBuffer,
+															width, height,
+															pixelFormat);
 	}
 
 #endif
@@ -433,13 +451,20 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	}
 #endif
 #ifdef WITH_ZCOPY
-	if (interface == "wl_drm")
+	if (!mDisableZCopy)
 	{
-		mWaylandDrm.reset(new WaylandDrm(registry, id, version));
-	}
-	if (interface == "wl_kms")
-	{
-		mWaylandKms.reset(new WaylandKms(registry, id, version));
+		if (interface == "wl_drm")
+		{
+			mWaylandDrm.reset(new WaylandDrm(registry, id, version));
+		}
+		if (interface == "wl_kms")
+		{
+			mWaylandKms.reset(new WaylandKms(registry, id, version));
+		}
+		if (interface == "zwp_linux_dmabuf_v1")
+		{
+			mWaylandLinuxDmabuf.reset(new WaylandLinuxDmabuf(registry, id, version));
+		}
 	}
 #endif
 }
@@ -501,6 +526,7 @@ void Display::release()
 #ifdef WITH_ZCOPY
 	mWaylandDrm.reset();
 	mWaylandKms.reset();
+	mWaylandLinuxDmabuf.reset();
 #endif
 
 	if (mWlRegistry)

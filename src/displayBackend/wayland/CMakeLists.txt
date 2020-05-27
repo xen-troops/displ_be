@@ -41,6 +41,7 @@ if(WITH_ZCOPY)
 	target_link_libraries(display_wayland
 		wayland_drm_protocol
 		wayland_kms_protocol
+		linux_dmabuf_unstable_v1_protocol
 	)
 endif()
 
@@ -52,4 +53,4 @@ if(WITH_IVI_EXTENSION)
 	)
 endif()
 
-target_link_libraries(display_wayland xenbe)
+target_link_libraries(display_wayland xenbe display_common)

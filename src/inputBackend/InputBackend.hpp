@@ -25,7 +25,7 @@
 #include <xen/be/FrontendHandlerBase.hpp>
 #include <xen/be/Log.hpp>
 
-#include <xen/io/kbdif.h>
+#include "kbdif.h"
 
 #include "InputItf.hpp"
 

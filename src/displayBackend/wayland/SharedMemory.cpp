@@ -17,7 +17,6 @@ using std::setfill;
 using std::setw;
 
 using DisplayItf::DisplayBufferPtr;
-using DisplayItf::GrantRefs;
 
 #ifndef DRM_FORMAT_ARGB8888
 #define DRM_FORMAT_ARGB8888           0x34325241
@@ -59,12 +58,13 @@ SharedMemory::~SharedMemory()
  ******************************************************************************/
 
 SharedFilePtr SharedMemory::createSharedFile(
-		uint32_t width, uint32_t height, uint32_t bpp,
+		uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
 		domid_t domId, const GrantRefs& refs)
 {
 	LOG(mLog, DEBUG) << "Create shared file";
 
-	return SharedFilePtr(new SharedFile(width, height, bpp, domId, refs));
+	return SharedFilePtr(new SharedFile(width, height, bpp, offset,
+										domId, refs));
 }
 
 SharedBufferPtr SharedMemory::createSharedBuffer(

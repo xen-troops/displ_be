@@ -229,6 +229,48 @@ DrmBuffer::DrmBuffer(wl_drm* wlDrm,
 					 << ", format: " << pixelFormat;
 }
 
+/*******************************************************************************
+ * LinuxDmabufBuffer
+ ******************************************************************************/
+
+LinuxDmabufBuffer::LinuxDmabufBuffer(zwp_linux_dmabuf_v1* wlLinuxDmabuf,
+									 DisplayBufferPtr displayBuffer,
+									 uint32_t width, uint32_t height,
+									 uint32_t pixelFormat) :
+	WlBuffer(displayBuffer, width, height)
+{
+	zwp_linux_buffer_params_v1 *params;
+
+	params = zwp_linux_dmabuf_v1_create_params(wlLinuxDmabuf);
+	if (!params)
+	{
+		throw Exception("Can't create Linux dmabuf params", ENOMEM);
+	}
+
+	zwp_linux_buffer_params_v1_add(params, mDisplayBuffer->getFd(),
+								   0, /* plane_idx */
+								   0, /* offset */
+								   mDisplayBuffer->getStride(), 0, 0);
+
+	mWlBuffer = zwp_linux_buffer_params_v1_create_immed(params,
+														mWidth, mHeight,
+														pixelFormat, 0);
+	zwp_linux_buffer_params_v1_destroy(params);
+
+	if (!mWlBuffer)
+	{
+		throw Exception("Can't create Linux dmabuf buffer", errno);
+	}
+
+	setListener();
+
+	LOG(mLog, DEBUG) << "Create Linux dmabuf buffer, fd: "
+					 << mDisplayBuffer->getFd()
+					 << ", w: " << mWidth << ", h: " << mHeight
+					 << ", stride: " << mDisplayBuffer->getStride()
+					 << ", format: " << pixelFormat;
+}
+
 #endif
 
 }

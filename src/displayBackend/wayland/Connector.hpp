@@ -24,10 +24,8 @@
 
 #include <atomic>
 
-#include <xen/be/Log.hpp>
-
 #include "Compositor.hpp"
-#include "DisplayItf.hpp"
+#include "ConnectorBase.hpp"
 #ifdef WITH_IVI_EXTENSION
 #include "IviApplication.hpp"
 #include "IviSurface.hpp"
@@ -41,7 +39,7 @@ namespace Wayland {
  * Virtual connector class.
  * @ingroup wayland
  ******************************************************************************/
-class Connector : public DisplayItf::Connector
+class Connector : public ConnectorBase
 {
 public:
 
@@ -99,10 +97,10 @@ private:
 	friend class ShellConnector;
 	friend class IviConnector;
 
-	Connector(const std::string& name, CompositorPtr compositor);
+	Connector(domid_t domId, const std::string& name, CompositorPtr compositor,
+			  uint32_t width, uint32_t height);
 
 	std::string mName;
-	XenBackend::Log mLog;
 
 	SurfacePtr mSurface;
 };
@@ -147,9 +145,9 @@ private:
 
 	friend class Display;
 
-	ShellConnector(const std::string& name, ShellPtr shell,
-				   CompositorPtr compositor) :
-		Connector(name, compositor),
+	ShellConnector(domid_t domId, const std::string& name, ShellPtr shell,
+				   CompositorPtr compositor, uint32_t width, uint32_t height) :
+		Connector(domId, name, compositor, width, height),
 		mShell(shell) {}
 
 	ShellPtr mShell;
@@ -196,9 +194,10 @@ private:
 
 	friend class Display;
 
-	IviConnector(const std::string& name, IviApplicationPtr iviApplication,
-				 CompositorPtr compositor, uint32_t surfaceId) :
-		Connector(name, compositor),
+	IviConnector(domid_t domId, const std::string& name,
+				 IviApplicationPtr iviApplication, CompositorPtr compositor,
+				 uint32_t surfaceId, uint32_t width, uint32_t height) :
+		Connector(domId, name, compositor, width, height),
 		mIviApplication(iviApplication),
 		mSurfaceId(surfaceId) {}
 

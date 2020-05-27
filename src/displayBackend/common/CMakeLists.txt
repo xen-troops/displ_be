@@ -6,38 +6,19 @@
 # Sources
 ################################################################################
 
-add_subdirectory(common)
-
-if(WITH_DRM)
-	add_subdirectory(drm)
-endif()
-
-if(WITH_WAYLAND)
-	add_subdirectory(wayland)
-endif()
-
 set(SOURCES
-	BuffersStorage.cpp
-	DisplayBackend.cpp
-	DisplayCommandHandler.cpp
+	ConnectorBase.cpp
+	PgDirSharedBuffer.cpp
 )
 
 ################################################################################
 # Targets
 ################################################################################
 
-add_library(display STATIC ${SOURCES})
+add_library(display_common STATIC ${SOURCES})
 
 ################################################################################
 # Libraries
 ################################################################################
 
-if(WITH_WAYLAND)
-	target_link_libraries(display display_wayland)
-endif()
-
-if(WITH_DRM)
-	target_link_libraries(display display_drm)
-endif()
-
-target_include_directories(display PUBLIC . )
+target_link_libraries(display_common ${DRM_LIBRARIES})
