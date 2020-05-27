@@ -59,7 +59,7 @@ public:
 	/**
 	 * Gets stride
 	 */
-	uint32_t getStride() const override { return mStride; }
+	uint32_t getStride() const override { return mBackStride; }
 
 	/**
 	 * Gets name
@@ -80,7 +80,7 @@ protected:
 
 	int mDrmFd;
 	uint32_t mBufDrmHandle;
-	uint32_t mStride;
+	uint32_t mBackStride;
 	uint32_t mFrontStride;
 	uint32_t mWidth;
 	uint32_t mHeight;
@@ -104,12 +104,13 @@ public:
 	 * @param width  dumb width
 	 * @param height dumb height
 	 * @param bpp    bits per pixel
+	 * @param offset offset of the data in the buffer
 	 * @param domId  domain id
 	 * @param refs   grant table refs
 	 */
 	DumbDrm(int fd, uint32_t width, uint32_t height,
-			uint32_t bpp, domid_t domId = 0,
-			const DisplayItf::GrantRefs& refs = DisplayItf::GrantRefs());
+			uint32_t bpp, size_t offset, domid_t domId = 0,
+			const GrantRefs& refs = GrantRefs());
 
 	~DumbDrm();
 
@@ -148,7 +149,8 @@ private:
 
 	void mapDumb();
 
-	void init(uint32_t bpp, domid_t domId, const DisplayItf::GrantRefs& refs);
+	void init(uint32_t bpp, size_t offset, domid_t domId,
+			  const GrantRefs& refs);
 	void release();
 };
 
@@ -167,10 +169,12 @@ public:
 	 * @param width    dumb width
 	 * @param height   dumb height
 	 * @param bpp      bits per pixel
+	 * @param offset   offset of the data in the buffer
 	 */
 	DumbZCopyFront(int drmFd,
 				   uint32_t width, uint32_t height, uint32_t bpp,
-				   domid_t domId, const DisplayItf::GrantRefs& refs);
+				   size_t offset, domid_t domId,
+				   const GrantRefs& refs);
 
 	~DumbZCopyFront();
 
@@ -199,9 +203,10 @@ private:
 	const int cBufZCopyWaitHandleToMs = 2000;
 
 	void createDumb(uint32_t bpp, domid_t domId,
-					const DisplayItf::GrantRefs& refs);
+					const GrantRefs& refs);
 
-	void init(uint32_t bpp, domid_t domId, const DisplayItf::GrantRefs& refs);
+	void init(uint32_t bpp, size_t offset, domid_t domId,
+			  const GrantRefs& refs);
 	void release();
 };
 
@@ -218,10 +223,12 @@ public:
 	 * @param width    dumb width
 	 * @param height   dumb height
 	 * @param bpp      bits per pixel
+	 * @param offset   offset of the data in the buffer
 	 */
 	DumbZCopyFrontDrm(int drmFd,
 					  uint32_t width, uint32_t height, uint32_t bpp,
-					  domid_t domId, const DisplayItf::GrantRefs& refs);
+					  size_t offset, domid_t domId,
+					  const GrantRefs& refs);
 
 	~DumbZCopyFrontDrm();
 
@@ -238,10 +245,11 @@ public:
 private:
 
 	void createDumb(uint32_t bpp, domid_t domId,
-					const DisplayItf::GrantRefs& refs);
+					const GrantRefs& refs);
 	void createHandle();
 
-	void init(uint32_t bpp, domid_t domId, const DisplayItf::GrantRefs& refs);
+	void init(uint32_t bpp, size_t offset,
+			  domid_t domId, const GrantRefs& refs);
 	void release();
 };
 
@@ -261,7 +269,7 @@ public:
 	 */
 	DumbZCopyBack(int drmFd,
 				  uint32_t width, uint32_t height, uint32_t bpp,
-				  domid_t domId, DisplayItf::GrantRefs& refs);
+				  domid_t domId, GrantRefs& refs);
 
 	~DumbZCopyBack();
 
@@ -283,9 +291,9 @@ private:
 
 	void getBufDrmFd();
 
-	void getGrantRefs(domid_t domId, DisplayItf::GrantRefs& refs);
+	void getGrantRefs(domid_t domId, GrantRefs& refs);
 
-	void init(uint32_t bpp, domid_t domId, DisplayItf::GrantRefs& refs);
+	void init(uint32_t bpp, domid_t domId, GrantRefs& refs);
 	void release();
 };
 

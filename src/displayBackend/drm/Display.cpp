@@ -20,6 +20,7 @@
  */
 
 #include "Display.hpp"
+#include "DrmDeviceDetector.hpp"
 
 #include <fcntl.h>
 #include <signal.h>
@@ -41,7 +42,6 @@ using XenBackend::PollFd;
 
 using DisplayItf::DisplayBufferPtr;
 using DisplayItf::FrameBufferPtr;
-using DisplayItf::GrantRefs;
 
 namespace Drm {
 
@@ -69,12 +69,18 @@ unordered_map<int, string> Display::sConnectorNames =
 /*******************************************************************************
  * Display
  ******************************************************************************/
-Display::Display(const string& name) :
+Display::Display(const string& name, bool disable_zcopy) :
 	mDrmFd(-1),
 	mLog("Drm"),
 	mName(name),
-	mStarted(false)
+	mStarted(false),
+	mDisableZCopy(disable_zcopy)
 {
+	if (name.empty())
+	{
+		mName = detectDrmDevice();
+	}
+
 	mDrmFd = open(mName.c_str(), O_RDWR | O_CLOEXEC);
 
 	if (mDrmFd < 0)
@@ -172,7 +178,10 @@ void Display::flush()
 	DLOG(mLog, DEBUG) << "flush";
 }
 
-DisplayItf::ConnectorPtr Display::createConnector(const string& name)
+DisplayItf::ConnectorPtr Display::createConnector(domid_t domId,
+												  const string& name,
+												  uint32_t width,
+												  uint32_t height)
 {
 	lock_guard<mutex> lock(mMutex);
 
@@ -183,39 +192,44 @@ DisplayItf::ConnectorPtr Display::createConnector(const string& name)
 		throw Exception("Can't create connector: " + name, EINVAL);
 	}
 
-	return DisplayItf::ConnectorPtr(new Connector(name, mDrmFd, it->second));
+	return DisplayItf::ConnectorPtr(new Connector(domId, name, mDrmFd,
+												  it->second,
+												  width, height));
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(uint32_t width, uint32_t height,
-											 uint32_t bpp)
+											 uint32_t bpp, size_t offset)
 {
 	lock_guard<mutex> lock(mMutex);
 
 	LOG(mLog, DEBUG) << "Create display buffer";
 
-	return DisplayBufferPtr(new DumbDrm(mDrmFd, width, height, bpp));
+	return DisplayBufferPtr(new DumbDrm(mDrmFd, width, height, bpp, offset));
 }
 
 DisplayBufferPtr Display::createDisplayBuffer(
-		uint32_t width, uint32_t height, uint32_t bpp,
-		domid_t domId, DisplayItf::GrantRefs& refs, bool allocRefs)
+		uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
+		domid_t domId, GrantRefs& refs, bool allocRefs)
 {
 	lock_guard<mutex> lock(mMutex);
 
 #ifdef WITH_ZCOPY
-	LOG(mLog, DEBUG) << "Create display buffer with zero copy";
-
-	if (allocRefs)
+	if (!mDisableZCopy)
 	{
-		return DisplayBufferPtr(new DumbZCopyBack(mDrmFd,
-												  width, height, bpp,
-												  domId, refs));
-	}
+		LOG(mLog, DEBUG) << "Create display buffer with zero copy";
 
-	return DisplayBufferPtr(new DumbZCopyFrontDrm(mDrmFd,
-												  width, height, bpp,
-												  domId, refs));
-#else
+		if (allocRefs)
+		{
+			return DisplayBufferPtr(new DumbZCopyBack(mDrmFd,
+													  width, height, bpp,
+													  domId, refs));
+		}
+
+		return DisplayBufferPtr(new DumbZCopyFrontDrm(mDrmFd,
+													  width, height, bpp, offset,
+													  domId, refs));
+	}
+#endif
 	LOG(mLog, DEBUG) << "Create display buffer";
 
 	if (allocRefs)
@@ -223,9 +237,8 @@ DisplayBufferPtr Display::createDisplayBuffer(
 		throw  Exception("Can't allocate refs: ZCopy disabled", EINVAL);
 	}
 
-	return DisplayBufferPtr(new DumbDrm(mDrmFd, width, height, bpp,
+	return DisplayBufferPtr(new DumbDrm(mDrmFd, width, height, bpp, offset,
 										domId, refs));
-#endif
 }
 
 FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
@@ -305,7 +318,7 @@ void Display::handleFlipEvent(int fd, unsigned int sequence,
 
 #if defined(WITH_WAYLAND) && defined(WITH_ZCOPY)
 DisplayBufferPtr DisplayWayland::createDisplayBuffer(
-		uint32_t width, uint32_t height, uint32_t bpp,
+		uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
 		domid_t domId, GrantRefs& refs, bool allocRefs)
 {
 	lock_guard<mutex> lock(mMutex);
@@ -320,7 +333,7 @@ DisplayBufferPtr DisplayWayland::createDisplayBuffer(
 	}
 
 	return DisplayBufferPtr(new DumbZCopyFront(mDrmFd,
-											   width, height, bpp,
+											   width, height, bpp, offset,
 											   domId, refs));
 }
 #endif

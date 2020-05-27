@@ -20,8 +20,6 @@ using std::string;
 
 using XenBackend::XenGnttabBuffer;
 
-using DisplayItf::GrantRefs;
-
 namespace Wayland {
 
 /*******************************************************************************
@@ -29,7 +27,7 @@ namespace Wayland {
  ******************************************************************************/
 
 SharedFile::SharedFile(uint32_t width, uint32_t height, uint32_t bpp,
-					   domid_t domId, const GrantRefs& refs) :
+					   size_t offset, domid_t domId, const GrantRefs& refs) :
 	mFd(-1),
 	mBuffer(nullptr),
 	mWidth(width),
@@ -40,7 +38,7 @@ SharedFile::SharedFile(uint32_t width, uint32_t height, uint32_t bpp,
 {
 	try
 	{
-		init(domId, refs);
+		init(domId, offset, refs);
 	}
 	catch(const std::exception& e)
 	{
@@ -75,12 +73,13 @@ void SharedFile::copy()
  * Private
  ******************************************************************************/
 
-void SharedFile::init(domid_t domId, const GrantRefs& refs)
+void SharedFile::init(domid_t domId, size_t offset, const GrantRefs& refs)
 {
 	createTmpFile();
 
 	LOG(mLog, DEBUG) << "Create, w: " << mWidth << ", h: " << mHeight
-					 << ", stride: " << mStride << ", fd: " << mFd;
+					 << ", stride: " << mStride << ", fd: " << mFd
+					 << ", offset: " << offset;
 
 	auto map = mmap(NULL, mSize, PROT_READ | PROT_WRITE, MAP_SHARED, mFd, 0);
 
@@ -94,7 +93,9 @@ void SharedFile::init(domid_t domId, const GrantRefs& refs)
 	if (refs.size())
 	{
 		mGnttabBuffer.reset(
-				new XenGnttabBuffer(domId, refs.data(), refs.size()));
+				new XenGnttabBuffer(domId, refs.data(), refs.size(),
+									PROT_READ | PROT_WRITE,
+									offset));
 	}
 }
 

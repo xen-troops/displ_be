@@ -35,6 +35,7 @@
 #ifdef WITH_ZCOPY
 #include "wayland-drm-client-protocol.h"
 #include "wayland-kms-client-protocol.h"
+#include "linux-dmabuf-unstable-v1-client-protocol.h"
 #endif
 
 namespace Wayland {
@@ -156,6 +157,21 @@ private:
 
 	DrmBuffer(wl_drm* wlDrm, DisplayItf::DisplayBufferPtr displayBuffer,
 			  uint32_t width, uint32_t height, uint32_t pixelFormat);
+};
+
+/***************************************************************************//**
+ * Linux dmabuf buffer class.
+ * @ingroup wayland
+ ******************************************************************************/
+class LinuxDmabufBuffer : public WlBuffer
+{
+private:
+
+	friend class WaylandLinuxDmabuf;
+
+	LinuxDmabufBuffer(zwp_linux_dmabuf_v1* wlLinuxDmabuf,
+					  DisplayItf::DisplayBufferPtr displayBuffer,
+					  uint32_t width, uint32_t height, uint32_t pixelFormat);
 };
 
 #endif

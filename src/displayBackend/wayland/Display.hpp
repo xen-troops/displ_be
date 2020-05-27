@@ -58,7 +58,7 @@ class Display : public DisplayItf::Display
 {
 public:
 
-	Display();
+	explicit Display(bool disable_zcopy = false);
 	~Display();
 
 	/**
@@ -78,30 +78,39 @@ public:
 
 	/**
 	 * Creates connector
-	 * @param name connector name
+	 * @param domId domaind ID
+	 * @param name   connector name
+	 * @param width  connector width as configured in XenStore
+	 * @param height connector height as configured in XenStore
 	 */
-	DisplayItf::ConnectorPtr createConnector(const std::string& name) override;
+	DisplayItf::ConnectorPtr createConnector(domid_t domId,
+											 const std::string& name,
+											 uint32_t width,
+											 uint32_t height) override;
 
 	/**
 	 * Creates display buffer
 	 * @param width  width
 	 * @param height height
 	 * @param bpp    bits per pixel
+	 * @param offset offset of the data in the buffer
 	 * @return shared pointer to the display buffer
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp) override;
+			uint32_t width, uint32_t height, uint32_t bpp,
+			size_t offset) override;
 
 	/**
 	 * Creates display buffer with associated grant table buffer
 	 * @param width  width
 	 * @param height height
 	 * @param bpp    bits per pixel
+	 * @param offset offset of the data in the buffer
 	 * @return shared pointer to the display buffer
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp,
-			domid_t domId, DisplayItf::GrantRefs& refs,
+			uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
+			domid_t domId, GrantRefs& refs,
 			bool allocRefs) override;
 
 	/**
@@ -130,6 +139,7 @@ private:
 	wl_display* mWlDisplay;
 	wl_registry* mWlRegistry;
 	wl_registry_listener mWlRegistryListener;
+	bool mDisableZCopy;
 	XenBackend::Log mLog;
 
 	CompositorPtr mCompositor;
@@ -147,6 +157,7 @@ private:
 #ifdef WITH_ZCOPY
 	WaylandDrmPtr mWaylandDrm;
 	WaylandKmsPtr mWaylandKms;
+	WaylandLinuxDmabufPtr mWaylandLinuxDmabuf;
 #endif
 
 	mutable std::mutex mMutex;

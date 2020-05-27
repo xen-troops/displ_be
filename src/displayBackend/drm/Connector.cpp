@@ -42,15 +42,16 @@ list<uint32_t> Connector::sCrtcIds;
  * Connector
  ******************************************************************************/
 
-Connector::Connector(const string& name, int fd, int conId) :
+Connector::Connector(domid_t domId, const string& name, int fd, int conId,
+					 uint32_t width, uint32_t height) :
+	ConnectorBase(domId, width, height),
 	mName(name),
 	mFd(fd),
 	mCrtcId(cInvalidId),
 	mConnector(mFd, conId),
 	mSavedCrtc(nullptr),
 	mFlipPending(false),
-	mFlipCallback(nullptr),
-	mLog("Connector")
+	mFlipCallback(nullptr)
 {
 	LOG(mLog, DEBUG) << "Create, name: " << mName
 					 << ", id: " << mConnector->connector_id

@@ -26,9 +26,7 @@
 #include <list>
 #include <mutex>
 
-#include <xen/be/Log.hpp>
-
-#include "DisplayItf.hpp"
+#include "ConnectorBase.hpp"
 #include "Exception.hpp"
 #include "Modes.hpp"
 
@@ -40,16 +38,20 @@ class Display;
  * Provides DRM connector functionality.
  * @ingroup drm
  ******************************************************************************/
-class Connector : public DisplayItf::Connector
+class Connector : public ConnectorBase
 {
 public:
 
 	/**
+	 * @param domId  domain id
 	 * @param name   connector name
 	 * @param fd     DRM file descriptor
 	 * @param conId  connector id
+	 * @param width  connector width as configured in XenStore
+	 * @param height connector height as configured in XenStore
 	 */
-	Connector(const std::string& name, int fd, int conId);
+	Connector(domid_t domId, const std::string& name, int fd, int conId,
+			  uint32_t width, uint32_t height);
 
 	~Connector();
 
@@ -107,7 +109,6 @@ private:
 	drmModeCrtc* mSavedCrtc;
 	std::atomic_bool mFlipPending;
 	FlipCallback mFlipCallback;
-	XenBackend::Log mLog;
 
 	uint32_t findCrtcId();
 	uint32_t getAssignedCrtcId();

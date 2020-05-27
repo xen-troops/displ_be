@@ -5,6 +5,7 @@
 * libxenbe
 ### Optional:
 * libdrm
+* libudev
 * wayland-client
 * wayland-ivi-extension
 * Doxygen

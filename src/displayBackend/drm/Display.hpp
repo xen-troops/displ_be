@@ -50,7 +50,7 @@ public:
 	/**
 	 * @param name device name
 	 */
-	explicit Display(const std::string& name);
+	explicit Display(const std::string& name, bool disable_zcopy = false);
 
 	~Display();
 
@@ -76,32 +76,41 @@ public:
 
 	/**
 	 * Creates connector
-	 * @param name connector name
+	 * @param domId  domain id
+	 * @param name   connector name
+	 * @param width  connector width as configured in XenStore
+	 * @param height connector height as configured in XenStore
 	 */
-	DisplayItf::ConnectorPtr createConnector(const std::string& name) override;
+	DisplayItf::ConnectorPtr createConnector(domid_t domId,
+											 const std::string& name,
+											 uint32_t width,
+											 uint32_t height) override;
 
 	/**
 	 * Creates display buffer
 	 * @param width  width
 	 * @param height height
 	 * @param bpp    bits per pixel
+	 * @param offset offset of the data in the buffer
 	 * @return shared pointer to the display buffer
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp) override;
+			uint32_t width, uint32_t height, uint32_t bpp,
+			size_t offset) override;
 
 	/**
 	 * Creates display buffer with associated grand table buffer
 	 * @param width  width
 	 * @param height height
 	 * @param bpp    bits per pixel
+	 * @param offset offset of the data in the buffer
 	 * @param domId  domain id
 	 * @param refs   grant table references
 	 * @return shared pointer to the display buffer
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp,
-			domid_t domId, DisplayItf::GrantRefs& refs,
+			uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
+			domid_t domId, GrantRefs& refs,
 			bool allocRefs) override;
 
 	/**
@@ -127,6 +136,8 @@ private:
 	std::string mName;
 
 	bool mStarted;
+
+	bool mDisableZCopy;
 
 	std::thread mThread;
 
@@ -160,13 +171,14 @@ public:
 	 * @param width  width
 	 * @param height height
 	 * @param bpp    bits per pixel
+	 * @param offset offset of the data in the buffer
 	 * @param domId  domain id
 	 * @param refs   grant table references
 	 * @return shared pointer to the display buffer
 	 */
 	DisplayItf::DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp,
-			domid_t domId, DisplayItf::GrantRefs& refs,
+			uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
+			domid_t domId, GrantRefs& refs,
 			bool allocRefs) override;
 };
 #endif /* WITH_WAYLAND */

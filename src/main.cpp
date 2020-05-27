@@ -74,6 +74,7 @@ enum class DisplayMode
 DisplayMode gDisplayMode = DisplayMode::WAYLAND;
 string gDrmDevice = "/dev/dri/card0";
 string gLogFileName;
+bool gDisableZCopy = false;
 
 int gRetStatus = EXIT_SUCCESS;
 
@@ -126,8 +127,13 @@ void waitSignals()
 bool commandLineOptions(int argc, char *argv[])
 {
 	int opt = -1;
+#ifdef WITH_ZCOPY
+	static const char* optString = "m:d:v:l:f:hz?";
+#else
+	static const char* optString = "m:d:v:l:f:h?";
+#endif
 
-	while((opt = getopt(argc, argv, "m:d:v:l:fh?")) != -1)
+	while((opt = getopt(argc, argv, optString)) != -1)
 	{
 		switch(opt)
 		{
@@ -181,6 +187,14 @@ bool commandLineOptions(int argc, char *argv[])
 
 			break;
 
+#ifdef WITH_ZCOPY
+		case 'z':
+
+			gDisableZCopy = true;
+
+			break;
+#endif
+
 		default:
 
 			return false;
@@ -197,7 +211,7 @@ DisplayItf::DisplayPtr getDisplay(DisplayMode mode)
 	{
 #ifdef WITH_DRM
 		// DRM
-		return Drm::DisplayPtr(new Drm::Display(gDrmDevice));
+		return Drm::DisplayPtr(new Drm::Display(gDrmDevice, gDisableZCopy));
 #else
 		throw XenBackend::Exception("DRM mode is not supported", EINVAL);
 #endif
@@ -206,7 +220,7 @@ DisplayItf::DisplayPtr getDisplay(DisplayMode mode)
 	{
 #ifdef WITH_WAYLAND
 		// Wayland
-		return Wayland::DisplayPtr(new Wayland::Display());
+		return Wayland::DisplayPtr(new Wayland::Display(gDisableZCopy));
 #else
 		throw XenBackend::Exception("WAYLAND mode is not supported", EINVAL);
 #endif
@@ -271,6 +285,9 @@ int main(int argc, char *argv[])
 				 << " [-l <file>] [-v <level>]"
 				 << endl;
 			cout << "\t-m -- mode: DRM or WAYLAND" << endl;
+#ifdef WITH_ZCOPY
+			cout << "\t-z -- disable zero-copy" << endl;
+#endif
 			cout << "\t-d -- DRM device" << endl;
 			cout << "\t-l -- log file" << endl;
 			cout << "\t-v -- verbose level in format: "

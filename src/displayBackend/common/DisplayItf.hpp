@@ -28,8 +28,10 @@
 
 extern "C" {
 #include <xenctrl.h>
-#include <xengnttab.h>
+#include "displif.h"
 }
+
+#include "PgDirSharedBuffer.hpp"
 
 namespace DisplayItf {
 
@@ -178,11 +180,17 @@ public:
 	 * @param cbk         callback
 	 */
 	virtual void pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk) = 0;
+
+	/**
+	 * Queries connector's EDID
+	 * @param  startDirectory grant table reference to the buffer start directory
+	 * @param  size           buffer size
+	 * @return size of the EDID placed in the buffer
+	 */
+	virtual size_t getEDID(grant_ref_t startDirectory, uint32_t size) = 0;
 };
 
 typedef std::shared_ptr<Connector> ConnectorPtr;
-
-typedef std::vector<uint32_t> GrantRefs;
 
 /***************************************************************************//**
  * Display interface class.
@@ -211,25 +219,33 @@ public:
 
 	/**
 	 * Creates connector
-	 * @param name connector name
+	 * @param domId  domain id
+	 * @param name   connector name
+	 * @param width  connector width as configured in XenStore
+	 * @param height connector height as configured in XenStore
 	 */
-	virtual ConnectorPtr createConnector(const std::string& name) = 0;
+	virtual ConnectorPtr createConnector(domid_t domId,
+										 const std::string& name,
+										 uint32_t width, uint32_t height) = 0;
 
 	/**
 	 * Creates display buffer
 	 * @param width  width
 	 * @param height height
 	 * @param bpp    bits per pixel
+	 * @param offset offset of the data in the buffer
 	 * @return shared pointer to the display buffer
 	 */
 	virtual DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp) = 0;
+			uint32_t width, uint32_t height, uint32_t bpp,
+			size_t offset) = 0;
 
 	/**
 	 * Creates display buffer with associated grant table buffer
 	 * @param width     width
 	 * @param height    height
 	 * @param bpp       bits per pixel
+	 * @param offset    offset of the data in the buffer
 	 * @param domId     domain ID
 	 * @param refs      vector of grant table reference
 	 * @param allocRefs indicates that grant refs should be allocated on
@@ -237,7 +253,7 @@ public:
 	 * @return shared pointer to the display buffer
 	 */
 	virtual DisplayBufferPtr createDisplayBuffer(
-			uint32_t width, uint32_t height, uint32_t bpp,
+			uint32_t width, uint32_t height, uint32_t bpp, size_t offset,
 			uint16_t domId, GrantRefs& refs, bool allocRefs) = 0;
 
 	/**
