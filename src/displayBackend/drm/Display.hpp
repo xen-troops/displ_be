@@ -50,7 +50,7 @@ public:
 	/**
 	 * @param name device name
 	 */
-	explicit Display(const std::string& name, bool disable_zcopy = false);
+	Display(const std::string& name, bool disable_zcopy = false);
 
 	~Display();
 
