@@ -100,9 +100,19 @@ void DisplayFrontendHandler::onBind()
 	{
 		LOG(mLog, DEBUG) << "Found connector: " << conIndex;
 
-		createConnector(conBasePath + to_string(conIndex) + "/",
-						conIndex, buffersStorage);
-
+		try 
+		{
+			createConnector(conBasePath + to_string(conIndex) + "/",
+					conIndex, buffersStorage);
+		}
+		catch(const std::exception& err)
+		{
+			LOG(mLog, ERROR) << " Connector " 
+					<< conBasePath 
+					<< conIndex
+					<< " is not created because of "
+					<< err.what();
+		}
 		conIndex++;
 	}
 }
