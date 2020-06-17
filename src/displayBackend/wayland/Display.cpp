@@ -408,8 +408,14 @@ void Display::sWaylandLog(const char* fmt, va_list arg)
 void Display::sRegistryHandler(void *data, wl_registry *registry, uint32_t id,
 							   const char *interface, uint32_t version)
 {
-	static_cast<Display*>(data)->registryHandler(registry, id, interface,
-												 version);
+	try
+	{
+		static_cast<Display*>(data)->registryHandler(registry, id, interface, version);
+	}
+	catch(const std::exception& err)
+	{
+		LOG("Wayland", ERROR) << err.what();
+	}
 }
 
 void Display::sRegistryRemover(void *data, struct wl_registry *registry,
@@ -498,7 +504,10 @@ void Display::init()
 		throw Exception("Can't get registry", errno);
 	}
 
-	wl_registry_add_listener(mWlRegistry, &mWlRegistryListener, this);
+	if(wl_registry_add_listener(mWlRegistry, &mWlRegistryListener, this) == -1)
+	{
+		throw Exception("Can not add the listener.", errno);
+	};
 
 	wl_display_dispatch(mWlDisplay);
 	wl_display_roundtrip(mWlDisplay);
