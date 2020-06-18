@@ -8,6 +8,7 @@
 #ifndef SRC_WAYLAND_REGISTRY_HPP_
 #define SRC_WAYLAND_REGISTRY_HPP_
 
+#include <type_traits>
 #include <wayland-client.h>
 
 namespace Wayland {
@@ -48,9 +49,15 @@ protected:
 	/**
 	 * Binds registry
 	 */
-	void* bind(const wl_interface *interface)
+	template<typename T>
+	T bind(const wl_interface *interface)
 	{
-		return wl_registry_bind(mWlRegistry, mId, interface, mVersion);
+		static_assert(std::is_pointer<T>::value, "Only pointer is acceptable.");
+		T ret = nullptr;
+		if(interface){
+			ret = static_cast<T>(wl_registry_bind(mWlRegistry, mId, interface, mVersion));
+		}
+		return ret;
 	}
 
 private:
