@@ -7,6 +7,7 @@
 ################################################################################
 
 set(SOURCES
+	Edid.cpp
 	ConnectorBase.cpp
 	PgDirSharedBuffer.cpp
 )
