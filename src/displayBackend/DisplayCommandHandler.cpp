@@ -20,6 +20,7 @@
 
 #include "DisplayCommandHandler.hpp"
 
+#include <cassert>
 #include <iomanip>
 
 #include <xen/be/Exception.hpp>
@@ -89,6 +90,11 @@ DisplayCommandHandler::DisplayCommandHandler(
 	mEventId(0),
 	mLog("CommandHandler")
 {
+	assert(display);
+	assert(connector);
+	assert(buffersStorage);
+	assert(eventBuffer);
+	
 	LOG(mLog, DEBUG) << "Create command handler, connector name: "
 					 << mConnector->getName();
 }
