@@ -85,9 +85,11 @@ struct detailed_pixel_timing {
 	uint8_t misc;
 } __attribute__((packed));
 
+#define DRM_EDID_DISPLAY_NAME_MAX_LENGTH 13
+
 /* If it's not pixel timing, it'll be one of the below */
 struct detailed_data_string {
-	uint8_t str[13];
+	uint8_t str[DRM_EDID_DISPLAY_NAME_MAX_LENGTH];
 } __attribute__((packed));
 
 struct detailed_data_monitor_range {
