@@ -162,6 +162,13 @@ void ConnectorBase::edidPutDetailedTiming(edid* edidBlock, int index,
 										  uint32_t xres, uint32_t yres,
 										  uint32_t dpi)
 {
+	/*
+	 * Detailed timing descriptors, in decreasing preference order,
+	 * followed by Display descriptors.
+	 *
+	 * We only provide a single timing here which corresponds to
+	 * XenStore configuration of this connector.
+	 */
 	detailed_timing* desc = &edidBlock->detailed_timings[index];
 	detailed_pixel_timing* pixelData = &desc->data.pixel_data;
 
@@ -234,16 +241,7 @@ void ConnectorBase::edidPutTimings(edid* edidBlock)
 	 * We do not provide any, but detailed timings.
 	 */
 	memset(edidBlock->standard_timings, 0x01,
-		   sizeof(edidBlock->standard_timings));
-
-	/*
-	 * Detailed timing descriptors, in decreasing preference order,
-	 * followed by Display descriptors.
-	 *
-	 * We only provide a single timing here which corresponds to
-	 * XenStore configuration of this connector.
-	 */
-	edidPutDetailedTiming(edidBlock, 0, mCfgWidth, mCfgHeight, EDID_DPI);
+		   sizeof(edidBlock->standard_timings));	
 }
 
 size_t ConnectorBase::getEDID(grant_ref_t startDirectory, uint32_t size)
@@ -266,6 +264,7 @@ size_t ConnectorBase::getEDID(grant_ref_t startDirectory, uint32_t size)
 	edidPutEssentials(edidBlock);
 	edidPutColorSpace(edidBlock);
 	edidPutTimings(edidBlock);
+	edidPutDetailedTiming(edidBlock, 0, mCfgWidth, mCfgHeight, EDID_DPI);
 	edidPutBlockCheckSum(static_cast<uint8_t*>(edidBuffer.get()));
 
 	return XENDISPL_EDID_BLOCK_SIZE;
