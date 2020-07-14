@@ -89,7 +89,7 @@ private:
 	void edidPutColorSpace(edid* edidBlock);
 
 	/**
-	 * * Put supported timings into the EDID
+	 * * Put established and standard timings into the EDID
 	 * * @param edidBlock buffer with EDID block
 	 * */
 	void edidPutTimings(edid* edidBlock);
@@ -97,7 +97,7 @@ private:
 	/**
 	 * Put detailed timings into the EDID
 	 * @param edidBlock buffer with EDID block
-	 * @param index     index of the detailed timings structure
+	 * @param index     index amid 4 possible 18 byte descriptors
 	 * @param xres      desired X resolution
 	 * @param yres      desired Y resolution
 	 * @param dpi       desired DPI
