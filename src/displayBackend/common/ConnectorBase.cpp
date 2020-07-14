@@ -244,6 +244,28 @@ void ConnectorBase::edidPutTimings(edid* edidBlock)
 		   sizeof(edidBlock->standard_timings));	
 }
 
+void ConnectorBase::edidPutDisplayDescritor(edid* edidBlock, int descriptorIndex)
+{
+	/*
+	 * Using second descriptor as a Display descriptor to provide display name.
+	 *
+	 * According to documentation(VESA Enhanced EDID Standard Release A, Rev.2):
+	 * Up to 13 alphanumeric characters (using ASCII codes) may be used to define the model name
+	 * of the display product. The data shall be sequenced such that the 1st byte (ASCII code) = the 1st character,
+	 * the 2nd byte (ASCII code) = the 2nd character, etc. If there are less than 13 characters in the string,
+	 * then terminate the display product name string with ASCII code ‘0Ah’ (line feed) and pad the unused bytes
+	 * in the field with ASCII code ‘20h’ (space).
+	 */
+	const char* display_name = "pv-display";
+	detailed_non_pixel* descriptor = &edidBlock->detailed_timings[descriptorIndex].data.other_data;
+	descriptor->type = EDID_DETAIL_MONITOR_NAME;
+	memset(descriptor->data.str.str, ' ', DRM_EDID_DISPLAY_NAME_MAX_LENGTH);
+	size_t length = std::min(size_t(DRM_EDID_DISPLAY_NAME_MAX_LENGTH ), strlen(display_name));
+	memcpy(descriptor->data.str.str, display_name, length);
+	if (length < DRM_EDID_DISPLAY_NAME_MAX_LENGTH)
+		descriptor->data.str.str[length] = '\n';
+}
+
 size_t ConnectorBase::getEDID(grant_ref_t startDirectory, uint32_t size)
 {
 	GrantRefs refs;
@@ -265,6 +287,7 @@ size_t ConnectorBase::getEDID(grant_ref_t startDirectory, uint32_t size)
 	edidPutColorSpace(edidBlock);
 	edidPutTimings(edidBlock);
 	edidPutDetailedTiming(edidBlock, 0, mCfgWidth, mCfgHeight, EDID_DPI);
+	edidPutDisplayDescritor(edidBlock, 1);
 	edidPutBlockCheckSum(static_cast<uint8_t*>(edidBuffer.get()));
 
 	return XENDISPL_EDID_BLOCK_SIZE;

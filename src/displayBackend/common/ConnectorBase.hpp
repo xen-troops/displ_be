@@ -95,6 +95,14 @@ private:
 	void edidPutTimings(edid* edidBlock);
 
 	/**
+	 * * Put display related data into the EDID
+	 * * @param edidBlock buffer with EDID block
+	 * * @param descriptorIndex index amid 4 possible
+	 * *        18 byte descriptors
+	 * */
+	void edidPutDisplayDescritor(edid* edidBlock, int descriptorIndex);
+
+	/**
 	 * Put detailed timings into the EDID
 	 * @param edidBlock buffer with EDID block
 	 * @param index     index amid 4 possible 18 byte descriptors
