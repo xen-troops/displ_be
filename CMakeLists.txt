@@ -15,6 +15,7 @@ OPTION(WITH_IVI_EXTENSION "build with wayland IVI Extension" ON)
 OPTION(WITH_INPUT "build with input backend" ON)
 OPTION(WITH_MOCKBELIB "build with mock backend lib" OFF)
 OPTION(WITH_DOC "build with documenation" OFF)
+OPTION(IGNORE_MODIFIER_VALUES "disable pixel format modifiers check (dangerous)" OFF)
 
 message(STATUS)
 message(STATUS "${PROJECT_NAME} Configuration:")
@@ -29,6 +30,8 @@ message(STATUS "WITH_IVI_EXTENSION            = ${WITH_IVI_EXTENSION}")
 message(STATUS "WITH_INPUT                    = ${WITH_INPUT}")
 message(STATUS)
 message(STATUS "WITH_MOCKBELIB                = ${WITH_MOCKBELIB}")
+message(STATUS)
+message(STATUS "IGNORE_MODIFIER_VALUES        = ${IGNORE_MODIFIER_VALUES}")
 message(STATUS)
 message(STATUS "XEN_INCLUDE_PATH              = ${XEN_INCLUDE_PATH}")
 message(STATUS "XENBE_INCLUDE_PATH            = ${XENBE_INCLUDE_PATH}")
@@ -90,6 +93,10 @@ endif()
 
 if(WITH_MOCKBELIB)
 	add_definitions(-DWITH_MOCKBELIB)
+endif()
+
+if(IGNORE_MODIFIER_VALUES)
+	add_definitions(-DIGNORE_MODIFIER_VALUES)
 endif()
 
 ################################################################################
