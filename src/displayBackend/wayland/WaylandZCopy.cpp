@@ -378,11 +378,24 @@ void WaylandLinuxDmabuf::sOnModifiers(void *data,
 	 *
 	 * We do not support passing modifiers from the frontend to the backend,
 	 * so ignore all formats with modifiers set.
+	 *
+	 * If IGNORE_MODIFIER_VALUES is defined, it will disable pixel format modifiers
+	 * check. This option may be useful for a host system, which supports pixel formats
+	 * without modifiers only, or a guest system with some specific pixel format
+	 * with modifiers. In that case(i.e. IGNORE_MODIFIER_VALUES defined),
+	 * some default settings may apply, and host-guest graphics buffers interaction
+	 * may proceed without issues. NOTE: default behavior may also result in multiplane
+	 * format choice, which is currently not supported by the protocol, which may lead
+	 * to incorrect buffer interpretation by the host system.
 	 */
-	if (modifierHi == 0 && modifierLo == 0)
+
+#ifndef IGNORE_MODIFIER_VALUES
+	if (modifierHi != 0 || modifierLo != 0)
 	{
-		static_cast<WaylandLinuxDmabuf*>(data)->onFormat(format);
+		return;
 	}
+#endif
+	static_cast<WaylandLinuxDmabuf*>(data)->onFormat(format);
 }
 
 void WaylandLinuxDmabuf::sOnFormat(void *data,
