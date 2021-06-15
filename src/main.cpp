@@ -128,9 +128,9 @@ bool commandLineOptions(int argc, char *argv[])
 {
 	int opt = -1;
 #ifdef WITH_ZCOPY
-	static const char* optString = "m:d:v:l:f:hz?";
+	static const char* optString = "m:d:v:l:fhz?";
 #else
-	static const char* optString = "m:d:v:l:f:h?";
+	static const char* optString = "m:d:v:l:fh?";
 #endif
 
 	while((opt = getopt(argc, argv, optString)) != -1)
@@ -294,6 +294,7 @@ int main(int argc, char *argv[])
 				 << "<module>:<level>;<module:<level>" << endl;
 			cout << "\t      use * for mask selection:"
 				 << " *:Debug,Mod*:Info" << endl;
+			cout << "\t-f -- print file and line in logs" << endl;
 
 			gRetStatus = EXIT_FAILURE;
 		}
