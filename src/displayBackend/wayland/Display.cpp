@@ -437,9 +437,22 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	LOG(mLog, DEBUG) << "Registry event, itf: " << interface << ", id: " << id
 					 << ", version: " << version;
 
+#ifdef WITH_WAYLAND_PRESENTATION_FEEDBACK
+	if (interface == wp_presentation_interface.name) {
+		mWlPresentation = (wp_presentation*)wl_registry_bind(registry, id, &wp_presentation_interface, 1);
+		if (mCompositor)
+			mCompositor->setPresentation(mWlPresentation);
+	}
+#endif
+
 	if (interface == "wl_compositor")
 	{
 		mCompositor.reset(new Compositor(mWlDisplay, registry, id, version));
+#ifdef WITH_WAYLAND_PRESENTATION_FEEDBACK
+		if (mWlPresentation) {
+			mCompositor->setPresentation(mWlPresentation);
+		}
+#endif
 	}
 
 	if (interface == "wl_shell")

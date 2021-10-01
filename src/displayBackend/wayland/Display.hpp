@@ -42,6 +42,9 @@
 #ifdef WITH_ZCOPY
 #include "WaylandZCopy.hpp"
 #endif
+#ifdef WITH_WAYLAND_PRESENTATION_FEEDBACK
+#include "presentation-time-client-protocol.h"
+#endif
 
 namespace Wayland {
 
@@ -170,6 +173,10 @@ private:
 	std::thread mThread;
 
 	std::unique_ptr<XenBackend::PollFd> mPollFd;
+
+#ifdef WITH_WAYLAND_PRESENTATION_FEEDBACK
+	wp_presentation *mWlPresentation;
+#endif
 
 	static void sWaylandLog(const char* fmt, va_list arg);
 

@@ -8,6 +8,11 @@
 #include "Compositor.hpp"
 
 #include "Exception.hpp"
+#include "Display.hpp"
+
+#ifdef WITH_WAYLAND_PRESENTATION_FEEDBACK
+#include "PresentationFeedbackSurface.hpp"
+#endif
 
 namespace Wayland {
 
@@ -15,10 +20,10 @@ namespace Wayland {
  * Compositor
  ******************************************************************************/
 
-Compositor::Compositor(wl_display* display, wl_registry* registry,
+Compositor::Compositor(wl_display* wlDisplay, wl_registry* registry,
 					  uint32_t id, uint32_t version) :
 	Registry(registry, id, version),
-	mWlDisplay(display),
+	mWlDisplay(wlDisplay),
 	mWlCompositor(nullptr),
 	mLog("Compositor")
 {
@@ -46,8 +51,12 @@ Compositor::~Compositor()
 SurfacePtr Compositor::createSurface()
 {
 	LOG(mLog, DEBUG) << "Create surface";
-
+#ifdef WITH_WAYLAND_PRESENTATION_FEEDBACK
+	assert(mWlPresentation);
+	return SurfacePtr(new PresentationFeedbackSurface(mWlCompositor, mWlPresentation));
+#else
 	return SurfacePtr(new Surface(mWlCompositor));
+#endif
 }
 
 /*******************************************************************************

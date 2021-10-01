@@ -13,6 +13,12 @@ set(SOURCES
 	SurfaceManager.cpp
 )
 
+if(WITH_WAYLAND_PRESENTATION_FEEDBACK)
+	list(APPEND SOURCES
+		PresentationFeedbackSurface.cpp
+	)
+endif()
+
 if(WITH_DRM AND WITH_ZCOPY)
 	list(APPEND SOURCES
 		WaylandZCopy.cpp
@@ -42,6 +48,12 @@ if(WITH_ZCOPY)
 		wayland_drm_protocol
 		wayland_kms_protocol
 		linux_dmabuf_unstable_v1_protocol
+	)
+endif()
+
+if(WITH_WAYLAND_PRESENTATION_FEEDBACK)
+	target_link_libraries(display_wayland
+		presentation_time_protocol
 	)
 endif()
 

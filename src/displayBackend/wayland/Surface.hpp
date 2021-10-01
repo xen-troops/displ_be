@@ -35,14 +35,14 @@ public:
 	 */
 	typedef std::function<void()> FrameCallback;
 
-	~Surface();
+	virtual ~Surface();
 
 	/**
 	 * Draws shared buffer content
 	 * @param frameBuffer  shared buffer
 	 * @param callback     called when frame with the content is displayed
 	 */
-	void draw(DisplayItf::FrameBufferPtr frameBuffer,
+	virtual void draw(DisplayItf::FrameBufferPtr frameBuffer,
 			  FrameCallback callback = nullptr);
 
 	/**
@@ -53,9 +53,9 @@ public:
 	/**
 	 * Disable callback from Wayland
 	 */
-	void disableCallback();
+	virtual void disableCallback();
 
-private:
+protected:
 
 	friend class Display;
 	friend class IviSurface;
@@ -86,7 +86,6 @@ private:
 	static void sFrameHandler(void *data, wl_callback *wl_callback,
 							  uint32_t callback_data);
 	void frameHandler();
-
 	void sendCallback();
 
 	void run();
