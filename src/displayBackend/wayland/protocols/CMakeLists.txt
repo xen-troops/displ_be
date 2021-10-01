@@ -2,6 +2,27 @@ find_program(WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
 
 if(WITH_ZCOPY)
 	add_custom_command(
+		OUTPUT  presentation-time-client-protocol.h
+		COMMAND ${WAYLAND_SCANNER_EXECUTABLE} client-header
+				< ${CMAKE_CURRENT_LIST_DIR}/presentation-time.xml
+				> ${CMAKE_CURRENT_BINARY_DIR}/presentation-time-client-protocol.h
+		DEPENDS ${CMAKE_CURRENT_LIST_DIR}/presentation-time.xml
+	)
+
+	add_custom_command(
+		OUTPUT  presentation-time-protocol.c
+		COMMAND ${WAYLAND_SCANNER_EXECUTABLE} code
+				< ${CMAKE_CURRENT_LIST_DIR}/presentation-time.xml
+				> ${CMAKE_CURRENT_BINARY_DIR}/presentation-time-protocol.c
+		DEPENDS ${CMAKE_CURRENT_LIST_DIR}/presentation-time.xml
+	)
+
+	add_library(presentation_time_protocol STATIC
+		${CMAKE_CURRENT_BINARY_DIR}/presentation-time-client-protocol.h
+		${CMAKE_CURRENT_BINARY_DIR}/presentation-time-protocol.c
+	)
+
+	add_custom_command(
 		OUTPUT  wayland-drm-client-protocol.h
 		COMMAND ${WAYLAND_SCANNER_EXECUTABLE} client-header
 				< ${CMAKE_CURRENT_LIST_DIR}/wayland-drm.xml

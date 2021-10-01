@@ -136,6 +136,7 @@ public:
 
 private:
 
+	wp_presentation *mPresentation{nullptr};
 	wl_display* mWlDisplay;
 	wl_registry* mWlRegistry;
 	wl_registry_listener mWlRegistryListener;

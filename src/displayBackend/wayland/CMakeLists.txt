@@ -42,6 +42,7 @@ if(WITH_ZCOPY)
 		wayland_drm_protocol
 		wayland_kms_protocol
 		linux_dmabuf_unstable_v1_protocol
+		presentation_time_protocol
 	)
 endif()
 

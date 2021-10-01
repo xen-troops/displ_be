@@ -10,6 +10,10 @@
 
 #include "Exception.hpp"
 #include "FrameBuffer.hpp"
+#include "Compositor.hpp"
+
+#include <sys/time.h>
+
 
 using std::chrono::milliseconds;
 using std::mutex;
@@ -24,18 +28,19 @@ namespace Wayland {
  * Surface
  ******************************************************************************/
 
-Surface::Surface(wl_compositor* compositor) :
+Surface::Surface(Compositor* compositor) :
 	mWlSurface(nullptr),
 	mWlFrameCallback(nullptr),
 	mBuffer(nullptr),
 	mTerminate(false),
 	mWaitForFrame(false),
-	mLog("Surface")
+	mLog("Surface"),
+	mCompositor(compositor)
 {
 	assert(compositor != nullptr);
 	try
 	{
-		init(compositor);
+		init(mCompositor->getCompositor());
 	}
 	catch(const std::exception& e)
 	{
@@ -43,6 +48,11 @@ Surface::Surface(wl_compositor* compositor) :
 
 		throw;
 	}
+
+	mPresentationFeedbackListener = {
+		sPresentationFeedbackHandleSyncOutput, sPresentationFeedbackHandlePresented,
+		sPresentationFeedbackHandleDiscarded
+	};
 }
 
 Surface::~Surface()
@@ -63,25 +73,6 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 
 	mStoredCallback = callback;
 
-	if (mStoredCallback && !mWaitForFrame)
-	{
-		if (!mWlFrameCallback)
-		{
-			mWlFrameCallback = wl_surface_frame(mWlSurface);
-
-			if (!mWlFrameCallback)
-			{
-				throw Exception("Can't get frame callback", errno);
-			}
-
-			if (wl_callback_add_listener(mWlFrameCallback,
-					&mWlFrameListener, this) < 0)
-			{
-				throw Exception("Can't add listener", errno);
-			}
-		}
-	}
-
 	mBuffer = dynamic_cast<WlBuffer*>(frameBuffer.get());
 
 	if (!mBuffer)
@@ -99,7 +90,15 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 
 	wl_surface_commit(mWlSurface);
 
+	auto presentation = mCompositor->getPresentation();
+	if (presentation)
+	{
+		mFeedback = wp_presentation_feedback(presentation, mWlSurface);
+		wp_presentation_feedback_add_listener(mFeedback, &mPresentationFeedbackListener, this);
+	}
+
 	mCondVar.notify_one();
+
 }
 
 void Surface::clear()
@@ -118,22 +117,30 @@ void Surface::clear()
 /*******************************************************************************
  * Private
  ******************************************************************************/
-void Surface::sFrameHandler(void *data, wl_callback *wl_callback,
-							uint32_t callback_data)
-{
-	static_cast<Surface*>(data)->frameHandler();
+void Surface::sPresentationFeedbackHandleSyncOutput(void *data,
+	struct wp_presentation_feedback *feedback, struct wl_output *output) {
+	/* Not interested */
 }
 
-void Surface::frameHandler()
-{
+void Surface::sPresentationFeedbackHandlePresented(void *data,
+		struct wp_presentation_feedback *wp_feedback, uint32_t tv_sec_hi,
+		uint32_t tv_sec_lo, uint32_t tv_nsec, uint32_t refresh_ns,
+		uint32_t seq_hi, uint32_t seq_lo, uint32_t flags) {
+			static_cast<Surface*>(data)->framePresented(wp_feedback, tv_sec_hi, tv_sec_lo, tv_nsec, refresh_ns,
+		seq_hi, seq_lo, flags);
+		wp_presentation_feedback_destroy(wp_feedback);
+}
+
+void Surface::sPresentationFeedbackHandleDiscarded(void *data,
+	struct wp_presentation_feedback *wp_feedback) {
+	wp_presentation_feedback_destroy(wp_feedback);
+}
+
+void Surface::framePresented(struct wp_presentation_feedback *wp_feedback, uint32_t tv_sec_hi,
+		uint32_t tv_sec_lo, uint32_t tv_nsec, uint32_t refresh_ns,
+		uint32_t seq_hi, uint32_t seq_lo, uint32_t flags) {
 	unique_lock<mutex> lock(mMutex);
-
-	DLOG(mLog, DEBUG) << "Frame handler";
-
-	wl_callback_destroy(mWlFrameCallback);
-
-	mWlFrameCallback = nullptr;
-
+	DLOG(mLog, DEBUG) << "Presentation feedback";
 	sendCallback();
 
 	if (mWaitForFrame)
@@ -204,8 +211,6 @@ void Surface::init(wl_compositor* compositor)
 	{
 		throw Exception("Can't create surface", errno);
 	}
-
-	mWlFrameListener = { sFrameHandler };
 
 	mThread = thread(&Surface::run, this);
 

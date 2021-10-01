@@ -16,11 +16,13 @@
 
 #include <xen/be/Log.hpp>
 
+#include "presentation-time-client-protocol.h"
 #include "DisplayItf.hpp"
 
 namespace Wayland {
 
 class WlBuffer;
+class Compositor;
 
 /***************************************************************************//**
  * Wayland surface class.
@@ -61,7 +63,7 @@ private:
 
 	const uint32_t cFrameTimeoutMs = 50;
 
-	explicit Surface(wl_compositor* compositor);
+	explicit Surface(Compositor* compositor);
 
 	wl_surface* mWlSurface;
 	wl_callback *mWlFrameCallback;
@@ -74,13 +76,23 @@ private:
 	std::condition_variable mCondVar;
 	std::thread mThread;
 
-	wl_callback_listener mWlFrameListener;
+	wp_presentation *mPresentation{nullptr};
+	wp_presentation_feedback_listener mPresentationFeedbackListener;
+	struct wp_presentation_feedback* mFeedback{nullptr};
+	Compositor* mCompositor{nullptr};
 
 	FrameCallback mStoredCallback;
 
-	static void sFrameHandler(void *data, wl_callback *wl_callback,
-							  uint32_t callback_data);
-	void frameHandler();
+	static void sPresentationFeedbackHandleSyncOutput(void *data,
+		struct wp_presentation_feedback *feedback, struct wl_output *output);
+
+	static void sPresentationFeedbackHandlePresented(void *data,
+		struct wp_presentation_feedback *wp_feedback, uint32_t tv_sec_hi,
+		uint32_t tv_sec_lo, uint32_t tv_nsec, uint32_t refresh_ns,
+		uint32_t seq_hi, uint32_t seq_lo, uint32_t flags);
+
+	static void sPresentationFeedbackHandleDiscarded(void *data,
+		struct wp_presentation_feedback *wp_feedback);
 
 	void sendCallback();
 
@@ -89,6 +101,10 @@ private:
 
 	void init(wl_compositor* compositor);
 	void release();
+
+	void framePresented(struct wp_presentation_feedback *wp_feedback, uint32_t tv_sec_hi,
+		uint32_t tv_sec_lo, uint32_t tv_nsec, uint32_t refresh_ns,
+		uint32_t seq_hi, uint32_t seq_lo, uint32_t flags);
 };
 
 typedef std::shared_ptr<Surface> SurfacePtr;

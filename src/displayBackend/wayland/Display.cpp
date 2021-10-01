@@ -424,9 +424,18 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	LOG(mLog, DEBUG) << "Registry event, itf: " << interface << ", id: " << id
 					 << ", version: " << version;
 
+	if (interface == wp_presentation_interface.name) {
+		mPresentation =
+			(wp_presentation*)wl_registry_bind(registry, id, &wp_presentation_interface, 1);
+		if(mCompositor)
+			mCompositor->setPresentation(mPresentation);
+	}
+
 	if (interface == "wl_compositor")
 	{
 		mCompositor.reset(new Compositor(mWlDisplay, registry, id, version));
+		if(mPresentation)
+			mCompositor->setPresentation(mPresentation);
 	}
 
 	if (interface == "wl_shell")

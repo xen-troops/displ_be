@@ -31,6 +31,9 @@ public:
 	 * Creates surface
 	 */
 	SurfacePtr createSurface();
+	void setPresentation(wp_presentation* p);
+	wp_presentation* getPresentation() const;
+	wl_compositor* getCompositor() const;
 
 private:
 
@@ -40,7 +43,8 @@ private:
 			   uint32_t id, uint32_t version);
 
 	wl_display* mWlDisplay;
-	wl_compositor* mWlCompositor;
+	wl_compositor* mWlCompositor{nullptr};
+	wp_presentation* mPresentation{nullptr};
 	XenBackend::Log mLog;
 
 	void init();

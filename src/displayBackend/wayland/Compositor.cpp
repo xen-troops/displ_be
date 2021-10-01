@@ -19,7 +19,6 @@ Compositor::Compositor(wl_display* display, wl_registry* registry,
 					  uint32_t id, uint32_t version) :
 	Registry(registry, id, version),
 	mWlDisplay(display),
-	mWlCompositor(nullptr),
 	mLog("Compositor")
 {
 	try
@@ -46,8 +45,7 @@ Compositor::~Compositor()
 SurfacePtr Compositor::createSurface()
 {
 	LOG(mLog, DEBUG) << "Create surface";
-
-	return SurfacePtr(new Surface(mWlCompositor));
+	return SurfacePtr(new Surface(this));
 }
 
 /*******************************************************************************
@@ -74,6 +72,21 @@ void Compositor::release()
 
 		LOG(mLog, DEBUG) << "Delete";
 	}
+}
+
+void Compositor::setPresentation(wp_presentation* p)
+{
+	mPresentation = p;
+}
+
+wp_presentation* Compositor::getPresentation() const
+{
+	return mPresentation;
+}
+
+wl_compositor* Compositor::getCompositor() const
+{
+	return mWlCompositor;
 }
 
 }
