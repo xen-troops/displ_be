@@ -45,6 +45,12 @@ if(WITH_ZCOPY)
 	)
 endif()
 
+if(WITH_WAYLAND_PRESENTATION_API)
+	target_link_libraries(display_wayland
+		presentation_time_protocol
+	)
+endif()
+
 target_link_libraries(display_wayland ${WAYLAND_LIBRARIES})
 
 if(WITH_IVI_EXTENSION)

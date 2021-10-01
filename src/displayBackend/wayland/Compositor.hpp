@@ -31,6 +31,19 @@ public:
 	 * Creates surface
 	 */
 	SurfacePtr createSurface();
+	wl_compositor* getCompositor() const {
+		return mWlCompositor;
+	}
+
+#ifdef WITH_WAYLAND_PRESENTATION_API
+	void setPresentation(wp_presentation* p) {
+		mWlPresentation = p;
+	}
+
+	wp_presentation* getPresentation() const {
+		return mWlPresentation;
+	}
+#endif
 
 private:
 
@@ -40,7 +53,10 @@ private:
 			   uint32_t id, uint32_t version);
 
 	wl_display* mWlDisplay;
-	wl_compositor* mWlCompositor;
+	wl_compositor* mWlCompositor{nullptr};
+#ifdef WITH_WAYLAND_PRESENTATION_API
+	wp_presentation* mWlPresentation{nullptr};
+#endif
 	XenBackend::Log mLog;
 
 	void init();

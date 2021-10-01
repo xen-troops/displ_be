@@ -136,6 +136,10 @@ public:
 
 private:
 
+#ifdef WITH_WAYLAND_PRESENTATION_API
+	wp_presentation *mWlPresentation{nullptr};
+#endif
+
 	wl_display* mWlDisplay;
 	wl_registry* mWlRegistry;
 	wl_registry_listener mWlRegistryListener;

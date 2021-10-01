@@ -437,9 +437,24 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 	LOG(mLog, DEBUG) << "Registry event, itf: " << interface << ", id: " << id
 					 << ", version: " << version;
 
+#ifdef WITH_WAYLAND_PRESENTATION_API
+	if (interface == wp_presentation_interface.name) {
+		mWlPresentation =
+			(wp_presentation*)wl_registry_bind(registry, id, &wp_presentation_interface, 1);
+		if(mCompositor)
+			mCompositor->setPresentation(mWlPresentation);
+		LOG(mLog, INFO) << "Using wayland presentation API to deliver callbacks ";
+	}
+#endif
+
 	if (interface == "wl_compositor")
 	{
 		mCompositor.reset(new Compositor(mWlDisplay, registry, id, version));
+#ifdef WITH_WAYLAND_PRESENTATION_API
+		if(mWlPresentation) {
+			mCompositor->setPresentation(mWlPresentation);
+		}
+#endif
 	}
 
 	if (interface == "wl_shell")
@@ -552,6 +567,12 @@ void Display::release()
 #ifdef WITH_DMABUF_ZCOPY
 	mWaylandLinuxDmabuf.reset();
 #endif
+#endif
+
+#ifdef WITH_WAYLAND_PRESENTATION_API
+	if(mCompositor)
+		mCompositor->setPresentation(nullptr);
+	wp_presentation_destroy(mWlPresentation);
 #endif
 
 	if (mWlRegistry)
