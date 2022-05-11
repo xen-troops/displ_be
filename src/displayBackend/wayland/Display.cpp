@@ -184,23 +184,29 @@ DisplayBufferPtr Display::createDisplayBuffer(
 
 #ifdef WITH_ZCOPY
 
+#ifdef WITH_DRM_ZCOPY
 	if (mWaylandDrm)
 	{
 		return mWaylandDrm->createDumb(width, height, bpp, offset,
 									   domId, refs, allocRefs);
 	}
+#endif
 
+#ifdef WITH_KMS_ZCOPY
 	if (mWaylandKms)
 	{
 		return mWaylandKms->createDumb(width, height, bpp, offset,
 									   domId, refs, allocRefs);
 	}
+#endif
 
+#ifdef WITH_DMABUF_ZCOPY
 	if (mWaylandLinuxDmabuf)
 	{
 		return mWaylandLinuxDmabuf->createDumb(width, height, bpp, offset,
 											   domId, refs, allocRefs);
 	}
+#endif
 
 #endif
 
@@ -221,24 +227,31 @@ FrameBufferPtr Display::createFrameBuffer(DisplayBufferPtr displayBuffer,
 
 #ifdef WITH_ZCOPY
 
+#ifdef WITH_DRM_ZCOPY
 	if (mWaylandDrm)
 	{
 		return mWaylandDrm->createDrmBuffer(displayBuffer, width, height,
 											pixelFormat);
 	}
+#endif
 
+#ifdef WITH_KMS_ZCOPY
 	if (mWaylandKms)
 	{
 		return mWaylandKms->createKmsBuffer(displayBuffer, width, height,
 											pixelFormat);
 	}
+#endif
 
+
+#ifdef WITH_DMABUF_ZCOPY
 	if (mWaylandLinuxDmabuf)
 	{
 		return mWaylandLinuxDmabuf->createLinuxDmabufBuffer(displayBuffer,
 															width, height,
 															pixelFormat);
 	}
+#endif
 
 #endif
 
@@ -453,18 +466,24 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 #ifdef WITH_ZCOPY
 	if (!mDisableZCopy)
 	{
+#ifdef WITH_DRM_ZCOPY
 		if (interface == "wl_drm")
 		{
 			mWaylandDrm.reset(new WaylandDrm(registry, id, version));
 		}
+#endif
+#ifdef WITH_KMS_ZCOPY
 		if (interface == "wl_kms")
 		{
 			mWaylandKms.reset(new WaylandKms(registry, id, version));
 		}
+#endif
+#ifdef WITH_DMABUF_ZCOPY
 		if (interface == "zwp_linux_dmabuf_v1")
 		{
 			mWaylandLinuxDmabuf.reset(new WaylandLinuxDmabuf(registry, id, version));
 		}
+#endif
 	}
 #endif
 }
@@ -524,9 +543,15 @@ void Display::release()
 	mSeat.reset();
 #endif
 #ifdef WITH_ZCOPY
+#ifdef WITH_DRM_ZCOPY
 	mWaylandDrm.reset();
+#endif
+#ifdef WITH_KMS_ZCOPY
 	mWaylandKms.reset();
+#endif
+#ifdef WITH_DMABUF_ZCOPY
 	mWaylandLinuxDmabuf.reset();
+#endif
 #endif
 
 	if (mWlRegistry)
