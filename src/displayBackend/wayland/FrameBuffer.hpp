@@ -73,7 +73,7 @@ public:
 		return mDisplayBuffer;
 	}
 
-	void setSurface(Surface* surface);
+	void setSurface(std::weak_ptr<Surface> surface);
 
 protected:
 
@@ -92,7 +92,7 @@ private:
 
 	wl_buffer_listener mWlListener;
 
-	Surface* mSurface;
+	std::weak_ptr<Surface> mSurface;
 
 	std::mutex mMutex;
 

@@ -22,6 +22,7 @@
 #include "Connector.hpp"
 #include "Exception.hpp"
 #include "SurfaceManager.hpp"
+#include "FrameBuffer.hpp"
 
 using DisplayItf::FrameBufferPtr;
 
@@ -76,6 +77,7 @@ void Connector::pageFlip(FrameBufferPtr frameBuffer, FlipCallback cbk)
 	}
 
 	mSurface->draw(frameBuffer, cbk);
+	dynamic_cast<WlBuffer*>(frameBuffer.get())->setSurface(mSurface);
 }
 
 /*******************************************************************************

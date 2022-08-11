@@ -41,18 +41,17 @@ WlBuffer::WlBuffer(DisplayBufferPtr displayBuffer,
 	mWidth(width),
 	mHeight(height),
 	mWlBuffer(nullptr),
-	mLog("WlBuffer"),
-	mSurface(nullptr)
+	mLog("WlBuffer")
 {
 }
 
 WlBuffer::~WlBuffer()
 {
 	lock_guard<mutex> lock(mMutex);
+	auto surfaceSharedPtr = mSurface.lock();
 
-	if (mSurface)
-	{
-		mSurface->clear();
+	if (surfaceSharedPtr) {
+		surfaceSharedPtr->clear();
 	}
 
 	if (mWlBuffer)
@@ -95,11 +94,11 @@ void WlBuffer::onRelease()
 
 	LOG(mLog, DEBUG) << "Release";
 
-	mSurface = nullptr;
+	mSurface.reset();
 }
 
 
-void WlBuffer::setSurface(Surface* surface)
+void WlBuffer::setSurface(std::weak_ptr<Surface> surface)
 {
 	lock_guard<mutex> lock(mMutex);
 

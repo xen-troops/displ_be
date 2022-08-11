@@ -89,8 +89,6 @@ void Surface::draw(FrameBufferPtr frameBuffer,
 		throw Exception("FrameBuffer must have type WlBuffer.", EINVAL);
 	}
 
-	mBuffer->setSurface(this);
-	
 	wl_surface_damage(mWlSurface, 0, 0,
 					  mBuffer->getWidth(),
 					  mBuffer->getHeight());
@@ -214,11 +212,6 @@ void Surface::init(wl_compositor* compositor)
 
 void Surface::release()
 {
-	if (mBuffer)
-	{
-		mBuffer->setSurface(nullptr);
-	}
-
 	clear();
 
 	stop();
