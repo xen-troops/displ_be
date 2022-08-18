@@ -44,6 +44,11 @@ Connector::Connector(domid_t domId, const std::string& name,
 
 Connector::~Connector()
 {
+	if (mSurface)
+	{
+		mSurface->disableCallback();
+	}
+
 	if (isInitialized())
 	{
 		release();

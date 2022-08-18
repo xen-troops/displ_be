@@ -62,7 +62,7 @@ CtrlRingBuffer::CtrlRingBuffer(DisplayPtr display,
 							   evtchn_port_t port, grant_ref_t ref) :
 	RingBufferInBase<xen_displif_back_ring, xen_displif_sring,
 					 xendispl_req, xendispl_resp>(domId, port, ref),
-	mCommandHandler(display, connector, buffersStorage, eventBuffer),
+	mCommandHandler(display, std::move(connector), buffersStorage, eventBuffer),
 	mLog("ConCtrlRing")
 {
 	LOG(mLog, DEBUG) << "Create ctrl ring buffer";
@@ -138,7 +138,7 @@ void DisplayFrontendHandler::createConnector(const string& conPath,
 
 	CtrlRingBufferPtr ctrlRingBuffer(
 			new CtrlRingBuffer(mDisplay,
-							   connector,
+							   std::move(connector),
 							   bufferStorage,
 							   eventRingBuffer,
 							   getDomId(), port, ref));

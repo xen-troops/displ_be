@@ -207,7 +207,7 @@ private:
 };
 #endif
 
-typedef std::shared_ptr<Connector> ConnectorPtr;
+typedef std::unique_ptr<Connector> ConnectorPtr;
 
 }
 

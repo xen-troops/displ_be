@@ -84,14 +84,14 @@ DisplayCommandHandler::DisplayCommandHandler(
 		BuffersStoragePtr buffersStorage,
 		EventRingBufferPtr eventBuffer) :
 	mDisplay(display),
-	mConnector(connector),
+	mConnector(std::move(connector)),
 	mBuffersStorage(buffersStorage),
 	mEventBuffer(eventBuffer),
 	mEventId(0),
 	mLog("CommandHandler")
 {
 	assert(display);
-	assert(connector);
+	assert(mConnector);
 	assert(buffersStorage);
 	assert(eventBuffer);
 	

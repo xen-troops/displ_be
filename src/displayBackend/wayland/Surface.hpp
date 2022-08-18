@@ -50,6 +50,11 @@ public:
 	 */
 	void clear();
 
+	/**
+	 * Disable callback from Wayland
+	 */
+	void disableCallback();
+
 private:
 
 	friend class Display;

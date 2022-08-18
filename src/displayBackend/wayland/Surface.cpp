@@ -54,6 +54,18 @@ Surface::~Surface()
  * Public
  ******************************************************************************/
 
+void Surface::disableCallback()
+{
+	unique_lock<mutex> lock(mMutex);
+
+	mStoredCallback = nullptr;
+	if (mWlFrameCallback)
+	{
+		wl_callback_destroy(mWlFrameCallback);
+		mWlFrameCallback = nullptr;
+	}
+}
+
 void Surface::draw(FrameBufferPtr frameBuffer,
 				   FrameCallback callback)
 {
@@ -212,18 +224,13 @@ void Surface::init(wl_compositor* compositor)
 
 void Surface::release()
 {
+	disableCallback();
 	clear();
-
 	stop();
 
 	if (mThread.joinable())
 	{
 		mThread.join();
-	}
-
-	if (mWlFrameCallback)
-	{
-		wl_callback_destroy(mWlFrameCallback);
 	}
 
 	if (mWlSurface)

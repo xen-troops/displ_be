@@ -185,7 +185,7 @@ public:
 	virtual size_t getEDID(grant_ref_t startDirectory, uint32_t size) const = 0;
 };
 
-typedef std::shared_ptr<Connector> ConnectorPtr;
+typedef std::unique_ptr<Connector> ConnectorPtr;
 
 /***************************************************************************//**
  * Display interface class.
