@@ -50,6 +50,11 @@ SurfacePtr Compositor::createSurface()
 	return SurfacePtr(new Surface(mWlCompositor));
 }
 
+void Compositor::displayRpundtrip()
+{
+	wl_display_roundtrip(mWlDisplay);
+}
+
 /*******************************************************************************
  * Private
  ******************************************************************************/

@@ -126,6 +126,11 @@ public:
 			mShellSurface = mShell->createShellSurface(mCompositor->createSurface());
 
 			mShellSurface->setTopLevel();
+			/*
+			* At this point of time we submitted surface configuration and
+			* will block until the compositor process all of it and provides feedback.
+			*/
+			mCompositor->displayRpundtrip();
 		}
 
 		onInit(mShellSurface->getSurface(), frameBuffer);

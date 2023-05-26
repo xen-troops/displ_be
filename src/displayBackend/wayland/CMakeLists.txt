@@ -37,6 +37,10 @@ endif()
 
 add_library(display_wayland STATIC ${SOURCES})
 
+target_link_libraries(display_wayland
+	xdg_shell_protocol
+)
+
 if(WITH_ZCOPY)
 	target_link_libraries(display_wayland
 		wayland_drm_protocol

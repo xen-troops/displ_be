@@ -115,6 +115,13 @@ void Surface::clear()
 	wl_surface_commit(mWlSurface);
 }
 
+void Surface::handleSurfaceConfiguration(xdg_surface *xdg_surface, uint32_t serial)
+{
+	unique_lock<mutex> lock(mMutex);
+
+	xdg_surface_ack_configure(xdg_surface, serial);
+}
+
 /*******************************************************************************
  * Private
  ******************************************************************************/
