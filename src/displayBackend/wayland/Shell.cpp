@@ -17,7 +17,7 @@ namespace Wayland {
 
 Shell::Shell(wl_registry* registry, uint32_t id, uint32_t version) :
 	Registry(registry, id, version),
-	mWlShell(nullptr),
+	mXDGShell(nullptr),
 	mLog("Shell")
 {
 	try
@@ -44,7 +44,7 @@ ShellSurfacePtr Shell::createShellSurface(SurfacePtr surface)
 {
 	LOG(mLog, DEBUG) << "Create shell surface";
 
-	return ShellSurfacePtr(new ShellSurface(mWlShell, surface));
+	return ShellSurfacePtr(new ShellSurface(mXDGShell, surface));
 }
 
 /*******************************************************************************
@@ -53,21 +53,34 @@ ShellSurfacePtr Shell::createShellSurface(SurfacePtr surface)
 
 void Shell::init()
 {
-	mWlShell = bind<wl_shell*>(&wl_shell_interface);
+	mXDGShell = bind<xdg_wm_base*>(&xdg_wm_base_interface);
 
-	if (!mWlShell)
+	if (!mXDGShell)
 	{
 		throw Exception("Can't bind shell", errno);
+	}
+
+	mWlListener = {sPingHandler};
+
+	if (xdg_wm_base_add_listener(mXDGShell, &mWlListener, this) < 0)
+	{
+		throw Exception("Can't add xdg_wm_base_add_listener", errno);
 	}
 
 	LOG(mLog, DEBUG) << "Create";
 }
 
+void Shell::sPingHandler(void *data, xdg_wm_base *shell_surface,
+								uint32_t serial)
+{
+	xdg_wm_base_pong(shell_surface, serial);
+}
+
 void Shell::release()
 {
-	if (mWlShell)
+	if (mXDGShell)
 	{
-		wl_shell_destroy(mWlShell);
+		xdg_wm_base_destroy(mXDGShell);
 
 		LOG(mLog, DEBUG) << "Delete";
 	}

@@ -442,7 +442,7 @@ void Display::registryHandler(wl_registry *registry, uint32_t id,
 		mCompositor.reset(new Compositor(mWlDisplay, registry, id, version));
 	}
 
-	if (interface == "wl_shell")
+	if (interface == "xdg_wm_base")
 	{
 		mShell.reset(new Shell(registry, id, version));
 	}

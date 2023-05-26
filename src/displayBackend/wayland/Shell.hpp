@@ -13,6 +13,8 @@
 #include "Registry.hpp"
 #include "ShellSurface.hpp"
 
+#include "xdg-shell-client-protocol.h"
+
 namespace Wayland {
 
 /***************************************************************************//**
@@ -37,8 +39,12 @@ private:
 
 	Shell(wl_registry* registry, uint32_t id, uint32_t version);
 
-	wl_shell* mWlShell;
+	static void sPingHandler(void *data, xdg_wm_base *shell_surface,
+							 uint32_t serial);
+
+	xdg_wm_base* mXDGShell;
 	XenBackend::Log mLog;
+	xdg_wm_base_listener mWlListener;
 
 	void init();
 	void release();

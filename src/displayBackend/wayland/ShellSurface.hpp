@@ -16,6 +16,8 @@
 
 #include "Surface.hpp"
 
+#include "xdg-shell-client-protocol.h"
+
 namespace Wayland {
 
 /***************************************************************************//**
@@ -34,11 +36,6 @@ public:
 	void setTopLevel();
 
 	/**
-	 * Sets shell surface as fullscreen
-	 */
-	void setFullScreen();
-
-	/**
 	 * Returns associated surface
 	 */
 	SurfacePtr getSurface() const { return mSurface; }
@@ -48,25 +45,20 @@ private:
 	friend class Display;
 	friend class Shell;
 
-	ShellSurface(wl_shell* shell, SurfacePtr surface);
+	ShellSurface(xdg_wm_base* shell, SurfacePtr surface);
 
-	wl_shell_surface* mWlShellSurface;
+	xdg_surface* mXDGSurface;
 	SurfacePtr mSurface;
-	wl_shell_surface_listener mWlListener;
+	xdg_surface_listener mXDGSurfaceListener;
+	xdg_toplevel *mXDGToplevel;
 
 	XenBackend::Log mLog;
 
-	static void sPingHandler(void *data, wl_shell_surface *shell_surface,
-							 uint32_t serial);
-	static void sConfigHandler(void *data, wl_shell_surface *shell_surface,
-							   uint32_t edges, int32_t width, int32_t height);
-	static void sPopupDone(void *data, wl_shell_surface *shell_surface);
+	static void sConfigHandler(void *data, xdg_surface *xdg_surface, uint32_t serial);
 
-	void pingHandler(uint32_t serial);
-	void configHandler(uint32_t edges, int32_t width, int32_t height);
-	void popupDone();
+	void configHandler(xdg_surface *xdg_surface, uint32_t serial);
 
-	void init(wl_shell* shell);
+	void init(xdg_wm_base* shell);
 	void release();
 };
 

@@ -1,5 +1,27 @@
 find_program(WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
 
+add_custom_command(
+	OUTPUT  xdg-shell-client-protocol.h
+	COMMAND ${WAYLAND_SCANNER_EXECUTABLE} client-header
+			< ${CMAKE_CURRENT_LIST_DIR}/xdg-shell.xml
+			> ${CMAKE_CURRENT_BINARY_DIR}/xdg-shell-client-protocol.h
+	DEPENDS ${CMAKE_CURRENT_LIST_DIR}/xdg-shell.xml
+)
+
+add_custom_command(
+	OUTPUT  xdg-shell-protocol.c
+	COMMAND ${WAYLAND_SCANNER_EXECUTABLE} private-code
+			< ${CMAKE_CURRENT_LIST_DIR}/xdg-shell.xml
+			> ${CMAKE_CURRENT_BINARY_DIR}/xdg-shell-protocol.c
+	DEPENDS ${CMAKE_CURRENT_LIST_DIR}/xdg-shell.xml
+)
+
+
+add_library(xdg_shell_protocol STATIC
+	${CMAKE_CURRENT_BINARY_DIR}/xdg-shell-client-protocol.h
+	${CMAKE_CURRENT_BINARY_DIR}/xdg-shell-protocol.c
+)
+
 if(WITH_ZCOPY)
 	add_custom_command(
 		OUTPUT  wayland-drm-client-protocol.h

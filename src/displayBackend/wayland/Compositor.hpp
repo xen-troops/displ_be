@@ -32,6 +32,12 @@ public:
 	 */
 	SurfacePtr createSurface();
 
+	/**
+	 * Blocks until the compositor process all currently issued requests and sends
+	 * out pending events on all event queues.
+	 */
+	void displayRpundtrip();
+
 private:
 
 	friend class Display;

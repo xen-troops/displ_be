@@ -18,6 +18,8 @@
 
 #include "DisplayItf.hpp"
 
+#include "xdg-shell-client-protocol.h"
+
 namespace Wayland {
 
 class WlBuffer;
@@ -49,6 +51,11 @@ public:
 	 * Clear surface
 	 */
 	void clear();
+
+	/**
+	 * Handles xdg_surface configuration change from the compositor
+	 */
+	void handleSurfaceConfiguration(xdg_surface *xdg_surface, uint32_t serial);
 
 private:
 
